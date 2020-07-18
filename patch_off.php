@@ -2,14 +2,18 @@
 //
 // V1.6
 //
-	global $wpdb;
-	$nom = $wpdb->base_prefix.'geonamesPostal';
-	if($wpdb->get_var("SHOW TABLES LIKE '$nom'")!=$nom) {
-		require_once(ABSPATH.'wp-admin/includes/upgrade.php'); // dbDelta()
-		$charset_collate = '';
-		if(!empty($wpdb->charset)) $charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
-		if(!empty($wpdb->collate)) $charset_collate .= " COLLATE $wpdb->collate";
-		$sql = "CREATE TABLE ".$nom." (
+global $wpdb;
+$nom = $wpdb->base_prefix . 'geonamesPostal';
+if ( $wpdb->get_var( "SHOW TABLES LIKE '$nom'" ) != $nom ) {
+	require_once( ABSPATH . 'wp-admin/includes/upgrade.php' ); // dbDelta()
+	$charset_collate = '';
+	if ( ! empty( $wpdb->charset ) ) {
+		$charset_collate = "DEFAULT CHARACTER SET $wpdb->charset";
+	}
+	if ( ! empty( $wpdb->collate ) ) {
+		$charset_collate .= " COLLATE $wpdb->collate";
+	}
+	$sql = "CREATE TABLE " . $nom . " (
 			`idwpgnp` bigint(20) unsigned NOT NULL auto_increment,
 			`country_code` varchar(2) NOT NULL,
 			`postal_code` varchar(20) NOT NULL,
@@ -26,12 +30,12 @@
 			PRIMARY KEY (`idwpgnp`),
 			INDEX `index1` (`country_code`,`postal_code`,`place_name`(3))
 			) $charset_collate;";
-		dbDelta($sql);
-	}
+	dbDelta( $sql );
+}
 
 //
 // END PATCH - PATCH OFF
 //
-@copy(dirname(__FILE__).'/patch.php', dirname(__FILE__).'/patch_off.php');
-@unlink(dirname(__FILE__).'/patch.php');
+@copy( dirname( __FILE__ ) . '/patch.php', dirname( __FILE__ ) . '/patch_off.php' );
+@unlink( dirname( __FILE__ ) . '/patch.php' );
 ?>
