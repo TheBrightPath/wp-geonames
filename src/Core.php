@@ -76,7 +76,7 @@ class Core {
 
 		self::$wpdb = new WpDb();
 
-		$this->plugin_file       = $file;
+		$this->plugin_file       = $file ?? self::$instance->getPluginFileFull();
 		$this->tblCountries      = self::$wpdb->base_prefix . self::tblCountries;
 		$this->tblLocations      = self::$wpdb->base_prefix . self::tblLocations;
 		$this->tblCacheLocations = self::$wpdb->base_prefix . self::tblLocationsCache;
@@ -3034,7 +3034,7 @@ SQL;
 		);
 	}
 
-	public static function Factory( $file ) {
+	public static function Factory( $file = null ) {
 		return self::$instance
 			?: self::$instance = new self( $file );
 	}
