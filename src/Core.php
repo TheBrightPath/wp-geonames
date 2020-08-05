@@ -19,7 +19,7 @@ class Core {
 
 	// constants
 	// version
-	const geoVersion = "2.0.2";
+	const geoVersion = "2.0.3";
 
 	// tables constants
 	const tblCountries = self::tblPrefix . 'countries';
