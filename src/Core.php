@@ -2559,12 +2559,12 @@ SQL;
 			$upl = $upl['basedir'] . "/wp-geonames/$name";
 		}
 
-		if ( ! is_dir( $upl ) && ( ! mkdir( $upl, true ) || ! is_dir( $upl ) ) ) {
+		if ( ! is_dir( $upl ) && ( ! mkdir( $upl, 0775, true ) || ! is_dir( $upl ) ) ) {
 			_e( 'Could not create download directory.', 'wpGeonames' );
 		}
 
 		if ( $force || ! is_file( "$upl/$txtFile" ) ) {
-
+			mkdir( $upl, 0775, true );
 			// 1. Get ZIP from URL - Copy to uploads/wp-geonames/$name/ folder
 			if ( ! copy( $url, "$upl/$zipFile" ) ) {
 				//$errors = error_get_last();
