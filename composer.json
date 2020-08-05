@@ -1,5 +1,6 @@
 {
     "name": "metaworx/wp-geonames",
+    "version": "2.0.1",
     "description": "WP Geonames Plugin",
     "license": "GPL-3.0",
     "repositories": {
