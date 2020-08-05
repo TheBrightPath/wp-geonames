@@ -3278,21 +3278,21 @@ SQL;
 			?: self::$enums = (object) [
 				'featureClasses' => new HashTable\Definition(
 					'featureClasses',
-					__DIR__ . '/includes/feature_classes.php',
+					$self->getPluginDir() . '/includes/feature_classes.php',
 					[
 						new HashTable\Field( $self->tblLocations, 'feature_class' ),
 					]
 				),
 				'featureCodes'   => new HashTable\Definition(
 					'featureCodes',
-					__DIR__ . '/includes/feature_codes.php',
+					$self->getPluginDir() . '/includes/feature_codes.php',
 					[
 						new HashTable\Field( $self->tblLocations, 'feature_code' ),
 					]
 				),
 				'countryCodes'   => new HashTable\Definition(
 					'countryCodes',
-					__DIR__ . '/includes/country_codes.php',
+					$self->getPluginDir() . '/includes/country_codes.php',
 					[
 						new HashTable\Field( $self->tblLocations, 'country_code' ),
 						new HashTable\Field( $self->tblTimeZones, 'country_code' ),
@@ -3301,7 +3301,7 @@ SQL;
 				),
 				'timeZones'      => new HashTable\Definition(
 					'timeZones',
-					__DIR__ . '/includes/time_zones.php',
+					$self->getPluginDir() . '/includes/time_zones.php',
 					[
 						new HashTable\Field( $self->tblLocations, 'timezone' ),
 						new HashTable\Field( $self->tblCacheQueries, 'timezone' ),
