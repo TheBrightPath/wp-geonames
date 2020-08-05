@@ -43,10 +43,10 @@ class Core {
 
 	// protected properties
 	static protected $geoNameClient = null;
-	static protected $featureClasses;
-	static protected $featureCodes; // countries
-	static protected $countryCodes; // postal codes
-	static protected $timeZones;
+	static protected $featureClasses = null;
+	static protected $featureCodes = null; // countries
+	static protected $countryCodes = null; // postal codes
+	static protected $timeZones = null;
 	static protected $enums;
 
 	// table vars
@@ -1893,24 +1893,33 @@ SQL
 		$value = null
 	) {
 
-		$getter = 'get' . ucfirst( $name );
-		$array  = $this->$getter();
-		$new    = $value
-			?: $key;
+		$keyExisted = false;
+		$getter     = 'get' . ucfirst( $name );
+		$array      = $this->$getter();
 
-		if ( key( $array ) === 0 ) {
-			$array = array_fill_keys( $array, null );
+		switch ( true ) {
+
+			// if it's a numeric-indexed array, flip it
+			case key( $array ) === 0:
+				$array = array_fill_keys( $array, null );
+				break;
+
+			// if the key does not yet exist, add it
+			case ! ( $keyExisted = array_key_exists( $key, $array ) ):
+				// if the current value is null, replace it
+			case ( $old = $array [ $key ] ?: null ) === null:
+				break;
+
+			// skip if old value is new value
+			case $value && $old === $value:
+				// skip it if no new value
+			case empty( $value ) :
+				return true;
 		}
 
-		if ( array_key_exists( $key, $array )
-		     && $array [ $key ] === $new
-		) {
-			return true;
-		}
+		$array[ $key ] = $value ?: $key;
 
-		$array[ $key ] = $new;
-
-		self::saveArray( $name, $array );
+		self::saveArray( $name, $array, ! $keyExisted );
 
 		return true;
 	}
@@ -3413,12 +3422,14 @@ SQL;
 	/**
 	 * @param string $name
 	 * @param array $array
+	 * @param bool $updateDb
 	 *
 	 * @return array
 	 */
 	public static function &saveArray(
 		$name,
-		&$array
+		&$array,
+        $updateDb = true
 	) {
 
 		if ( empty( $array ) ) {
@@ -3444,10 +3455,12 @@ return $dump;
 EOF
 		);
 
-		$keys = "'" . join( "', '", array_keys( $array ) ) . "'";
+		if ($updateDb) {
 
-		foreach ( self::getEnums()->$name->fields as $field ) {
-			$sql = <<<SQL
+			$keys = "'" . join( "', '", array_keys( $array ) ) . "'";
+
+			foreach ( self::getEnums()->$name->fields as $field ) {
+				$sql = <<<SQL
 ALTER TABLE `{$field->table}`
 CHANGE `{$field->field}` `{$field->field}`
 enum($keys)
@@ -3455,7 +3468,8 @@ DEFAULT NULL;
 
 SQL;
 
-			self::$wpdb->query( $sql ) || die( $sql );
+				self::$wpdb->query( $sql ) || die( $sql );
+			}
 		}
 
 		self::$$name = &$array;
