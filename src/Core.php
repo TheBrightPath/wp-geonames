@@ -2497,7 +2497,7 @@ SQL;
 
 		$sql = <<<SQL
 INSERT LOW_PRIORITY INTO
-    `wp_geonames_locations`
+    `%s`
 (
     geoname_id,
     country_code,
@@ -2517,14 +2517,18 @@ SELECT
     "A",
     "PCL"
 FROM
-    `wp_geonames_countries`
+    `%s`
 
 ON DUPLICATE KEY UPDATE 
     ascii_name = country
 ;
 SQL;
 
-		$wpdb->query( $sql );
+		foreach ([$this->tblLocations, $this->tblCacheLocations] as $nom) {
+
+			$wpdb->query( sprintf( $sql, $nom, $this->tblCountries ) );
+
+        }
 
 		$this->inActivation = false;
 	}
