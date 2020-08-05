@@ -21,17 +21,17 @@ class Core {
 	// version
 	const geoVersion = "2.0.1";
 
-	// urls
+	// tables constants
+	const tblPrefix = 'geonames_';
 	const tblCountries = self::tblPrefix . 'countries';
 	const tblLocations = self::tblPrefix . 'locations';
 	const tblLocationsCache = self::tblLocations . '_cache';
 	const tblLocationsQueries = self::tblLocations . '_queries';
 	const tblLocationsResults = self::tblLocations . '_results';
-
-	// tables constants
 	const tblPostCodes = self::tblPrefix . 'postal';
-	const tblPrefix = 'geonames_';
 	const tblTimeZones = self::tblPrefix . 'timezones';
+
+	// urls
 	const urlCountries = self::urlLocations . 'countryInfo.txt';
 	const urlLocations = 'http://download.geonames.org/export/dump/';
 	const urlNoCountries = self::urlLocations . 'no-country.zip';
