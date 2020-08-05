@@ -1,6 +1,24 @@
 {
+    "name": "metaworx/wp-geonames",
+    "description": "WP Geonames Plugin",
+    "license": "GPL-3.0",
+    "repositories": {
+        "geonames-client": {
+            "type": "package",
+            "package": {
+                "name": "aternus/geonames-client",
+                "version": "1.0",
+                "source": {
+                    "url": "https://github.com/metaworx/geonames-client.git",
+                    "type": "git",
+                    "reference": "origin/master"
+                }
+            }
+        }
+    },
     "require": {
-        "aternus/geonames-client": "^1.0"
+        "aternus/geonames-client": "^1.0",
+        "guzzlehttp/guzzle": "^6.3"
     },
     "autoload": {
         "psr-4": {

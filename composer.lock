@@ -4,64 +4,17 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "cd1e5faf78ac0e454b4dbc33fd50e838",
+    "content-hash": "87a2411d4f078ef50bd75f1a4684c209",
     "packages": [
         {
             "name": "aternus/geonames-client",
-            "version": "1.0.10",
+            "version": "1.0",
             "source": {
                 "type": "git",
-                "url": "https://github.com/Aternus/geonames-client.git",
-                "reference": "7d2dc23a73704a46603f22a072481e7b7770f285"
+                "url": "https://github.com/metaworx/geonames-client.git",
+                "reference": "origin/master"
             },
-            "dist": {
-                "type": "zip",
-                "url": "https://api.github.com/repos/Aternus/geonames-client/zipball/7d2dc23a73704a46603f22a072481e7b7770f285",
-                "reference": "7d2dc23a73704a46603f22a072481e7b7770f285",
-                "shasum": ""
-            },
-            "require": {
-                "ext-curl": "*",
-                "ext-json": "*",
-                "ext-xml": "*",
-                "guzzlehttp/guzzle": "^6.3",
-                "php": ">=7.1.0"
-            },
-            "require-dev": {
-                "ext-xdebug": "*",
-                "phpunit/phpunit": "^7.3",
-                "squizlabs/php_codesniffer": "^3.3"
-            },
-            "type": "library",
-            "autoload": {
-                "psr-4": {
-                    "GeoNames\\": "src/"
-                }
-            },
-            "notification-url": "https://packagist.org/downloads/",
-            "license": [
-                "MIT"
-            ],
-            "authors": [
-                {
-                    "name": "Kiril Reznik",
-                    "email": "kiril@atern.us",
-                    "homepage": "https://atern.us/"
-                }
-            ],
-            "description": "GeoNames API Client",
-            "homepage": "https://github.com/Aternus/geonames-client",
-            "keywords": [
-                "ISO-639-1",
-                "api",
-                "countries",
-                "database",
-                "geographical",
-                "geonames",
-                "iso-3166",
-                "languages"
-            ],
-            "time": "2020-04-29T20:27:49+00:00"
+            "type": "library"
         },
         {
             "name": "guzzlehttp/guzzle",
