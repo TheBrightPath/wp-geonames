@@ -4,6 +4,7 @@ namespace WPGeonames;
 
 class ApiQueryStatus {
 
+//  public properties
 	/** @var int Current query type */
 	public $type = 0;
 

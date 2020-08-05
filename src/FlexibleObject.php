@@ -9,6 +9,7 @@ namespace WPGeonames;
  */
 class FlexibleObject {
 
+// protected properties
 	protected static $aliases = [
 	];
 
@@ -45,24 +46,6 @@ class FlexibleObject {
 
 	}
 
-	protected function cleanArray( $array ) {
-
-		$array = array_filter( $array, static function ( $item ) {
-			return $item !== null && $item !== '';
-		} );
-
-		ksort( $array );
-
-		return $array;
-
-	}
-
-	static public function parseArray( &$array, $key = '', $prefix = '' ) {
-
-		return WpDb::formatOutput( $array, static::class, $key, $prefix );
-
-	}
-
 	public function __get( $property ) {
 
 		$p = static::$aliases[ $property ] ?: null;
@@ -88,15 +71,33 @@ class FlexibleObject {
 
 	}
 
-	public function toArray() {
+	protected function cleanArray( $array ) {
 
-		return $this->cleanArray( get_object_vars( $this ) );
+		$array = array_filter( $array, static function ( $item ) {
+			return $item !== null && $item !== '';
+		} );
+
+		ksort( $array );
+
+		return $array;
 
 	}
 
 	public function serialize() {
 
 		return serialize( $this->toArray() );
+
+	}
+
+	public function toArray() {
+
+		return $this->cleanArray( get_object_vars( $this ) );
+
+	}
+
+	static public function parseArray( &$array, $key = '', $prefix = '' ) {
+
+		return WpDb::formatOutput( $array, static::class, $key, $prefix );
 
 	}
 }

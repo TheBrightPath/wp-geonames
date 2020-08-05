@@ -9,8 +9,10 @@ if ( ! defined( 'ARRAY_K' ) ) {
 class WpDb
 	extends \wpdb {
 
+//  public properties
 	public $last_error_no = 0;
 
+// protected properties
 	protected $use_mysqli = false;
 	protected $has_connected = false;
 
@@ -69,6 +71,40 @@ class WpDb
 		if ( $wpdb instanceof \wpdb ) {
 			$wpdb = $this;
 		}
+
+	}
+
+	public function flush() {
+		$this->last_error_no = 0;
+
+		parent::flush();
+	}
+
+	public function query( $query ) {
+
+		$return_val = parent::query( $query );
+
+		if ( ! empty( $this->dbh ) ) {
+
+			if ( $this->use_mysqli ) {
+				if ( $this->dbh instanceof \mysqli ) {
+					$this->last_error_no = \mysqli_errno( $this->dbh );
+				} else {
+					// $dbh is defined, but isn't a real connection.
+					// Something has gone horribly wrong, let's try a reconnect.
+					$this->last_error_no = 2006;
+				}
+			} else {
+				if ( is_resource( $this->dbh ) ) {
+					/** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
+					$this->last_error_no = \mysql_errno( $this->dbh );
+				} else {
+					$this->last_error_no = 2006;
+				}
+			}
+		}
+
+		return $return_val;
 
 	}
 
@@ -161,40 +197,6 @@ class WpDb
 		}
 
 		return $result;
-
-	}
-
-	public function flush() {
-		$this->last_error_no = 0;
-
-		parent::flush();
-	}
-
-	public function query( $query ) {
-
-		$return_val = parent::query( $query );
-
-		if ( ! empty( $this->dbh ) ) {
-
-			if ( $this->use_mysqli ) {
-				if ( $this->dbh instanceof \mysqli ) {
-					$this->last_error_no = \mysqli_errno( $this->dbh );
-				} else {
-					// $dbh is defined, but isn't a real connection.
-					// Something has gone horribly wrong, let's try a reconnect.
-					$this->last_error_no = 2006;
-				}
-			} else {
-				if ( is_resource( $this->dbh ) ) {
-					/** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
-					$this->last_error_no = \mysql_errno( $this->dbh );
-				} else {
-					$this->last_error_no = 2006;
-				}
-			}
-		}
-
-		return $return_val;
 
 	}
 }

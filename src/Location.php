@@ -23,6 +23,7 @@ namespace WPGeonames;
 class Location
 	extends FlexibleObject {
 
+// protected properties
 	protected static $aliases = [
 		'geoname_id'      => 'geonameId',
 		'alternate_names' => 'alternateNames',
@@ -53,120 +54,6 @@ class Location
 	protected $countryId = null;
 	protected $population = null;
 
-	static public function parseArray( &$array, $key = 'geoname_id', $prefix = '_' ) {
-
-		return parent::parseArray( $array, $key, $prefix );
-
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getGeonameId(): int {
-		return $this->geonameId;
-	}
-
-	/**
-	 * @param null $geonameId
-	 *
-	 * @return Location
-	 */
-	public function setGeonameId( $geonameId ) {
-		$this->geonameId = $geonameId;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getName(): string {
-		return $this->name;
-	}
-
-	/**
-	 * @param null $name
-	 *
-	 * @return Location
-	 */
-	public function setName( $name ) {
-		$this->name = $name;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getFeatureClass(): string {
-		return $this->featureClass;
-	}
-
-	/**
-	 * @param null $featureClass
-	 *
-	 * @return Location
-	 */
-	public function setFeatureClass( $featureClass ) {
-		$this->featureClass = $featureClass;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getFeatureCode(): string {
-		return $this->featureCode;
-	}
-
-	/**
-	 * @param null $featureCode
-	 *
-	 * @return Location
-	 */
-	public function setFeatureCode( $featureCode ) {
-		$this->featureCode = $featureCode;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getCountryCode(): string {
-		return $this->countryCode;
-	}
-
-	/**
-	 * @param null $countryCode
-	 *
-	 * @return Location
-	 */
-	public function setCountryCode( $countryCode ) {
-		$this->countryCode = $countryCode;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $format
-	 *
-	 * @return string|array|null
-	 */
-	public function getAdminCode1( $format = 'ISO3166_2' ) {
-		return $this->getAdminCode( 1, $format );
-	}
-
-	/**
-	 * @param string|array $adminCode
-	 *
-	 * @return Location
-	 */
-	public function setAdminCode1( $adminCode ) {
-		return $this->setAdminCode( 1, $adminCode );
-	}
-
 	/**
 	 * @param int|string $x
 	 * @param string $format
@@ -189,26 +76,21 @@ class Location
 	}
 
 	/**
-	 * @param $x
-	 * @param $adminCode
+	 * @param string $format
+	 *
+	 * @return string|array|null
+	 */
+	public function getAdminCode1( $format = 'ISO3166_2' ) {
+		return $this->getAdminCode( 1, $format );
+	}
+
+	/**
+	 * @param string|array $adminCode
 	 *
 	 * @return Location
 	 */
-	protected function setAdminCode( $x, $adminCode ) {
-
-		if ( is_numeric( $x ) ) {
-			$x = "adminCode$x";
-		}
-
-		if ( ! is_array( $adminCode ) ) {
-			$adminCode = [
-				'ISO3166_2' => $adminCode,
-			];
-		}
-
-		$this->$x = $adminCode;
-
-		return $this;
+	public function setAdminCode1( $adminCode ) {
+		return $this->setAdminCode( 1, $adminCode );
 	}
 
 	/**
@@ -266,6 +148,114 @@ class Location
 	}
 
 	/**
+	 * @return string
+	 */
+	public function getAlternateNames(): string {
+		return $this->alternateNames;
+	}
+
+	/**
+	 * @param null $alternateNames
+	 *
+	 * @return Location
+	 */
+	public function setAlternateNames( $alternateNames ) {
+		$this->alternateNames = $alternateNames;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCountryCode(): string {
+		return $this->countryCode;
+	}
+
+	/**
+	 * @param null $countryCode
+	 *
+	 * @return Location
+	 */
+	public function setCountryCode( $countryCode ) {
+		$this->countryCode = $countryCode;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getCountryId(): int {
+		return $this->countryId;
+	}
+
+	/**
+	 * @param null $countryId
+	 *
+	 * @return Location
+	 */
+	public function setCountryId( $countryId ) {
+		$this->countryId = $countryId;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFeatureClass(): string {
+		return $this->featureClass;
+	}
+
+	/**
+	 * @param null $featureClass
+	 *
+	 * @return Location
+	 */
+	public function setFeatureClass( $featureClass ) {
+		$this->featureClass = $featureClass;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFeatureCode(): string {
+		return $this->featureCode;
+	}
+
+	/**
+	 * @param null $featureCode
+	 *
+	 * @return Location
+	 */
+	public function setFeatureCode( $featureCode ) {
+		$this->featureCode = $featureCode;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getGeonameId(): int {
+		return $this->geonameId;
+	}
+
+	/**
+	 * @param null $geonameId
+	 *
+	 * @return Location
+	 */
+	public function setGeonameId( $geonameId ) {
+		$this->geonameId = $geonameId;
+
+		return $this;
+	}
+
+	/**
 	 * @return float
 	 */
 	public function getLatitude(): float {
@@ -304,35 +294,17 @@ class Location
 	/**
 	 * @return string
 	 */
-	public function getAlternateNames(): string {
-		return $this->alternateNames;
+	public function getName(): string {
+		return $this->name;
 	}
 
 	/**
-	 * @param null $alternateNames
+	 * @param null $name
 	 *
 	 * @return Location
 	 */
-	public function setAlternateNames( $alternateNames ) {
-		$this->alternateNames = $alternateNames;
-
-		return $this;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getCountryId(): int {
-		return $this->countryId;
-	}
-
-	/**
-	 * @param null $countryId
-	 *
-	 * @return Location
-	 */
-	public function setCountryId( $countryId ) {
-		$this->countryId = $countryId;
+	public function setName( $name ) {
+		$this->name = $name;
 
 		return $this;
 	}
@@ -353,6 +325,35 @@ class Location
 		$this->population = $population;
 
 		return $this;
+	}
+
+	/**
+	 * @param $x
+	 * @param $adminCode
+	 *
+	 * @return Location
+	 */
+	protected function setAdminCode( $x, $adminCode ) {
+
+		if ( is_numeric( $x ) ) {
+			$x = "adminCode$x";
+		}
+
+		if ( ! is_array( $adminCode ) ) {
+			$adminCode = [
+				'ISO3166_2' => $adminCode,
+			];
+		}
+
+		$this->$x = $adminCode;
+
+		return $this;
+	}
+
+	static public function parseArray( &$array, $key = 'geoname_id', $prefix = '_' ) {
+
+		return parent::parseArray( $array, $key, $prefix );
+
 	}
 
 }

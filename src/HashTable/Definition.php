@@ -3,6 +3,7 @@
 namespace WPGeonames\HashTable;
 
 class Definition {
+//  public properties
 	public $name;
 	public $file;
 	public $fields;

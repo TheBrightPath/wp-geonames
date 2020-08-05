@@ -14,21 +14,14 @@ namespace WPGeonames;
 class ApiQuery
 	extends FlexibleObject {
 
+// constants
 	const MAX_START_ROW_FREE = 5000;
 	const MAX_START_ROW_PREMIUM = 25000;
-
-	const SEARCH_TYPE_Q = 2 ** 1;
-	const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
-	const SEARCH_TYPE_FUZZY_NAME = 2 ** 3;
-	const SEARCH_TYPE_NAME = 2 ** 4;
-	const SEARCH_TYPE_EXACT_NAME = 2 ** 5;
-
-	const SEARCH_NAME_Q = 'q';
-	const SEARCH_NAME_START_OF_NAME = 'name_startsWith';
+	const SEARCH_NAME_EXACT_NAME = 'name_equals';
 	const SEARCH_NAME_FUZZY_NAME = 'name_fuzzy';
 	const SEARCH_NAME_NAME = 'name';
-	const SEARCH_NAME_EXACT_NAME = 'name_equals';
-
+	const SEARCH_NAME_Q = 'q';
+	const SEARCH_NAME_START_OF_NAME = 'name_startsWith';
 	const SEARCH_TYPES = [
 		self::SEARCH_TYPE_Q             => self::SEARCH_NAME_Q,
 		self::SEARCH_TYPE_START_OF_NAME => self::SEARCH_NAME_START_OF_NAME,
@@ -36,7 +29,12 @@ class ApiQuery
 		self::SEARCH_TYPE_NAME          => self::SEARCH_NAME_NAME,
 		self::SEARCH_TYPE_EXACT_NAME    => self::SEARCH_NAME_EXACT_NAME,
 	];
-
+	const SEARCH_TYPE_EXACT_NAME = 2 ** 5;
+	const SEARCH_TYPE_FUZZY_NAME = 2 ** 3;
+	const SEARCH_TYPE_NAME = 2 ** 4;
+	const SEARCH_TYPE_Q = 2 ** 1;
+	const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
+// protected properties
 	protected static $aliases = [
 		'feature_class'                     => 'featureClass',
 		'feature_code'                      => 'featureCode',
@@ -164,6 +162,7 @@ class ApiQuery
 	 * @var bool (option) [true]    include Bbox info, regardelss of style setting. (normally only included with style=FULL
 	 */
 	protected $inclBbox = false;
+// private properties
 	/**
 	 * @var int
 	 */
@@ -198,28 +197,641 @@ class ApiQuery
 
 	}
 
-	public static function translateSearchType( $searchType ) {
-
-		if ( $searchType === null ) {
-			return null;
-		}
-
-		if ( is_string( $searchType ) ) {
-			return array_flip( self::SEARCH_TYPES )[ $searchType ] ?? null;
-		}
-
-		if ( is_numeric( $searchType ) ) {
-			return self::SEARCH_TYPES[ $searchType ] ?? null;
-		}
-
-		return false;
+	/**
+	 * @return string
+	 */
+	public function getAdminCode1(): string {
+		return $this->adminCode1;
 	}
 
 	/**
-	 * @return string[]
+	 * @param string $adminCode1
+	 *
+	 * @return ApiQuery
 	 */
-	public static function getAliases(): array {
-		return self::$aliases;
+	public function setAdminCode1( $adminCode1 ) {
+		$this->adminCode1 = $adminCode1;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAdminCode2(): string {
+		return $this->adminCode2;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAdminCode3(): string {
+		return $this->adminCode3;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAdminCode4(): string {
+		return $this->adminCode4;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getAdminCode5(): string {
+		return $this->adminCode5;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCharset(): string {
+		return $this->charset;
+	}
+
+	/**
+	 * @param string $charset
+	 *
+	 * @return ApiQuery
+	 */
+	public function setCharset( $charset ) {
+		$this->charset = $charset;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCities(): string {
+		return $this->cities;
+	}
+
+	/**
+	 * @param string $cities
+	 *
+	 * @return ApiQuery
+	 */
+	public function setCities( $cities ) {
+		$this->cities = $cities;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getContinentCode(): string {
+		return $this->continentCode;
+	}
+
+	/**
+	 * @param string $continentCode
+	 *
+	 * @return ApiQuery
+	 */
+	public function setContinentCode( $continentCode ) {
+		$this->continentCode = $continentCode;
+
+		return $this;
+	}
+
+	/**
+	 * @return string|string[]|null
+	 */
+	public function getCountry() {
+		return $this->country;
+	}
+
+	/**
+	 * @param string|string[]|null $country
+	 *
+	 * @return ApiQuery
+	 */
+	public function setCountry( $country ) {
+		$this->country = $country;
+
+		return $this;
+	}
+
+	public function getCountryAsArray(): array {
+		$countries = array_filter( acf_get_array( $this->country, ',' ) );
+		sort( $countries );
+
+		return $countries;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getCountryBias(): string {
+		return $this->countryBias;
+	}
+
+	/**
+	 * @param string $countryBias
+	 *
+	 * @return ApiQuery
+	 */
+	public function setCountryBias( $countryBias ) {
+		$this->countryBias = $countryBias;
+
+		return $this;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getEast(): float {
+		return $this->east;
+	}
+
+	/**
+	 * @param float $east
+	 *
+	 * @return ApiQuery
+	 */
+	public function setEast( $east ) {
+		$this->east = $east;
+
+		return $this;
+	}
+
+	/**
+	 * @return string|string[]
+	 */
+	public function getFeatureClass() {
+		return $this->featureClass;
+	}
+
+	/**
+	 * @param string|string[] $featureClass
+	 *
+	 * @return ApiQuery
+	 */
+	public function setFeatureClass( $featureClass ) {
+		$this->featureClass = $featureClass;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getFeatureCode(): string {
+		return $this->featureCode;
+	}
+
+	/**
+	 * @param string $featureCode
+	 *
+	 * @return ApiQuery
+	 */
+	public function setFeatureCode( $featureCode ) {
+		$this->featureCode = $featureCode;
+
+		return $this;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getFuzzy(): float {
+		return $this->fuzzy;
+	}
+
+	/**
+	 * @param float $fuzzy
+	 *
+	 * @return ApiQuery
+	 */
+	public function setFuzzy( $fuzzy ) {
+		$this->fuzzy = $fuzzy;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getLang(): string {
+		return $this->lang;
+	}
+
+	/**
+	 * @param string $lang
+	 *
+	 * @return ApiQuery
+	 */
+	public function setLang( $lang ) {
+		$this->lang = $lang;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxRows(): int {
+		return $this->maxRows;
+	}
+
+	/**
+	 * @param int $maxRows
+	 *
+	 * @return ApiQuery
+	 */
+	public function setMaxRows( $maxRows ) {
+		$this->maxRows = $maxRows;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getMaxStartRow(): int {
+		return $this->maxStartRow;
+	}
+
+	/**
+	 * @param int $maxStartRow
+	 *
+	 * @return ApiQuery
+	 */
+	public function setMaxStartRow( int $maxStartRow ): ApiQuery {
+		$this->maxStartRow = $maxStartRow;
+
+		return $this;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getNorth(): float {
+		return $this->north;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getOperator(): string {
+		return $this->operator;
+	}
+
+	/**
+	 * @param string $operator
+	 *
+	 * @return ApiQuery
+	 */
+	public function setOperator( $operator ) {
+		$this->operator = strtoupper( $operator );
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getOrderby(): string {
+		return $this->orderby;
+	}
+
+	/**
+	 * @param string $orderby
+	 *
+	 * @return ApiQuery
+	 */
+	public function setOrderby( $orderby ) {
+		$this->orderby = $orderby;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSearchTerm(): string {
+		return $this->searchTerm;
+	}
+
+	/**
+	 * @param string $searchTerm
+	 *
+	 * @return ApiQuery
+	 */
+	public function setSearchTerm( string $searchTerm ): ApiQuery {
+		$this->searchTerm = $searchTerm;
+
+		return $this;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getSearchType(): int {
+		return $this->searchType;
+	}
+
+	/**
+	 * @param int $searchType
+	 *
+	 * @return ApiQuery
+	 */
+	public function setSearchType( int $searchType ): ApiQuery {
+		$this->searchType = $searchType;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getSearchlang(): string {
+		return $this->searchlang;
+	}
+
+	/**
+	 * @param string $searchlang
+	 *
+	 * @return ApiQuery
+	 */
+	public function setSearchlang( $searchlang ) {
+		$this->searchlang = $searchlang;
+
+		return $this;
+	}
+
+	public function getSingleCountry(): ?string {
+
+		$country = array_filter( $this->country );
+
+		if ( is_array( $country ) ) {
+			$country = array_filter( $country );
+		}
+
+		if ( empty( $country ) ) {
+			return null;
+		}
+
+		if ( is_array( $country ) && count( $country ) === 1 ) {
+			return reset( $country );
+		}
+
+		if ( is_string( $country ) ) {
+			return $country ?: null;
+		}
+
+		return null;
+
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getSouth(): float {
+		return $this->south;
+	}
+
+	/**
+	 * @return int
+	 */
+	public function getStartRow(): int {
+		return $this->startRow;
+	}
+
+	/**
+	 * @param int $startRow
+	 *
+	 * @return ApiQuery
+	 */
+	public function setStartRow( $startRow ) {
+		$this->startRow = $startRow;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getStyle(): string {
+		return $this->style;
+	}
+
+	/**
+	 * @param string $style
+	 *
+	 * @return ApiQuery
+	 */
+	public function setStyle( $style ) {
+		$this->style = $style;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getTag(): string {
+		return $this->tag;
+	}
+
+	/**
+	 * @param string $tag
+	 *
+	 * @return ApiQuery
+	 */
+	public function setTag( $tag ) {
+		$this->tag = $tag;
+
+		return $this;
+	}
+
+	/**
+	 * @return string
+	 */
+	public function getType(): string {
+		return $this->type;
+	}
+
+	/**
+	 * @param string $type
+	 *
+	 * @return ApiQuery
+	 */
+	public function setType( $type ) {
+		$this->type = $type;
+
+		return $this;
+	}
+
+	/**
+	 * @return float
+	 */
+	public function getWest(): float {
+		return $this->west;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isInclBbox(): bool {
+		return $this->inclBbox;
+	}
+
+	/**
+	 * @param bool $inclBbox
+	 *
+	 * @return ApiQuery
+	 */
+	public function setInclBbox( $inclBbox ) {
+		$this->inclBbox = $inclBbox;
+
+		return $this;
+	}
+
+	/**
+	 * @return bool
+	 */
+	public function isNameRequired(): bool {
+		return $this->isNameRequired;
+	}
+
+	/**
+	 * @param bool $isNameRequired
+	 *
+	 * @return ApiQuery
+	 */
+	public function setIsNameRequired( $isNameRequired ) {
+		$this->isNameRequired = $isNameRequired;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $adminCode2
+	 *
+	 * @return ApiQuery
+	 */
+	public function setAdminCode2( $adminCode2 ) {
+		$this->adminCode2 = $adminCode2;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $adminCode3
+	 *
+	 * @return ApiQuery
+	 */
+	public function setAdminCode3( $adminCode3 ) {
+		$this->adminCode3 = $adminCode3;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $adminCode4
+	 *
+	 * @return ApiQuery
+	 */
+	public function setAdminCode4( $adminCode4 ) {
+		$this->adminCode4 = $adminCode4;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $adminCode5
+	 *
+	 * @return ApiQuery
+	 */
+	public function setAdminCode5( $adminCode5 ) {
+		$this->adminCode5 = $adminCode5;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $name
+	 *
+	 * @return ApiQuery
+	 */
+	public function setName( $name ) {
+		$this->searchTerm = $name;
+		$this->searchType = self::SEARCH_TYPE_NAME;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $name_equals
+	 *
+	 * @return ApiQuery
+	 */
+	public function setNameEquals( $name_equals ) {
+		$this->searchTerm = $name_equals;
+		$this->searchType = self::SEARCH_TYPE_EXACT_NAME;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $name_startsWith
+	 *
+	 * @return ApiQuery
+	 */
+	public function setNameStartsWith( $name_startsWith ) {
+		$this->searchTerm = $name_startsWith;
+		$this->searchType = self::SEARCH_TYPE_START_OF_NAME;
+
+		return $this;
+	}
+
+	/**
+	 * @param float $north
+	 *
+	 * @return ApiQuery
+	 */
+	public function setNorth( $north ) {
+		$this->north = $north;
+
+		return $this;
+	}
+
+	/**
+	 * @param string $q
+	 *
+	 * @return ApiQuery
+	 */
+	public function setQ( $q ) {
+		$this->searchTerm = $q;
+		$this->searchType = self::SEARCH_TYPE_Q;
+
+		return $this;
+	}
+
+	/**
+	 * @param float $south
+	 *
+	 * @return ApiQuery
+	 */
+	public function setSouth( $south ) {
+		$this->south = $south;
+
+		return $this;
+	}
+
+	/**
+	 * @param float $west
+	 *
+	 * @return ApiQuery
+	 */
+	public function setWest( $west ) {
+		$this->west = $west;
+
+		return $this;
 	}
 
 	public function cleanArray( $array = null, $unset = null ) {
@@ -427,641 +1039,28 @@ class ApiQuery
 
 	}
 
-	public function getCountryAsArray(): array {
-		$countries = array_filter( acf_get_array( $this->country, ',' ) );
-		sort( $countries );
-
-		return $countries;
+	/**
+	 * @return string[]
+	 */
+	public static function getAliases(): array {
+		return self::$aliases;
 	}
 
-	public function getSingleCountry(): ?string {
+	public static function translateSearchType( $searchType ) {
 
-		$country = array_filter( $this->country );
-
-		if ( is_array( $country ) ) {
-			$country = array_filter( $country );
-		}
-
-		if ( empty( $country ) ) {
+		if ( $searchType === null ) {
 			return null;
 		}
 
-		if ( is_array( $country ) && count( $country ) === 1 ) {
-			return reset( $country );
+		if ( is_string( $searchType ) ) {
+			return array_flip( self::SEARCH_TYPES )[ $searchType ] ?? null;
 		}
 
-		if ( is_string( $country ) ) {
-			return $country ?: null;
+		if ( is_numeric( $searchType ) ) {
+			return self::SEARCH_TYPES[ $searchType ] ?? null;
 		}
 
-		return null;
-
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getMaxStartRow(): int {
-		return $this->maxStartRow;
-	}
-
-	/**
-	 * @param int $maxStartRow
-	 *
-	 * @return ApiQuery
-	 */
-	public function setMaxStartRow( int $maxStartRow ): ApiQuery {
-		$this->maxStartRow = $maxStartRow;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getSearchTerm(): string {
-		return $this->searchTerm;
-	}
-
-	/**
-	 * @param string $searchTerm
-	 *
-	 * @return ApiQuery
-	 */
-	public function setSearchTerm( string $searchTerm ): ApiQuery {
-		$this->searchTerm = $searchTerm;
-
-		return $this;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getSearchType(): int {
-		return $this->searchType;
-	}
-
-	/**
-	 * @param int $searchType
-	 *
-	 * @return ApiQuery
-	 */
-	public function setSearchType( int $searchType ): ApiQuery {
-		$this->searchType = $searchType;
-
-		return $this;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getMaxRows(): int {
-		return $this->maxRows;
-	}
-
-	/**
-	 * @param int $maxRows
-	 *
-	 * @return ApiQuery
-	 */
-	public function setMaxRows( $maxRows ) {
-		$this->maxRows = $maxRows;
-
-		return $this;
-	}
-
-	/**
-	 * @return int
-	 */
-	public function getStartRow(): int {
-		return $this->startRow;
-	}
-
-	/**
-	 * @param int $startRow
-	 *
-	 * @return ApiQuery
-	 */
-	public function setStartRow( $startRow ) {
-		$this->startRow = $startRow;
-
-		return $this;
-	}
-
-	/**
-	 * @return string|string[]|null
-	 */
-	public function getCountry() {
-		return $this->country;
-	}
-
-	/**
-	 * @param string|string[]|null $country
-	 *
-	 * @return ApiQuery
-	 */
-	public function setCountry( $country ) {
-		$this->country = $country;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getCountryBias(): string {
-		return $this->countryBias;
-	}
-
-	/**
-	 * @param string $countryBias
-	 *
-	 * @return ApiQuery
-	 */
-	public function setCountryBias( $countryBias ) {
-		$this->countryBias = $countryBias;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getContinentCode(): string {
-		return $this->continentCode;
-	}
-
-	/**
-	 * @param string $continentCode
-	 *
-	 * @return ApiQuery
-	 */
-	public function setContinentCode( $continentCode ) {
-		$this->continentCode = $continentCode;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminCode1(): string {
-		return $this->adminCode1;
-	}
-
-	/**
-	 * @param string $adminCode1
-	 *
-	 * @return ApiQuery
-	 */
-	public function setAdminCode1( $adminCode1 ) {
-		$this->adminCode1 = $adminCode1;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminCode2(): string {
-		return $this->adminCode2;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminCode3(): string {
-		return $this->adminCode3;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminCode4(): string {
-		return $this->adminCode4;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getAdminCode5(): string {
-		return $this->adminCode5;
-	}
-
-	/**
-	 * @return string|string[]
-	 */
-	public function getFeatureClass() {
-		return $this->featureClass;
-	}
-
-	/**
-	 * @param string|string[] $featureClass
-	 *
-	 * @return ApiQuery
-	 */
-	public function setFeatureClass( $featureClass ) {
-		$this->featureClass = $featureClass;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getFeatureCode(): string {
-		return $this->featureCode;
-	}
-
-	/**
-	 * @param string $featureCode
-	 *
-	 * @return ApiQuery
-	 */
-	public function setFeatureCode( $featureCode ) {
-		$this->featureCode = $featureCode;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getCities(): string {
-		return $this->cities;
-	}
-
-	/**
-	 * @param string $cities
-	 *
-	 * @return ApiQuery
-	 */
-	public function setCities( $cities ) {
-		$this->cities = $cities;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getLang(): string {
-		return $this->lang;
-	}
-
-	/**
-	 * @param string $lang
-	 *
-	 * @return ApiQuery
-	 */
-	public function setLang( $lang ) {
-		$this->lang = $lang;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getType(): string {
-		return $this->type;
-	}
-
-	/**
-	 * @param string $type
-	 *
-	 * @return ApiQuery
-	 */
-	public function setType( $type ) {
-		$this->type = $type;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getStyle(): string {
-		return $this->style;
-	}
-
-	/**
-	 * @param string $style
-	 *
-	 * @return ApiQuery
-	 */
-	public function setStyle( $style ) {
-		$this->style = $style;
-
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isNameRequired(): bool {
-		return $this->isNameRequired;
-	}
-
-	/**
-	 * @param bool $isNameRequired
-	 *
-	 * @return ApiQuery
-	 */
-	public function setIsNameRequired( $isNameRequired ) {
-		$this->isNameRequired = $isNameRequired;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getTag(): string {
-		return $this->tag;
-	}
-
-	/**
-	 * @param string $tag
-	 *
-	 * @return ApiQuery
-	 */
-	public function setTag( $tag ) {
-		$this->tag = $tag;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getOperator(): string {
-		return $this->operator;
-	}
-
-	/**
-	 * @param string $operator
-	 *
-	 * @return ApiQuery
-	 */
-	public function setOperator( $operator ) {
-		$this->operator = strtoupper( $operator );
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getCharset(): string {
-		return $this->charset;
-	}
-
-	/**
-	 * @param string $charset
-	 *
-	 * @return ApiQuery
-	 */
-	public function setCharset( $charset ) {
-		$this->charset = $charset;
-
-		return $this;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getFuzzy(): float {
-		return $this->fuzzy;
-	}
-
-	/**
-	 * @param float $fuzzy
-	 *
-	 * @return ApiQuery
-	 */
-	public function setFuzzy( $fuzzy ) {
-		$this->fuzzy = $fuzzy;
-
-		return $this;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getEast(): float {
-		return $this->east;
-	}
-
-	/**
-	 * @param float $east
-	 *
-	 * @return ApiQuery
-	 */
-	public function setEast( $east ) {
-		$this->east = $east;
-
-		return $this;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getWest(): float {
-		return $this->west;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getNorth(): float {
-		return $this->north;
-	}
-
-	/**
-	 * @return float
-	 */
-	public function getSouth(): float {
-		return $this->south;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getSearchlang(): string {
-		return $this->searchlang;
-	}
-
-	/**
-	 * @param string $searchlang
-	 *
-	 * @return ApiQuery
-	 */
-	public function setSearchlang( $searchlang ) {
-		$this->searchlang = $searchlang;
-
-		return $this;
-	}
-
-	/**
-	 * @return string
-	 */
-	public function getOrderby(): string {
-		return $this->orderby;
-	}
-
-	/**
-	 * @param string $orderby
-	 *
-	 * @return ApiQuery
-	 */
-	public function setOrderby( $orderby ) {
-		$this->orderby = $orderby;
-
-		return $this;
-	}
-
-	/**
-	 * @return bool
-	 */
-	public function isInclBbox(): bool {
-		return $this->inclBbox;
-	}
-
-	/**
-	 * @param bool $inclBbox
-	 *
-	 * @return ApiQuery
-	 */
-	public function setInclBbox( $inclBbox ) {
-		$this->inclBbox = $inclBbox;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $q
-	 *
-	 * @return ApiQuery
-	 */
-	public function setQ( $q ) {
-		$this->searchTerm = $q;
-		$this->searchType = self::SEARCH_TYPE_Q;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $name
-	 *
-	 * @return ApiQuery
-	 */
-	public function setName( $name ) {
-		$this->searchTerm = $name;
-		$this->searchType = self::SEARCH_TYPE_NAME;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $name_equals
-	 *
-	 * @return ApiQuery
-	 */
-	public function setNameEquals( $name_equals ) {
-		$this->searchTerm = $name_equals;
-		$this->searchType = self::SEARCH_TYPE_EXACT_NAME;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $name_startsWith
-	 *
-	 * @return ApiQuery
-	 */
-	public function setNameStartsWith( $name_startsWith ) {
-		$this->searchTerm = $name_startsWith;
-		$this->searchType = self::SEARCH_TYPE_START_OF_NAME;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $adminCode2
-	 *
-	 * @return ApiQuery
-	 */
-	public function setAdminCode2( $adminCode2 ) {
-		$this->adminCode2 = $adminCode2;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $adminCode3
-	 *
-	 * @return ApiQuery
-	 */
-	public function setAdminCode3( $adminCode3 ) {
-		$this->adminCode3 = $adminCode3;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $adminCode4
-	 *
-	 * @return ApiQuery
-	 */
-	public function setAdminCode4( $adminCode4 ) {
-		$this->adminCode4 = $adminCode4;
-
-		return $this;
-	}
-
-	/**
-	 * @param string $adminCode5
-	 *
-	 * @return ApiQuery
-	 */
-	public function setAdminCode5( $adminCode5 ) {
-		$this->adminCode5 = $adminCode5;
-
-		return $this;
-	}
-
-	/**
-	 * @param float $west
-	 *
-	 * @return ApiQuery
-	 */
-	public function setWest( $west ) {
-		$this->west = $west;
-
-		return $this;
-	}
-
-	/**
-	 * @param float $north
-	 *
-	 * @return ApiQuery
-	 */
-	public function setNorth( $north ) {
-		$this->north = $north;
-
-		return $this;
-	}
-
-	/**
-	 * @param float $south
-	 *
-	 * @return ApiQuery
-	 */
-	public function setSouth( $south ) {
-		$this->south = $south;
-
-		return $this;
+		return false;
 	}
 
 }
