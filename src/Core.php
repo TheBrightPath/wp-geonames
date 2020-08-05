@@ -85,7 +85,7 @@ class Core {
 		$this->tblPostCodes      = self::$wpdb->base_prefix . self::tblPostCodes;
 		$this->tblTimeZones      = self::$wpdb->base_prefix . self::tblTimeZones;
 
-		register_activation_hook( __FILE__, [ $this, 'creation_table' ] );
+		register_activation_hook( $this->plugin_file, [ $this, 'creation_table' ] );
 
 		add_shortcode( 'wp-geonames', [ $this, 'shortcode' ] );
 		add_action( 'wp_ajax_nopriv_geoDataRegion', [ $this, 'ajax_geoDataRegion' ] );
@@ -99,19 +99,19 @@ class Core {
 		add_filter( 'geonames/api/result', [ $this, 'cacheSearchResult' ], 10, 2 );
 
 		if ( is_admin() ) {
-			load_plugin_textdomain( 'wpGeonames', false, dirname( plugin_basename( __FILE__ ) ) . '/lang/' ); // language
+			load_plugin_textdomain( 'wpGeonames', false, dirname( $this->getPluginFileRelative() ) . '/lang/' ); // language
 			add_action( 'wp_ajax_wpgeonamesAjax', 'wpgeonamesAjax' );
 			add_action( 'wp_ajax_wpgeonameGetCity', [ $this, 'ajax_get_city_by_country_region' ] );
 			add_action( 'wp_ajax_wpGeonamesAddCountry', [ $this, 'ajax_wpGeonamesAddLocation' ] );
 			add_action( 'wp_ajax_wpGeonamesAddPostal', [ $this, 'ajax_wpGeonamesAddPostCode' ] );
 			add_action( 'admin_enqueue_scripts', [ $this, 'enqueue_leaflet' ] );
 			add_action( 'admin_menu', [ $this, 'addAdminMenu' ] );
-			add_filter( 'plugin_action_links_' . $this->get_wp_plugin(), [ $this, 'settings_link' ] );
+			add_filter( 'plugin_action_links_' . $this->getPluginFileRelative(), [ $this, 'settings_link' ] );
 			add_filter( 'option_wpGeonames_dataList', [ $this, 'check_options' ], 10, 2 );
 			add_filter( 'default_option_wpGeonames_dataList', [ $this, 'check_options' ], 10, 2 );
-			if ( file_exists( dirname( __FILE__ ) . '/patch.php' ) ) {
+			if ( file_exists( $this->getPluginDir() . '/patch.php' ) ) {
 				/** @noinspection PhpIncludeInspection */
-				include( dirname( __FILE__ ) . '/patch.php' );
+				include( $this->getPluginDir() . '/patch.php' );
 			}
 		}
 	}
@@ -174,7 +174,7 @@ class Core {
 				$a[ $r->country_code . $r->name ] = 1;
 			}
 		}
-		file_put_contents( dirname( __FILE__ ) . ' / liste_region . txt', $out );
+		file_put_contents( $this->getPluginDir() . ' / liste_region . txt', $out );
 	}
 
 	public function get_country( $postal = 0 ) {
@@ -2891,7 +2891,7 @@ SQL;
 		} elseif ( file_exists( get_stylesheet_directory() . '/templates/wp-geonames_location_taxonomy.php' ) ) {
 			$inc = get_stylesheet_directory() . '/templates/wp-geonames_location_taxonomy.php';
 		} else {
-			$inc = dirname( __FILE__ ) . '/templates/wp-geonames_location_taxonomy.php';
+			$inc = $this->getPluginDir() . '/templates/wp-geonames_location_taxonomy.php';
 		}
 		ob_start();
 		/** @noinspection PhpIncludeInspection */
@@ -3034,7 +3034,7 @@ SQL;
 		);
 	}
 
-	public static function Factory( $file = __FILE__ ) {
+	public static function Factory( $file ) {
 		return self::$instance
 			?: self::$instance = new self( $file );
 	}
