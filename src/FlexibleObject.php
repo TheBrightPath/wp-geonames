@@ -37,6 +37,7 @@ class FlexibleObject {
 		$query = $this->cleanArray( $query );
 
 		array_walk( $query, static function ( &$value, $property ) use ( &$self ) {
+
 			if ( $value !== null
 			     && ( property_exists( $self, $property )
 			          || array_key_exists( $property, static::$aliases ) ) ) {
@@ -45,6 +46,7 @@ class FlexibleObject {
 		} );
 
 	}
+
 
 	public function __get( $property ) {
 
@@ -58,6 +60,7 @@ class FlexibleObject {
 
 	}
 
+
 	public function __set( $property, $value ) {
 
 		$setter = 'set' . ucfirst( static::$aliases[ $property ] ?: $property );
@@ -65,15 +68,18 @@ class FlexibleObject {
 		return $this->$setter( $value );
 	}
 
+
 	public function __serialize() {
 
 		return $this->toArray();
 
 	}
 
+
 	protected function cleanArray( $array ) {
 
 		$array = array_filter( $array, static function ( $item ) {
+
 			return $item !== null && $item !== '';
 		} );
 
@@ -83,17 +89,20 @@ class FlexibleObject {
 
 	}
 
+
 	public function serialize() {
 
 		return serialize( $this->toArray() );
 
 	}
 
+
 	public function toArray() {
 
 		return $this->cleanArray( get_object_vars( $this ) );
 
 	}
+
 
 	static public function parseArray( &$array, $key = '', $prefix = '' ) {
 

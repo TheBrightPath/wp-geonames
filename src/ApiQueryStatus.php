@@ -25,6 +25,7 @@ class ApiQueryStatus {
 
 	public $processRecords = 0;
 
+
 	/**
 	 * wpGeonamesQueryStatus constructor.
 	 *
@@ -41,6 +42,7 @@ class ApiQueryStatus {
 		array &$results,
 		?int $processRecords
 	) {
+
 		$this->type           = $type;
 		$this->query          = $query;
 		$this->params         = $params;

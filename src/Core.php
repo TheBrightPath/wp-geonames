@@ -22,13 +22,13 @@ class Core {
 	const geoVersion = "2.0.1";
 
 	// tables constants
-	const tblPrefix = 'geonames_';
 	const tblCountries = self::tblPrefix . 'countries';
 	const tblLocations = self::tblPrefix . 'locations';
 	const tblLocationsCache = self::tblLocations . '_cache';
 	const tblLocationsQueries = self::tblLocations . '_queries';
 	const tblLocationsResults = self::tblLocations . '_results';
 	const tblPostCodes = self::tblPrefix . 'postal';
+	const tblPrefix = 'geonames_';
 	const tblTimeZones = self::tblPrefix . 'timezones';
 
 	// urls
@@ -66,6 +66,7 @@ class Core {
 	/** @var string plugin main file */
 	private $plugin_file;
 	private $inActivation = false;
+
 
 	/**
 	 * Core constructor.
@@ -116,35 +117,45 @@ class Core {
 		}
 	}
 
+
 	/**
 	 * @return string full plugin file path
 	 */
 	public function getPluginDir() {
+
 		return plugin_dir_path( $this->getPluginFileFull() );
 	}
+
 
 	/**
 	 * @return string full plugin file path
 	 */
 	public function getPluginFileFull() {
+
 		return $this->plugin_file;
 	}
+
 
 	/**
 	 * @return string Path to the main plugin file from plugins directory
 	 */
 	public function getPluginFileRelative() {
+
 		return plugin_basename( $this->getPluginFileFull() );
 	}
+
 
 	/**
 	 * @return string plugin slug
 	 */
 	public function getPluginSlug() {
+
 		return basename( $this->getPluginDir() );
 	}
 
+
 	public function get_all_region() {
+
 		//
 		global $wpdb;
 		$out = "";
@@ -177,7 +188,9 @@ class Core {
 		file_put_contents( $this->getPluginDir() . ' / liste_region . txt', $out );
 	}
 
+
 	public function get_country( $postal = 0 ) {
+
 		global $wpdb;
 		// OUTPUT Object : country_code, name
 		// country list : http://www.nationsonline.org/oneworld/country_code_list.htm
@@ -206,6 +219,7 @@ class Core {
 
 		return $result;
 	}
+
 
 	public function get_postalCheck(
 		$iso,
@@ -254,7 +268,9 @@ class Core {
 		return $o;
 	}
 
+
 	public function get_region_by_country( $iso = '' ) {
+
 		//
 		global $wpdb;
 		$result = [];
@@ -313,6 +329,7 @@ class Core {
 		);
 	}
 
+
 	public function addCountries() {
 
 		$this->verifyAdmin();
@@ -347,10 +364,12 @@ class Core {
 			$fields,
 			1,
 			static function ( &$row ) {
+
 				return self::$instance->checkCountry( $row['iso2'], $row['country'] );
 			}
 		);
 	}
+
 
 	public function addLocations(
 		$mode,
@@ -388,6 +407,7 @@ class Core {
 			&
 			$fieldNames
 		) {
+
 			if ( array_key_exists( '*', $fieldNames ) && ! array_key_exists( "-$fieldName", $fieldNames ) ) {
 				return true;
 			}
@@ -502,6 +522,7 @@ class Core {
 					&
 					$features
 				) {
+
 					if ( ! array_key_exists( $row['feature_class'], $features )
 					     || ! ( $features[ $row['feature_class'] ] === true
 					            || in_array( $row['feature_code'], $features[ $row['feature_class'] ] )
@@ -523,11 +544,13 @@ class Core {
 		return __( 'Done, data are in base.', 'wpGeonames' );
 	}
 
+
 	public function addLocationsFromForm(
 		$mode,
 		$url,
 		$f
 	) {
+
 		$fe = [];
 
 		if ( ! empty( $f['wpGeoA'] ) ) {
@@ -578,12 +601,15 @@ class Core {
 		);
 	}
 
+
 	public function addNoCountries() {
+
 		return $this->addLocations(
 			1,
 			self::urlNoCountries
 		);
 	}
+
 
 	public function addTimezones() {
 
@@ -609,6 +635,7 @@ class Core {
 			$fields,
 			1,
 			static function ( &$row ) {
+
 				$row['city']    = str_replace( '_', ' ', $row['city'] );
 				$row['caption'] = str_replace( '_', ' ', $row['time_zone_id'] );
 
@@ -619,6 +646,7 @@ class Core {
 			}
 		);
 	}
+
 
 	public function adminMenu() {
 
@@ -704,7 +732,9 @@ class Core {
 		<?php
 	}
 
+
 	public function admin_check() {
+
 		global $wpdb;
 		$country       = $this->get_country();
 		$postalCountry = $this->get_country( 1 );
@@ -913,7 +943,9 @@ class Core {
 		<?php
 	}
 
+
 	public function admin_edit() {
+
 		global $wpdb;
 		$GgeoType = ( ! empty( $_GET['geoType'] )
 			? preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_GET['geoType'] )
@@ -1006,6 +1038,7 @@ class Core {
 
 		<?php
 	}
+
 
 	public function admin_general( $wpGeoList ) {
 
@@ -1575,7 +1608,9 @@ class Core {
 		<?php
 	}
 
+
 	public function admin_help() {
+
 		?>
         <h2><?php
 			_e( 'Location Taxonomy Form', 'wpGeonames' ); ?></h2>
@@ -1612,7 +1647,9 @@ class Core {
 		<?php
 	}
 
+
 	public function ajax_geoDataCity() {
+
 		// AJAX Templates
 		global $wpdb;
 		$Piso = preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_POST['country'] );
@@ -1647,7 +1684,9 @@ class Core {
 		echo json_encode( $result );
 	}
 
+
 	public function ajax_geoDataRegion() {
+
 		// AJAX Templates
 		global $wpdb;
 		$Piso = preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_POST['country'] );
@@ -1688,7 +1727,9 @@ class Core {
 		echo json_encode( $result );
 	}
 
+
 	public function ajax_get_city_by_country_region() {
+
 		// AJAX Admin
 		// input : $_POST iso, region, city
 		if ( $this->verifyToka() ) {
@@ -1726,7 +1767,9 @@ SQL
 		echo json_encode( $result );
 	}
 
+
 	public function ajax_wpGeonamesAddLocation() {
+
 		// AJAX Admin
 		if ( $this->verifyToka() ) {
 			return;
@@ -1747,7 +1790,9 @@ SQL
 		echo ' <span style = "color:green;font-weight:700;margin:0 4px;">' . substr( $postFile, 0, - 4 ) . '</span>';
 	}
 
+
 	function ajax_wpGeonamesAddPostCode() {
+
 		// AJAX Admin
 		if ( $this->verifyToka() ) {
 			return;
@@ -1767,6 +1812,7 @@ SQL
 		$this->postalAddZip( $Purl, $b );
 		echo '<span style = "color:green;font-weight:700;margin:0 4px;">' . substr( $Pfil, 0, - 4 ) . '</span>';
 	}
+
 
 	/**
 	 * @param $apiResult
@@ -1887,6 +1933,7 @@ SQL
 		return $apiResult;
 	}
 
+
 	public function checkArray(
 		$name,
 		$key,
@@ -1924,12 +1971,15 @@ SQL
 		return true;
 	}
 
+
 	public function checkCountry(
 		$country_code,
 		$country_name = null
 	) {
+
 		return $this->checkArray( 'countryCodes', $country_code, $country_name );
 	}
+
 
 	public function checkSearchParams(
 		?array $params,
@@ -2061,6 +2111,7 @@ SQL;
 		$cached = array_sum(
 			array_map(
 				static function ( $cachedQuery ) {
+
 					return $cachedQuery->result_count;
 				},
 				$cachedQueries
@@ -2079,6 +2130,7 @@ SQL;
 				",",
 				array_map(
 					static function ( $cachedQuery ) {
+
 						return $cachedQuery->query_id;
 					},
 					$cachedQueries
@@ -2105,6 +2157,7 @@ SQL;
 			$cached = array_sum(
 				array_map(
 					static function ( $c ) {
+
 						return $c->count;
 					},
 					$countryRecordCount
@@ -2134,6 +2187,7 @@ SQL;
 
 		return null;
 	}
+
 
 	public function checkSearchParamsMinRequirements(
 		?array $params,
@@ -2203,12 +2257,15 @@ SQL;
 			: null;
 	}
 
+
 	public function checkTimeZone(
 		$time_zone_id,
 		$country_code
 	) {
+
 		return $this->checkArray( 'timeZones', $time_zone_id, $country_code );
 	}
+
 
 	public function check_options( $options ) {
 
@@ -2223,6 +2280,7 @@ SQL;
 
 		return $options;
 	}
+
 
 	public function clear( $table ) {
 
@@ -2256,27 +2314,33 @@ SQL;
 		}
 	}
 
+
 	public function clearCountries() {
 
 		return $this->clear( self::tblCountries );
 	}
+
 
 	public function clearLocations() {
 
 		return $this->clear( self::tblLocations );
 	}
 
+
 	public function clearPostCodes() {
 
 		return $this->clear( self::tblPostCodes );
 	}
+
 
 	public function clearTimeZones() {
 
 		return $this->clear( self::tblTimeZones );
 	}
 
+
 	public function creation_table() {
+
 		/*
 		****** http://download.geonames.org/export/dump/readme.txt *********
 		0  geonameid		: integer id of record in geonames database
@@ -2524,14 +2588,15 @@ ON DUPLICATE KEY UPDATE
 ;
 SQL;
 
-		foreach ([$this->tblLocations, $this->tblCacheLocations] as $nom) {
+		foreach ( [ $this->tblLocations, $this->tblCacheLocations ] as $nom ) {
 
 			$wpdb->query( sprintf( $sql, $nom, $this->tblCountries ) );
 
-        }
+		}
 
 		$this->inActivation = false;
 	}
+
 
 	public function downloadZip(
 		$name,
@@ -2612,12 +2677,15 @@ SQL;
 		return "$upl/$txtFile";
 	}
 
+
 	public function enqueue_leaflet() {
+
 		wp_register_style( 'leaflet', plugins_url( 'wp-geonames/leaflet/leaflet.css' ) );
 		wp_enqueue_style( 'leaflet' );
 		wp_register_script( 'leaflet', plugins_url( 'wp-geonames/leaflet/leaflet.js' ), [], false, false );
 		wp_enqueue_script( 'leaflet' );
 	}
+
 
 	public function loadFileIntoDb(
 		$source,
@@ -2645,6 +2713,7 @@ SQL;
 						$field,
 						$fieldName
 					) {
+
 						return $field->regex
 							? ( $field->save
 								? "(?<$fieldName>{$field->regex})"
@@ -2662,6 +2731,7 @@ SQL;
 		$fields = array_filter(
 			$fields,
 			function ( $field ) {
+
 				return $field->save;
 			}
 		);
@@ -2692,6 +2762,7 @@ SQL;
 					&
 					$wpdb
 				) {
+
 					$fieldValues[] = "$fieldName = "
 					                 . ( $matches[ $fieldName ] === ''
 							? 'NULL'
@@ -2737,7 +2808,9 @@ SQL;
 		return true;
 	}
 
+
 	public function postalAddDb( $g ) {
+
 		if ( ! current_user_can( "administrator" ) ) {
 			die;
 		}
@@ -2760,10 +2833,12 @@ SQL;
 		);
 	}
 
+
 	public function postalAddZip(
 		$url,
 		$f
 	) {
+
 		$this->verifyAdmin();
 
 		if ( $this->verifyToka() ) {
@@ -2858,19 +2933,25 @@ SQL;
 		return __( 'Done, data are in base . ', 'wpGeonames' );
 	}
 
+
 	public function regionCode2( $iso = 'ZZZ' ) {
+
 		$a = ',BE,';
 
 		return strpos( $a, $iso ) !== false;
 	}
 
+
 	public function settings_link( $links ) {
+
 		$links[] = '<a href = "options-general.php?page=wpGeonames-options">' . __( 'Settings', 'wpGeonames' ) . ' </a> ';
 
 		return $links;
 	}
 
+
 	public function shortcode( $a ) {
+
 		$shortcode = shortcode_atts(
 			[
 				'id1'    => 'geoCountry',
@@ -2915,23 +2996,28 @@ SQL;
 		return $out;
 	}
 
+
 	public function sortCountry(
 		$a,
 		$b
 	) {
+
 		return strcmp( $a->name, $b->name );
 	}
+
 
 	public function sortCountry2(
 		$a,
 		$b
 	) {
+
 		if ( $a->country_code == $b->country_code ) {
 			return strcmp( $a->name, $b->name );
 		}
 
 		return strcmp( $a->country_code, $b->country_code );
 	}
+
 
 	public function update_options( $force = false ) {
 
@@ -2981,6 +3067,7 @@ SQL;
 							&
 							$options
 						) {
+
 							unset( $match[0], $match[1], $match[2] );
 							$options['filenames'][ $name ][ $match['url'] ] = $match;
 						}
@@ -3030,13 +3117,17 @@ SQL;
 		return $options;
 	}
 
+
 	public function verifyAdmin() {
+
 		if ( ! current_user_can( "administrator" ) ) {
 			die;
 		}
 	}
 
+
 	public function verifyToka() {
+
 		if ( $this->inActivation ) {
 			return false;
 		}
@@ -3047,10 +3138,13 @@ SQL;
 		);
 	}
 
+
 	public static function Factory( $file = null ) {
+
 		return self::$instance
 			?: self::$instance = new self( $file );
 	}
+
 
 	protected static function createWhereFilterIn(
 		$field,
@@ -3075,6 +3169,7 @@ SQL;
 			);
 	}
 
+
 	public static function getCachedQuery(
 		$query,
 		$offset = 0,
@@ -3096,6 +3191,7 @@ SQL;
 					",",
 					array_map(
 						static function ( $query ) {
+
 							return is_object( $query )
 								? $query->query_id
 								: $query;
@@ -3148,10 +3244,12 @@ SQL;
 		return WpDb::formatOutput( $result, $output, $key, $prefix );
 	}
 
+
 	/**
 	 * @return array
 	 */
 	public static function &getCountryCodes() {
+
 		if ( self::$countryCodes === null ) {
 			self::loadArray( 'countryCodes' );
 		}
@@ -3159,12 +3257,15 @@ SQL;
 		return self::$countryCodes;
 	}
 
+
 	/**
 	 * @param array $countryCodes
 	 */
 	public static function setCountryCodes( &$countryCodes ) {
+
 		self::$countryCodes = self::saveArray( 'countryCodes', $countryCodes );
 	}
+
 
 	/**
 	 * @return object
@@ -3209,10 +3310,12 @@ SQL;
 			];
 	}
 
+
 	/**
 	 * @return array
 	 */
 	public static function &getFeatureClasses() {
+
 		if ( self::$featureClasses === null ) {
 			self::loadArray( 'featureClasses' );
 		}
@@ -3220,17 +3323,21 @@ SQL;
 		return self::$featureClasses;
 	}
 
+
 	/**
 	 * @param array $featureClasses
 	 */
 	public static function setFeatureClasses( &$featureClasses ) {
+
 		self::$featureClasses = self::saveArray( 'featureClasses', $featureClasses );
 	}
+
 
 	/**
 	 * @return array
 	 */
 	public static function &getFeatureCodes() {
+
 		if ( self::$featureCodes === null ) {
 			self::loadArray( 'featureCodes' );
 		}
@@ -3238,23 +3345,28 @@ SQL;
 		return self::$featureCodes;
 	}
 
+
 	/**
 	 * @param array $featureCodes
 	 */
 	public static function setFeatureCodes( &$featureCodes ) {
+
 		self::$featureCodes = self::saveArray( 'featureCodes', $featureCodes );
 	}
+
 
 	/**
 	 * @return mixed
 	 */
 	public static function getGeoNameClient() {
+
 		return self::$geoNameClient
 			?: self::$geoNameClient = new GeoNamesClient(
 				get_option( 'wpGeonames_username' )
 					?: 'thebrightpath'
 			);
 	}
+
 
 	/**
 	 * @param        $query
@@ -3304,6 +3416,7 @@ SQL;
 
 		return WpDb::formatOutput( $apiResult, $output );
 	}
+
 
 	/**
 	 * @param array $args
@@ -3398,10 +3511,12 @@ SQL;
 		return self::$wpdb->get_results( $sql, $output );
 	}
 
+
 	/**
 	 * @return array
 	 */
 	public static function &getTimeZones() {
+
 		if ( self::$timeZones === null ) {
 			self::loadArray( 'timeZones' );
 		}
@@ -3409,19 +3524,24 @@ SQL;
 		return self::$timeZones;
 	}
 
+
 	/**
 	 * @param array $timeZones
 	 */
 	public static function setTimeZones( &$timeZones ) {
+
 		self::$timeZones = self::saveArray( 'timeZones', $timeZones );
 	}
 
+
 	public static function &loadArray( $name ) {
+
 		/** @noinspection PhpIncludeInspection */
 		self::$$name = require( self::getEnums()->$name->file );
 
 		return self::$$name;
 	}
+
 
 	/**
 	 * @param string $name
@@ -3433,7 +3553,7 @@ SQL;
 	public static function &saveArray(
 		$name,
 		&$array,
-        $updateDb = true
+		$updateDb = true
 	) {
 
 		if ( empty( $array ) ) {
@@ -3459,7 +3579,7 @@ return $dump;
 EOF
 		);
 
-		if ($updateDb) {
+		if ( $updateDb ) {
 
 			$keys = "'" . join( "', '", array_keys( $array ) ) . "'";
 
@@ -3480,4 +3600,5 @@ SQL;
 
 		return $array;
 	}
+
 }

@@ -16,6 +16,7 @@ class WpDb
 	protected $use_mysqli = false;
 	protected $has_connected = false;
 
+
 	/**
 	 * WpDb constructor.
 	 *
@@ -74,11 +75,14 @@ class WpDb
 
 	}
 
+
 	public function flush() {
+
 		$this->last_error_no = 0;
 
 		parent::flush();
 	}
+
 
 	public function query( $query ) {
 
@@ -107,6 +111,7 @@ class WpDb
 		return $return_val;
 
 	}
+
 
 	public static function &formatOutput( &$result, $output, $keyName = '', $prefix = '' ) {
 
@@ -191,6 +196,7 @@ class WpDb
 		if ( $class !== null ) {
 
 			array_walk( $result, static function ( &$item ) use ( $class ) {
+
 				$item = new $class( $item );
 			} );
 

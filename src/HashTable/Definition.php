@@ -8,6 +8,7 @@ class Definition {
 	public $file;
 	public $fields;
 
+
 	/**
 	 * wpGeonamesArrayDefinition constructor.
 	 *
@@ -16,6 +17,7 @@ class Definition {
 	 * @param $fields
 	 */
 	public function __construct( $name, $file, $fields ) {
+
 		$this->name   = $name;
 		$this->file   = $file;
 		$this->fields = $fields;

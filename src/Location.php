@@ -54,6 +54,7 @@ class Location
 	protected $countryId = null;
 	protected $population = null;
 
+
 	/**
 	 * @param int|string $x
 	 * @param string $format
@@ -75,14 +76,17 @@ class Location
 			: $this->$x;
 	}
 
+
 	/**
 	 * @param string $format
 	 *
 	 * @return string|array|null
 	 */
 	public function getAdminCode1( $format = 'ISO3166_2' ) {
+
 		return $this->getAdminCode( 1, $format );
 	}
+
 
 	/**
 	 * @param string|array $adminCode
@@ -90,8 +94,10 @@ class Location
 	 * @return Location
 	 */
 	public function setAdminCode1( $adminCode ) {
+
 		return $this->setAdminCode( 1, $adminCode );
 	}
+
 
 	/**
 	 * @param string $format
@@ -99,8 +105,10 @@ class Location
 	 * @return string|array|null
 	 */
 	public function getAdminCode2( $format = 'ISO3166_2' ) {
+
 		return $this->getAdminCode( 2, $format );
 	}
+
 
 	/**
 	 * @param string|array $adminCode
@@ -108,8 +116,10 @@ class Location
 	 * @return Location
 	 */
 	public function setAdminCode2( $adminCode ) {
+
 		return $this->setAdminCode( 2, $adminCode );
 	}
+
 
 	/**
 	 * @param string $format
@@ -117,8 +127,10 @@ class Location
 	 * @return string|array|null
 	 */
 	public function getAdminCode3( $format = 'ISO3166_2' ) {
+
 		return $this->getAdminCode( 3, $format );
 	}
+
 
 	/**
 	 * @param string|array $adminCode
@@ -126,8 +138,10 @@ class Location
 	 * @return Location
 	 */
 	public function setAdminCode3( $adminCode ) {
+
 		return $this->setAdminCode( 3, $adminCode );
 	}
+
 
 	/**
 	 * @param string $format
@@ -135,8 +149,10 @@ class Location
 	 * @return string|array|null
 	 */
 	public function getAdminCode4( $format = 'ISO3166_2' ) {
+
 		return $this->getAdminCode( 4, $format );
 	}
+
 
 	/**
 	 * @param string|array $adminCode
@@ -144,15 +160,19 @@ class Location
 	 * @return Location
 	 */
 	public function setAdminCode4( $adminCode ) {
+
 		return $this->setAdminCode( 4, $adminCode );
 	}
+
 
 	/**
 	 * @return string
 	 */
 	public function getAlternateNames(): string {
+
 		return $this->alternateNames;
 	}
+
 
 	/**
 	 * @param null $alternateNames
@@ -160,17 +180,21 @@ class Location
 	 * @return Location
 	 */
 	public function setAlternateNames( $alternateNames ) {
+
 		$this->alternateNames = $alternateNames;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return string
 	 */
 	public function getCountryCode(): string {
+
 		return $this->countryCode;
 	}
+
 
 	/**
 	 * @param null $countryCode
@@ -178,17 +202,21 @@ class Location
 	 * @return Location
 	 */
 	public function setCountryCode( $countryCode ) {
+
 		$this->countryCode = $countryCode;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return int
 	 */
 	public function getCountryId(): int {
+
 		return $this->countryId;
 	}
+
 
 	/**
 	 * @param null $countryId
@@ -196,17 +224,21 @@ class Location
 	 * @return Location
 	 */
 	public function setCountryId( $countryId ) {
+
 		$this->countryId = $countryId;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return string
 	 */
 	public function getFeatureClass(): string {
+
 		return $this->featureClass;
 	}
+
 
 	/**
 	 * @param null $featureClass
@@ -214,17 +246,21 @@ class Location
 	 * @return Location
 	 */
 	public function setFeatureClass( $featureClass ) {
+
 		$this->featureClass = $featureClass;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return string
 	 */
 	public function getFeatureCode(): string {
+
 		return $this->featureCode;
 	}
+
 
 	/**
 	 * @param null $featureCode
@@ -232,17 +268,21 @@ class Location
 	 * @return Location
 	 */
 	public function setFeatureCode( $featureCode ) {
+
 		$this->featureCode = $featureCode;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return int
 	 */
 	public function getGeonameId(): int {
+
 		return $this->geonameId;
 	}
+
 
 	/**
 	 * @param null $geonameId
@@ -250,17 +290,21 @@ class Location
 	 * @return Location
 	 */
 	public function setGeonameId( $geonameId ) {
+
 		$this->geonameId = $geonameId;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return float
 	 */
 	public function getLatitude(): float {
+
 		return $this->latitude;
 	}
+
 
 	/**
 	 * @param null $latitude
@@ -268,17 +312,21 @@ class Location
 	 * @return Location
 	 */
 	public function setLatitude( $latitude ) {
+
 		$this->latitude = $latitude;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return float
 	 */
 	public function getLongitude(): float {
+
 		return $this->longitude;
 	}
+
 
 	/**
 	 * @param null $longitude
@@ -286,17 +334,21 @@ class Location
 	 * @return Location
 	 */
 	public function setLongitude( $longitude ) {
+
 		$this->longitude = $longitude;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return string
 	 */
 	public function getName(): string {
+
 		return $this->name;
 	}
+
 
 	/**
 	 * @param null $name
@@ -304,17 +356,21 @@ class Location
 	 * @return Location
 	 */
 	public function setName( $name ) {
+
 		$this->name = $name;
 
 		return $this;
 	}
 
+
 	/**
 	 * @return int
 	 */
 	public function getPopulation(): int {
+
 		return $this->population;
 	}
+
 
 	/**
 	 * @param null $population
@@ -322,10 +378,12 @@ class Location
 	 * @return Location
 	 */
 	public function setPopulation( $population ) {
+
 		$this->population = $population;
 
 		return $this;
 	}
+
 
 	/**
 	 * @param $x
@@ -349,6 +407,7 @@ class Location
 
 		return $this;
 	}
+
 
 	static public function parseArray( &$array, $key = 'geoname_id', $prefix = '_' ) {
 

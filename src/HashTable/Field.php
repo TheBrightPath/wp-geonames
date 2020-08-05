@@ -7,6 +7,7 @@ class Field {
 	public $table;
 	public $field;
 
+
 	/**
 	 * wpGeonamesFieldDefinition constructor.
 	 *
@@ -14,6 +15,7 @@ class Field {
 	 * @param $field
 	 */
 	public function __construct( $table, $field ) {
+
 		$this->table = $table;
 		$this->field = $field;
 	}
