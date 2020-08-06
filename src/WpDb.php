@@ -65,6 +65,8 @@ class WpDb
 
 		}
 
+		unset ($value);
+
 		foreach ( [ 'use_mysqli', 'has_connected' ] as $property ) {
 
 			$this->$property = $wpdb->__get( $property );
