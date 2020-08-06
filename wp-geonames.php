@@ -5,7 +5,7 @@ Author: Jacques Malgrange, Bhujagendra Ishaya
 Text Domain: wpGeonames
 Domain Path: /lang
 Description: Allows you to insert all or part of the global GeoNames database in your WordPress base.
-Version: 2.0.5
+Version: 2.0.6
 Author URI: https://www.boiteasite.fr
 */
 
