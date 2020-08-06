@@ -212,8 +212,8 @@ class Core
         global $wpdb;
         // OUTPUT Object : country_code, name
         // country list : http://www.nationsonline.org/oneworld/country_code_list.htm
-        // country list : https://en.wikipedia.org/wiki/ISO_3166-1 - Only Indenpendent*
-        $liste = require('./includes/country_codes.php');
+        // country list : https://en.wikipedia.org/wiki/ISO_3166-1 - Only Independent*
+        $list = require($this->getPluginDir() . '/includes/country_codes.php');
 
         if (!$postal)
         {
