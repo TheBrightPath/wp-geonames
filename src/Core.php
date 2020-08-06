@@ -8,6 +8,7 @@ namespace WPGeonames;
 
 use ErrorException;
 use GeoNames\Client as GeoNamesClient;
+use RuntimeException;
 use StdClass;
 use ZipArchive;
 
@@ -2904,7 +2905,11 @@ SQL;
 
         if ($force || !is_file("$upl/$txtFile"))
         {
-            mkdir($upl, 0775, true);
+            if (!mkdir($upl, 0775, true) && !is_dir($upl))
+            {
+                throw new RuntimeException(sprintf('Directory "%s" was not created', $upl));
+            }
+
             // 1. Get ZIP from URL - Copy to uploads/wp-geonames/$name/ folder
             if (!copy($url, "$upl/$zipFile"))
             {
@@ -3141,9 +3146,9 @@ SQL;
         $upl = wp_upload_dir();
         $upl = $upl['basedir'] . '/wp-geonames/zip/';
 
-        if (!is_dir($upl))
+        if (!is_dir($upl) && !mkdir($upl, 0775, true) && !is_dir($upl))
         {
-            mkdir($upl, true);
+            throw new RuntimeException(sprintf('Directory "%s" was not created', $upl));
         }
 
         // 1. Get ZIP from URL - Copy to uploads/wp-geonames/zip/ folder
