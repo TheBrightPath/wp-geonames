@@ -63,7 +63,7 @@ class FlexibleObject {
 
 	public function __set( $property, $value ) {
 
-		$setter = 'set' . ucfirst( static::$aliases[ $property ] ?: $property );
+		$setter = 'set' . ucfirst( static::$aliases[ $property ] ?? $property );
 
 		return $this->$setter( $value );
 	}

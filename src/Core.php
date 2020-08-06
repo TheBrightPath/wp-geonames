@@ -1066,7 +1066,7 @@ class Core
         if (!empty($_GET['geoid']) && !empty($_GET['geodata']))
         {
             $a  = stripslashes(strip_tags($_GET['geodata']));
-            $id = intval($_GET['geoid']);
+            $id = (int)$_GET['geoid'];
             $wpdb->update($wpdb->base_prefix . self::urlLocations, ['name' => $a], ['geoname_id' => $id]);
             echo '<script>window.location.replace("options-general.php?page=wpGeonames-options&geotab=edit");</script>';
             exit;
@@ -1810,7 +1810,7 @@ class Core
         $Preg = sanitize_text_field($_POST['region']);
         $Pcit = sanitize_text_field($_POST['city']);
         $Pnb  = (!empty($_POST['nbcity'])
-            ? intval($_POST['nbcity'])
+            ? (int)$_POST['nbcity']
             : 10);
         //
         $result = [];
@@ -2239,7 +2239,8 @@ SQL;
                 continue;
             }
 
-            $cachedQuery->search_params = new ApiQuery(unserialize($cachedQuery->search_params));
+            /** @noinspection UnserializeExploitsInspection */
+            $cachedQuery->search_params = new ApiQuery(unserialize($cachedQuery->search_params, []));
             $cachedCountry              = $cachedQuery->search_params->getCountryAsArray();
 
             // use cached query if countries match
@@ -2256,7 +2257,7 @@ SQL;
             }
 
             // ignore incomplete caches
-            if ($cachedQuery->result_count === $cachedQuery->search_params->getMaxStartRow()
+            if ($cachedQuery->result_count ?? 0 === $cachedQuery->search_params->getMaxStartRow()
                 || $cachedQuery->result_count < $cachedQuery->result_total ?? 0
             )
             {
