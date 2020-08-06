@@ -287,7 +287,10 @@ class WpDb
                 )
                 {
 
-                    $item = new $class($item);
+                    if (get_class($item) !== $class)
+                    {
+                        $item = new $class($item);
+                    }
                 }
             );
 
