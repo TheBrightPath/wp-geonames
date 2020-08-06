@@ -2,6 +2,7 @@
 
 namespace WPGeonames;
 
+use ErrorException;
 use mysqli;
 use function mysqli_errno;
 
@@ -104,14 +105,15 @@ class WpDb
 					// Something has gone horribly wrong, let's try a reconnect.
 					$this->last_error_no = 2006;
 				}
-			} else {
-				if ( is_resource( $this->dbh ) ) {
-					/** @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection */
-					$this->last_error_no = \mysql_errno( $this->dbh );
-				} else {
-					$this->last_error_no = 2006;
-				}
-			}
+			} elseif ( is_resource( $this->dbh ) ) {
+                /**
+                 * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
+                 * @noinspection PhpFullyQualifiedNameUsageInspection
+                 */
+                $this->last_error_no = \mysql_errno( $this->dbh );
+            } else {
+                $this->last_error_no = 2006;
+            }
 		}
 
 		return $return_val;
@@ -119,7 +121,17 @@ class WpDb
 	}
 
 
-	public static function &formatOutput( &$result, $output, $keyName = '', $prefix = '' ) {
+    /**
+     * @param          $result
+     * @param          $output
+     * @param  string  $keyName
+     * @param  string  $prefix
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
+    public static function &formatOutput( &$result, $output, $keyName = '', $prefix = '' ): ?array
+    {
 
 		if ( $result === null ) {
 			return $result;
@@ -195,7 +207,7 @@ class WpDb
 				break;
 
 			default:
-			    throw new \ErrorException("Unknown output format or class '$output'");
+			    throw new ErrorException("Unknown output format or class '$output'");
 		}
 
 		if ( $class !== null ) {
