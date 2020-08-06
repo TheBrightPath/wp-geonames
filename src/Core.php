@@ -1,5 +1,6 @@
 <?php
 /**
+ * @noinspection SqlResolve
  * @noinspection SpellCheckingInspection
  * @noinspection HtmlUnknownTarget
  */
@@ -369,6 +370,7 @@ class Core
     /**
      * @return bool
      * @throws \ErrorException
+     * @noinspection PhpParameterByRefIsNotUsedAsReferenceInspection
      */
     public function addCountries(): bool
     {
@@ -735,6 +737,9 @@ class Core
     }
 
 
+    /**
+     * @throws \ErrorException
+     */
     public function adminMenu(): void
     {
 
@@ -1071,7 +1076,8 @@ class Core
             echo '<script>window.location.replace("options-general.php?page=wpGeonames-options&geotab=edit");</script>';
             exit;
         }
-        elseif (!empty($_GET['geoSearch']))
+
+        if (!empty($_GET['geoSearch']))
         {
             $a = strip_tags($_GET['geoSearch']);
             $o = '<hr />';
@@ -2959,6 +2965,17 @@ SQL;
     }
 
 
+    /**
+     * @param          $source
+     * @param          $table
+     * @param          $fields
+     * @param          $mode
+     * @param  null    $callback
+     * @param  string  $regexDelimiter
+     *
+     * @return bool
+     * @throws \ErrorException
+     */
     public function loadFileIntoDb(
         $source,
         $table,
@@ -3502,6 +3519,17 @@ SQL;
     }
 
 
+    /**
+     * @param          $query
+     * @param  int     $offset
+     * @param  int     $limit
+     * @param  string  $output
+     * @param  string  $key
+     * @param  string  $prefix
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
     public static function getCachedQuery(
         $query,
         $offset = 0,
@@ -3735,6 +3763,7 @@ SQL;
      *
      * @return array|object|null Database query results
      *
+     * @throws \ErrorException
      */
     public static function &getLiveSearch(
         $query,
