@@ -198,7 +198,7 @@ class WpDb
 
                 array_walk(
                     $result,
-                    static function ($row)
+                    static function ($row, $key)
                     use
                     (
                         &
@@ -210,18 +210,42 @@ class WpDb
                     {
 
                         $object_vars = get_object_vars($row);
-                        $key         = $prefix . ($keyName
-                                ? $object_vars[$keyName]
-                                : reset($object_vars));
 
                         switch ($output)
                         {
                             /** @noinspection PhpMissingBreakStatementInspection */
                         case ARRAY_K:
-                            $row = $object_vars;
+                            $row =& $object_vars;
                             // continue with next
 
                         case OBJECT_K:
+                            switch (true) {
+                            case is_string($key):
+                                // keep current key
+                                break;
+
+                            case empty($keyName):
+                                   $key = $prefix . reset($object_vars);
+                                   break;
+
+                            default:
+                                $keyNames = (array)$keyName;
+
+                                foreach ($keyNames as $keyName)
+                                {
+                                    if (array_key_exists($keyName, $object_vars))
+                                    {
+                                        $key = $prefix . $object_vars[$keyName];
+                                        break;
+                                    }
+                                }
+
+                                if ($key === null)
+                                {
+                                    throw new ErrorException('Key not found in object: ' . implode(', ', $keyNames));
+                                }
+                            }
+
                             if (!isset($new_array[$key]))
                             {
                                 $new_array[$key] = $row;
