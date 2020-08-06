@@ -1847,7 +1847,7 @@ class Core
     }
 
 
-    public function ajax_geoDataRegion()
+    public function ajax_geoDataRegion(): void
     {
 
         // AJAX Templates
@@ -3537,7 +3537,7 @@ SQL;
         $output = Location::class,
         $key = 'geonameId',
         $prefix = '_'
-    ) {
+    ): ?array {
 
         $self = self::$instance;
 
