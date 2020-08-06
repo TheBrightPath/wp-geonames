@@ -1011,8 +1011,7 @@ class ApiQuery
 				break;
 
 			default:
-				_e( 'Unknown query operator.' );
-				die( $array['operator'] );
+				throw new \ErrorException( __( 'Unknown query operator: ' ).$array['operator'] );
 		}
 
 		if ( $unset !== null ) {
