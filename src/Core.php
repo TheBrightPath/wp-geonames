@@ -1,6 +1,8 @@
 <?php
-
-/** @noinspection HtmlUnknownTarget */
+/**
+ * @noinspection SpellCheckingInspection
+ * @noinspection HtmlUnknownTarget
+ */
 
 namespace WPGeonames;
 
@@ -24,31 +26,31 @@ class Core
     const geoVersion = "2.0.3";
 
     // tables constants
-    const tblCountries        = self::tblPrefix . 'countries';
-    const tblLocations        = self::tblPrefix . 'locations';
-    const tblLocationsCache   = self::tblLocations . '_cache';
-    const tblLocationsQueries = self::tblLocations . '_queries';
-    const tblLocationsResults = self::tblLocations . '_results';
-    const tblPostCodes        = self::tblPrefix . 'postal';
-    const tblPrefix           = 'geonames_';
-    const tblTimeZones        = self::tblPrefix . 'timezones';
+    public const tblCountries        = self::tblPrefix . 'countries';
+    public const tblLocations        = self::tblPrefix . 'locations';
+    public const tblLocationsCache   = self::tblLocations . '_cache';
+    public const tblLocationsQueries = self::tblLocations . '_queries';
+    public const tblLocationsResults = self::tblLocations . '_results';
+    public const tblPostCodes        = self::tblPrefix . 'postal';
+    public const tblPrefix           = 'geonames_';
+    public const tblTimeZones        = self::tblPrefix . 'timezones';
 
     // urls
-    const urlCountries   = self::urlLocations . 'countryInfo.txt';
-    const urlLocations   = 'http://download.geonames.org/export/dump/';
-    const urlNoCountries = self::urlLocations . 'no-country.zip';
-    const urlPostal      = 'http://download.geonames.org/export/zip/';
-    const urlTimeZones   = self::urlLocations . 'timeZones.txt';
+    public const urlCountries   = self::urlLocations . 'countryInfo.txt';
+    public const urlLocations   = 'http://download.geonames.org/export/dump/';
+    public const urlNoCountries = self::urlLocations . 'no-country.zip';
+    public const urlPostal      = 'http://download.geonames.org/export/zip/';
+    public const urlTimeZones   = self::urlLocations . 'timeZones.txt';
 
     //  public properties
-    public static $wpdb = null;
+    public static $wpdb;
 
     // protected properties
-    static protected $geoNameClient  = null;
-    static protected $featureClasses = null;
-    static protected $featureCodes   = null; // countries
-    static protected $countryCodes   = null; // postal codes
-    static protected $timeZones      = null;
+    static protected $geoNameClient;
+    static protected $featureClasses;
+    static protected $featureCodes; // countries
+    static protected $countryCodes; // postal codes
+    static protected $timeZones;
     static protected $enums;
 
     // table vars
@@ -62,7 +64,7 @@ class Core
 
     // private properties
     /** @var Core */
-    static private $instance = null;
+    static private $instance;
 
     // other
     /** @var string plugin main file */
@@ -227,11 +229,11 @@ class Core
         $result = [];
         foreach ($q as $r)
         {
-            if (isset($liste[$r->country_code]))
+            if (isset($list[$r->country_code]))
             {
                 $a               = new StdClass();
                 $a->country_code = $r->country_code;
-                $a->name         = $liste[$r->country_code];
+                $a->name         = $list[$r->country_code];
                 $result[]        = $a;
             }
         }
@@ -406,6 +408,18 @@ class Core
     }
 
 
+    /**
+     * @param               $mode
+     * @param               $url
+     * @param  null         $filename
+     * @param  false        $force
+     * @param  \string[][]  $features
+     * @param  string[]     $fieldNames
+     * @param  false        $deleteSource
+     *
+     * @return false|string|void
+     * @throws \ErrorException
+     */
     public function addLocations(
         $mode,
         $url,
@@ -440,7 +454,7 @@ class Core
 
         $source        = $this->downloadZip('names', $url, $filename, $force);
         $feature_class = array_keys($features);
-        $rxClass       = join('|', $feature_class);
+        $rxClass       = implode('|', $feature_class);
         $saveField     = static function ($fieldName) use
         (
             &
@@ -554,6 +568,7 @@ class Core
             ],
         ];
 
+        /** @noinspection NotOptimalIfConditionsInspection */
         if ($this->loadFileIntoDb(
                 $source,
                 $this->tblLocations,
@@ -566,16 +581,10 @@ class Core
                 )
                 {
 
-                    if (!array_key_exists($row['feature_class'], $features)
+                    return !(!array_key_exists($row['feature_class'], $features)
                         || !($features[$row['feature_class']] === true
-                            || in_array($row['feature_code'], $features[$row['feature_class']])
-                        )
-                    )
-                    {
-                        return false;
-                    }
-
-                    return true;
+                            || in_array($row['feature_code'], $features[$row['feature_class']], true)
+                        ));
                 }
             )
 
@@ -590,6 +599,14 @@ class Core
     }
 
 
+    /**
+     * @param $mode
+     * @param $url
+     * @param $f
+     *
+     * @return false|string|void
+     * @throws \ErrorException
+     */
     public function addLocationsFromForm(
         $mode,
         $url,
@@ -656,6 +673,10 @@ class Core
     }
 
 
+    /**
+     * @return false|string|void
+     * @throws \ErrorException
+     */
     public function addNoCountries()
     {
 
@@ -1967,7 +1988,7 @@ SQL
             throw new ErrorException('Search type not supported');
         }
 
-        if (false === Core::$wpdb->insert(
+        if (false === self::$wpdb->insert(
                 self::$instance->tblCacheQueries,
                 [
                     'search_term'    => $searchTerm,
@@ -1987,9 +2008,9 @@ SQL
                 ]
             ))
         {
-            die(Core::$wpdb->last_error);
+            throw new ErrorException(self::$wpdb->last_error);
         }
-        $cachedQuery = (object)['query_id' => Core::$wpdb->insert_id];
+        $cachedQuery = (object)['query_id' => self::$wpdb->insert_id];
 
         $recordsToCache = array_diff_key($apiResult->result, $apiResult->results);
 
@@ -2046,9 +2067,7 @@ SQL
             use
             (
                 &
-                $cachedQuery,
-                &
-                $self
+                $cachedQuery
             )
             {
 
@@ -2127,6 +2146,13 @@ SQL
     }
 
 
+    /**
+     * @param  array|null                  $params
+     * @param  \WPGeonames\ApiQueryStatus  $apiResult
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
     public function checkSearchParams(
         ?array $params,
         ApiQueryStatus $apiResult
@@ -2142,7 +2168,6 @@ SQL
             return null;
         }
 
-        /** @var Core $self */
         $self = self::$instance;
 
         $singleCountry = $apiResult->query->getSingleCountry();
@@ -2291,8 +2316,8 @@ SQL;
         if ($cachedQuery === null)
         {
 
-            $inCountryCode = "'" . join("','", $searchCountry) . "'";
-            $inQueryId     = join(
+            $inCountryCode = "'" . implode("','", $searchCountry) . "'";
+            $inQueryId     = implode(
                 ",",
                 array_map(
                     static function ($cachedQuery)
@@ -2492,10 +2517,8 @@ SQL;
         {
             return __('Done, table is empty.', 'wpGeonames');
         }
-        else
-        {
-            return __('Failed !', 'wpGeonames');
-        }
+
+        return __('Failed !', 'wpGeonames');
     }
 
 
@@ -2572,16 +2595,16 @@ SQL;
         }
 
         $feature_classes = self::getFeatureClasses();
-        $feature_classes = "'" . join("', '", array_keys($feature_classes)) . "'";
+        $feature_classes = "'" . implode("', '", array_keys($feature_classes)) . "'";
 
         $feature_codes = self::getFeatureCodes();
-        $feature_codes = "'" . join("', '", array_keys($feature_codes)) . "'";
+        $feature_codes = "'" . implode("', '", array_keys($feature_codes)) . "'";
 
         $country_codes = self::getCountryCodes();
-        $country_codes = "'" . join("', '", array_keys($country_codes)) . "'";
+        $country_codes = "'" . implode("', '", array_keys($country_codes)) . "'";
 
         $time_zones = self::getTimeZones();
-        $time_zones = "'" . join("', '", $time_zones) . "'";
+        $time_zones = "'" . implode("', '", $time_zones) . "'";
 
         // countries
         $nom = $this->tblCountries;
@@ -2690,7 +2713,7 @@ SQL;
         if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
         {
 
-            $searchTypes = join("','", ApiQuery::SEARCH_TYPES);
+            $searchTypes = implode("','", ApiQuery::SEARCH_TYPES);
 
             $sql = <<<SQL
                 CREATE TABLE $nom  (
@@ -2797,6 +2820,15 @@ SQL;
     }
 
 
+    /**
+     * @param         $name
+     * @param         $url
+     * @param  null   $filename
+     * @param  false  $force
+     *
+     * @return false|string
+     * @throws \ErrorException
+     */
     public function downloadZip(
         $name,
         $url,
@@ -2908,7 +2940,8 @@ SQL;
         $regexDelimiter = '@'
     ) {
 
-        $wpdb   = self::$wpdb;
+        $wpdb = self::$wpdb;
+        /** @noinspection FopenBinaryUnsafeUsageInspection */
         $handle = @fopen($source, 'r');
 
         if (!$handle)
@@ -2918,11 +2951,11 @@ SQL;
             return false;
         }
 
-        $regex  = join(
+        $regex  = implode(
             '\t',
             array_filter(
                 array_map(
-                    function (
+                    static function (
                         $field,
                         $fieldName
                     )
@@ -2941,10 +2974,9 @@ SQL;
             )
         );
         $regex  = "${regexDelimiter}^$regex${regexDelimiter}x";
-        $count  = 0;
         $fields = array_filter(
             $fields,
-            function ($field)
+            static function ($field)
             {
 
                 return $field->save;
@@ -2964,12 +2996,11 @@ SQL;
                 continue;
             }
 
-            ++$count;
             $fieldValues = [];
 
             array_walk(
                 $fields,
-                function (
+                static function (
                     $field,
                     $fieldName
                 ) use
@@ -2990,7 +3021,7 @@ SQL;
                 }
             );
 
-            $sqlValues = join(', ', $fieldValues);
+            $sqlValues = implode(', ', $fieldValues);
 
             switch ($mode)
             {
@@ -3053,11 +3084,18 @@ SQL;
 		latitude,
 		longitude,
 		accuracy) 
-		VALUES" . substr($g, 0, strlen($g) - 1)
+		VALUES" . substr($g, 0, -1)
         );
     }
 
 
+    /**
+     * @param $url
+     * @param $f
+     *
+     * @return false|string|void
+     * @throws \ErrorException
+     */
     public function postalAddZip(
         $url,
         $f
@@ -3106,7 +3144,8 @@ SQL;
         }
 
         // 3. Read file and put data in array
-        $handle = @fopen($upl . substr($PwpGeonamesPostalAdd, 0, strlen($PwpGeonamesPostalAdd) - 4) . '.txt', 'r');
+        /** @noinspection FopenBinaryUnsafeUsageInspection */
+        $handle = @fopen($upl . substr($PwpGeonamesPostalAdd, 0, -4) . '.txt', 'r');
         //
         $g = '';
         $c = 0;
@@ -3161,7 +3200,7 @@ SQL;
             $this->postalAddDb($g);
             fclose($handle);
         }
-        @unlink($upl . substr($PwpGeonamesPostalAdd, 0, strlen($PwpGeonamesPostalAdd) - 4) . ' . txt');
+        @unlink($upl . substr($PwpGeonamesPostalAdd, 0, -4) . ' . txt');
         $this->update_options();
 
         return __('Done, data are in base . ', 'wpGeonames');
@@ -3189,6 +3228,7 @@ SQL;
     public function shortcode($a)
     {
 
+        /** @noinspection SpellCheckingInspection */
         $shortcode = shortcode_atts(
             [
                 'id1'    => 'geoCountry',
@@ -3315,7 +3355,7 @@ SQL;
                 {
                     array_walk(
                         $matches,
-                        function ($match) use
+                        static function ($match) use
                         (
                             $name,
                             &
@@ -3384,7 +3424,7 @@ SQL;
 
         if (!current_user_can("administrator"))
         {
-            die;
+            die();
         }
     }
 
@@ -3431,7 +3471,7 @@ SQL;
             : sprintf(
                 $base,
                 "IN ($delim"
-                . join("$delim, $delim", $values)
+                . implode("$delim, $delim", $values)
                 . "$delim)"
             );
     }
@@ -3446,16 +3486,15 @@ SQL;
         $prefix = '_'
     ) {
 
-        /** @var Core $self */
         $self = self::$instance;
 
         if (is_array($query))
         {
 
             $inCountryCode = $query['searchCountry']
-                ? " AND r.country_code IN ('" . join("','", $query['searchCountry']) . "')"
+                ? " AND r.country_code IN ('" . implode("','", $query['searchCountry']) . "')"
                 : '';
-            $inQueryId     = " AND r.query_id IN (" . join(
+            $inQueryId     = " AND r.query_id IN (" . implode(
                     ",",
                     array_map(
                         static function ($query)
@@ -3472,16 +3511,18 @@ SQL;
         else
         {
             $inCountryCode = '';
-            $inQueryId     = ' AND r.query_id = ' . is_object($query)
-                ? $query->query_id
-                : $query;
+            $inQueryId     = ' AND r.query_id = ' . (
+                is_object($query)
+                    ? $query->query_id
+                    : $query
+                );
         }
 
         $sqlLimit = '';
 
         if ($offset >= 0 && $limit < 0)
         {
-            $limit = '18446744073709551615';
+            $limit = 18446744073709551615;
         }
 
         if ($limit >= 0)
@@ -3885,7 +3926,7 @@ EOF
         if ($updateDb)
         {
 
-            $keys = "'" . join("', '", array_keys($array)) . "'";
+            $keys = "'" . implode("', '", array_keys($array)) . "'";
 
             foreach (self::getEnums()->$name->fields as $field)
             {
