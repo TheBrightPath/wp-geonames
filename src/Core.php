@@ -2406,7 +2406,7 @@ SQL;
         $result = self::getCachedQuery($get, $start, $limit);
 
         /** @noinspection AdditionOperationOnArraysInspection */
-        $apiResult->result += Location::parseArray($result);
+        $apiResult->result += $result;
 
         return null;
     }
@@ -3535,7 +3535,7 @@ SQL;
         $offset = 0,
         $limit = -1,
         $output = Location::class,
-        $key = 'geonameId',
+        $key = 'geoname_id',
         $prefix = '_'
     ): ?array {
 
