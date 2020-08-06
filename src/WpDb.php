@@ -2,6 +2,9 @@
 
 namespace WPGeonames;
 
+use mysqli;
+use function mysqli_errno;
+
 if ( ! defined( 'ARRAY_K' ) ) {
 	define( 'ARRAY_K', 'ARRAY_K' );
 }
@@ -23,7 +26,8 @@ class WpDb
 	 * @param \wpdb|null $db
 	 *
 	 * @noinspection PhpMissingParentConstructorInspection
-	 */
+     * @noinspection MagicMethodsValidityInspection
+     */
 	public function __construct( \wpdb $db = null ) {
 
 		global $wpdb;
@@ -64,7 +68,7 @@ class WpDb
 		foreach ( [ 'use_mysqli', 'has_connected' ] as $property ) {
 
 			$this->$property = $wpdb->__get( $property );
-			parent::__set( $property, $this->$property );
+			$this->__set($property, $this->$property);
 
 		}
 
@@ -91,8 +95,8 @@ class WpDb
 		if ( ! empty( $this->dbh ) ) {
 
 			if ( $this->use_mysqli ) {
-				if ( $this->dbh instanceof \mysqli ) {
-					$this->last_error_no = \mysqli_errno( $this->dbh );
+				if ( $this->dbh instanceof mysqli ) {
+					$this->last_error_no = mysqli_errno( $this->dbh );
 				} else {
 					// $dbh is defined, but isn't a real connection.
 					// Something has gone horribly wrong, let's try a reconnect.

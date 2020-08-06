@@ -1,6 +1,11 @@
 <?php
+/**
+ * @noinspection SpellCheckingInspection
+ */
 
 namespace WPGeonames;
+
+use ErrorException;
 
 /**
  * Class ApiQuery
@@ -15,25 +20,25 @@ class ApiQuery
 	extends FlexibleObject {
 
 // constants
-	const MAX_START_ROW_FREE = 5000;
-	const MAX_START_ROW_PREMIUM = 25000;
-	const SEARCH_NAME_EXACT_NAME = 'name_equals';
-	const SEARCH_NAME_FUZZY_NAME = 'name_fuzzy';
-	const SEARCH_NAME_NAME = 'name';
-	const SEARCH_NAME_Q = 'q';
-	const SEARCH_NAME_START_OF_NAME = 'name_startsWith';
-	const SEARCH_TYPES = [
+	public const MAX_START_ROW_FREE        = 5000;
+	public const MAX_START_ROW_PREMIUM     = 25000;
+	public const SEARCH_NAME_EXACT_NAME    = 'name_equals';
+	public const SEARCH_NAME_FUZZY_NAME    = 'name_fuzzy';
+	public const SEARCH_NAME_NAME          = 'name';
+	public const SEARCH_NAME_Q             = 'q';
+	public const SEARCH_NAME_START_OF_NAME = 'name_startsWith';
+	public const SEARCH_TYPES              = [
 		self::SEARCH_TYPE_Q             => self::SEARCH_NAME_Q,
 		self::SEARCH_TYPE_START_OF_NAME => self::SEARCH_NAME_START_OF_NAME,
 		self::SEARCH_TYPE_FUZZY_NAME    => self::SEARCH_NAME_FUZZY_NAME,
 		self::SEARCH_TYPE_NAME          => self::SEARCH_NAME_NAME,
 		self::SEARCH_TYPE_EXACT_NAME    => self::SEARCH_NAME_EXACT_NAME,
 	];
-	const SEARCH_TYPE_EXACT_NAME = 2 ** 5;
-	const SEARCH_TYPE_FUZZY_NAME = 2 ** 3;
-	const SEARCH_TYPE_NAME = 2 ** 4;
-	const SEARCH_TYPE_Q = 2 ** 1;
-	const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
+	public const SEARCH_TYPE_EXACT_NAME    = 2 ** 5;
+	public const SEARCH_TYPE_FUZZY_NAME    = 2 ** 3;
+	public const SEARCH_TYPE_NAME          = 2 ** 4;
+	public const SEARCH_TYPE_Q             = 2 ** 1;
+	public const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
 // protected properties
 	protected static $aliases = [
 		'feature_class'                     => 'featureClass',
@@ -71,7 +76,7 @@ class ApiQuery
 	/**
 	 * @var null|string|string[] country code, ISO-3166 (optional)    default is all countries. The country parameter may occur more than once, example: country=FR&country=GP
 	 */
-	protected $country = null;
+	protected $country;
 
 	/**
 	 * @var string (option), two letter country code ISO-3166    records from the countryBias are listed first
@@ -1025,10 +1030,10 @@ class ApiQuery
 
 			case 'AND':
 				$searchKeys = [
-					ApiQuery::SEARCH_NAME_EXACT_NAME,
-					ApiQuery::SEARCH_NAME_START_OF_NAME,
-					ApiQuery::SEARCH_NAME_NAME,
-					ApiQuery::SEARCH_NAME_Q,
+                    self::SEARCH_NAME_EXACT_NAME,
+                    self::SEARCH_NAME_START_OF_NAME,
+                    self::SEARCH_NAME_NAME,
+                    self::SEARCH_NAME_Q,
 				];
 
 				while ( $searchKey = array_shift( $searchKeys ) ) {
@@ -1050,25 +1055,25 @@ class ApiQuery
 				break;
 
 			default:
-				throw new \ErrorException( __( 'Unknown query operator: ' ).$array['operator'] );
+				throw new ErrorException( __( 'Unknown query operator: ' ).$array['operator'] );
 		}
 
 		if ( $unset !== null ) {
 
 			if ( ! is_array( $unset ) ) {
 				$unset = [
-					'maxRows',
-					'startRow',
-					'fuzzy',
-					'charset',
-					'formatted',
-					'type',
-					'isNameRequired',
-					'inclBbox',
-					ApiQuery::SEARCH_NAME_EXACT_NAME,
-					ApiQuery::SEARCH_NAME_START_OF_NAME,
-					ApiQuery::SEARCH_NAME_NAME,
-					ApiQuery::SEARCH_NAME_Q,
+                    'maxRows',
+                    'startRow',
+                    'fuzzy',
+                    'charset',
+                    'formatted',
+                    'type',
+                    'isNameRequired',
+                    'inclBbox',
+                    self::SEARCH_NAME_EXACT_NAME,
+                    self::SEARCH_NAME_START_OF_NAME,
+                    self::SEARCH_NAME_NAME,
+                    self::SEARCH_NAME_Q,
 				];
 			}
 
@@ -1184,11 +1189,11 @@ class ApiQuery
 		switch ( $searchType ) {
 
 			case self::SEARCH_TYPE_Q:
-				$search_type = ApiQuery::SEARCH_NAME_Q;
+				$search_type = self::SEARCH_NAME_Q;
 				break;
 
 			case self::SEARCH_TYPE_START_OF_NAME:
-				$search_type = ApiQuery::SEARCH_NAME_START_OF_NAME;
+				$search_type = self::SEARCH_NAME_START_OF_NAME;
 				unset( $params['fuzzy'] );
 				break;
 
@@ -1198,11 +1203,11 @@ class ApiQuery
 			// continue with next
 
 			case self::SEARCH_TYPE_FUZZY_NAME:
-				$search_type = ApiQuery::SEARCH_NAME_NAME;
+				$search_type = self::SEARCH_NAME_NAME;
 				break;
 
 			case self::SEARCH_TYPE_EXACT_NAME:
-				$search_type = ApiQuery::SEARCH_NAME_EXACT_NAME;
+				$search_type = self::SEARCH_NAME_EXACT_NAME;
 				unset( $params['fuzzy'] );
 				break;
 

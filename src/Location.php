@@ -39,20 +39,20 @@ class Location
 		'lng'             => 'longitude',
 		'lat'             => 'latitude',
 	];
-	protected $geonameId = null;
-	protected $name = null;
-	protected $featureClass = null;
-	protected $featureCode = null;
-	protected $countryCode = null;
-	protected $adminCode1 = null;
-	protected $adminCode2 = null;
-	protected $adminCode3 = null;
-	protected $adminCode4 = null;
-	protected $longitude = null;
-	protected $latitude = null;
-	protected $alternateNames = null;
-	protected $countryId = null;
-	protected $population = null;
+	protected $geonameId;
+	protected $name;
+	protected $featureClass;
+	protected $featureCode;
+	protected $countryCode;
+	protected $adminCode1;
+	protected $adminCode2;
+	protected $adminCode3;
+	protected $adminCode4;
+	protected $longitude;
+	protected $latitude;
+	protected $alternateNames;
+	protected $countryId;
+	protected $population;
 
 
 	/**
@@ -424,7 +424,7 @@ class Location
 	}
 
 
-	static public function parseArray( &$array, $key = 'geoname_id', $prefix = '_' ) {
+	public static function parseArray( &$array, $key = 'geoname_id', $prefix = '_' ) {
 
 		return parent::parseArray( $array, $key, $prefix );
 

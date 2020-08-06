@@ -21,7 +21,7 @@ class ApiQueryStatus {
 	public $results = [];
 
 	/** @var int|null Total of found records in current request */
-	public $total = null;
+	public $total;
 
 	public $processRecords = 0;
 

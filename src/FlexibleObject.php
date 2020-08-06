@@ -119,7 +119,7 @@ class FlexibleObject {
 	}
 
 
-	static public function parseArray( &$array, $key = '', $prefix = '' ) {
+	public static function parseArray( &$array, $key = '', $prefix = '' ) {
 
 		return WpDb::formatOutput( $array, static::class, $key, $prefix );
 
