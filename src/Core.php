@@ -331,7 +331,7 @@ class Core
             $c = [];
             foreach ($q as $r)
             {
-                if ($r->$a == '00')
+                if ($r->$a === '00')
                 {
                     $r->$a = $r->country_code;
                 }
@@ -1075,11 +1075,11 @@ class Core
             $a = strip_tags($_GET['geoSearch']);
             $o = '<hr />';
             $w = '';
-            if ($GgeoType == 'region')
+            if ($GgeoType === 'region')
             {
                 $w = "and feature_class='A' and feature_code IN ('ADM1','ADM2','PCLD')";
             }
-            elseif ($GgeoType == 'city')
+            elseif ($GgeoType === 'city')
             {
                 $w = "and feature_class='P'";
             }
@@ -1124,13 +1124,13 @@ class Core
                     _e('Type of data', 'wpGeonames') ?><br/>
                     <select id="geoType" name="geoType">
                         <option value="region" <?php
-                        if ($GgeoType == 'region')
+                        if ($GgeoType === 'region')
                         {
                             echo 'selected';
                         } ?>><?php
                             _e('Region', 'wpGeonames') ?></option>
                         <option value="city" <?php
-                        if ($GgeoType == 'city')
+                        if ($GgeoType === 'city')
                         {
                             echo 'selected';
                         } ?>><?php
@@ -1536,7 +1536,7 @@ class Core
         {
             foreach ($wpGeoList as $country => $count)
             {
-                if (strlen($country) == 3)
+                if (strlen($country) === 3)
                 {
                     $cc .= substr($country, 1) . ' (<span style="color:#D54E21;">' . $count . '</span>)&nbsp;&nbsp;';
                 }
@@ -1573,7 +1573,7 @@ class Core
                                 <?php
                                 foreach ($wpGeoList['filenames']['postal'] as $country)
                                 {
-                                    if (strlen($country) == 6 && substr($country, 2) == '.zip')
+                                    if ((strlen($country) === 6) && (substr($country, 2) === '.zip'))
                                     {
                                         echo '<option value="' . $country . '">' . $country . '</option>';
                                     }
@@ -1874,7 +1874,7 @@ class Core
             $c = [];
             foreach ($q as $r)
             {
-                if ($r->regionid == '00')
+                if ($r->regionid === '00')
                 {
                     $r->regionid = $r->country_code;
                 }
@@ -2633,7 +2633,7 @@ SQL;
         // countries
         $nom = $this->tblCountries;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             $sql = <<<SQL
                 CREATE TABLE $nom (
@@ -2669,7 +2669,7 @@ SQL;
         // time zones
         $nom = $this->tblTimeZones;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             $sql = <<<SQL
                 CREATE TABLE $nom (
@@ -2718,7 +2718,7 @@ SQL;
         // locations
         $nom = $this->tblLocations;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             dbDelta(sprintf($sql, $nom));
         }
@@ -2726,7 +2726,7 @@ SQL;
         // locations cache
         $nom = $this->tblCacheLocations;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             dbDelta(sprintf($sql, $nom));
         }
@@ -2734,7 +2734,7 @@ SQL;
         // locations cache queries
         $nom = $this->tblCacheQueries;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
 
             $searchTypes = implode("','", ApiQuery::SEARCH_TYPES);
@@ -2759,7 +2759,7 @@ SQL;
         // locations cache results
         $nom = $this->tblCacheResults;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             $sql = <<<SQL
                 CREATE TABLE $nom (
@@ -2777,7 +2777,7 @@ SQL;
         // post codes
         $nom = $this->tblPostCodes;
 
-        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") != $nom)
+        if ($wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
         {
             $sql = "CREATE TABLE " . $nom . " (
 			`geoname_id` int(11) unsigned NOT NULL,
@@ -2887,7 +2887,7 @@ SQL;
 
         $upl = wp_upload_dir();
 
-        if ($zipFile == 'geoManual')
+        if ($zipFile === 'geoManual')
         {
             global $geoManual;
             $upl = $upl['basedir'] . rtrim($geoManual, DIRECTORY_SEPARATOR . '/');
@@ -3231,7 +3231,7 @@ SQL;
     }
 
 
-    public function regionCode2($iso = 'ZZZ')
+    public function regionCode2($iso = 'ZZZ'): bool
     {
 
         $a = ',BE,';
@@ -3319,7 +3319,7 @@ SQL;
         $b
     ) {
 
-        if ($a->country_code == $b->country_code)
+        if ($a->country_code === $b->country_code)
         {
             return strcmp($a->name, $b->name);
         }
