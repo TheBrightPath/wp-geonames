@@ -2916,8 +2916,7 @@ SQL;
             if (!copy($url, "$upl/$zipFile"))
             {
                 //$errors = error_get_last();
-                _e('Failure in the download of the zip.', 'wpGeonames');
-                die();
+                throw new ErrorException(__('Failure in the download of the zip.', 'wpGeonames'));
             }
 
             switch ($ext)
@@ -2936,14 +2935,12 @@ SQL;
                 }
                 else
                 {
-                    _e('Failure in the extraction of the zip.', 'wpGeonames');
-                    die();
+                    throw new ErrorException(__('Failure in the extraction of the zip.', 'wpGeonames'));
                 }
                 break;
 
             default:
-                _e('Unknown file type');
-                die();
+                throw new ErrorException(__('Unknown file type'));
             }
         }
 
@@ -3080,9 +3077,8 @@ SQL;
 
             if ($sql && $wpdb->query($sql) === false)
             {
-                _e("Error while updating data", 'wpGeonames');
-                echo "\n$wpdb->last_error\n";
-                die($sql);
+
+                throw new ErrorException(__("Error while updating data", 'wpGeonames') . "\n$wpdb->last_error\n$sql");
             }
             unset($sql);
         }
@@ -3156,8 +3152,7 @@ SQL;
         // 1. Get ZIP from URL - Copy to uploads/wp-geonames/zip/ folder
         if (!copy($url . $PwpGeonamesPostalAdd, $upl . $PwpGeonamesPostalAdd))
         {
-            _e('Failure in the download of the zip.', 'wpGeonames');
-            die();
+            throw new ErrorException(__('Failure in the download of the zip.', 'wpGeonames'));
         }
 
         // 2. Extract ZIP in uploads/zip/
@@ -3170,8 +3165,7 @@ SQL;
         }
         else
         {
-            _e('Failure in the extraction of the zip.', 'wpGeonames');
-            die();
+            throw new ErrorException(__('Failure in the extraction of the zip.', 'wpGeonames'));
         }
 
         // 3. Read file and put data in array
