@@ -193,8 +193,7 @@ class WpDb
 				break;
 
 			default:
-				$result = null;
-				break;
+			    throw new \ErrorException("Unknown output format or class '$output'");
 		}
 
 		if ( $class !== null ) {
