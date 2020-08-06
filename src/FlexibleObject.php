@@ -68,15 +68,26 @@ class FlexibleObject {
 		return $this->$setter( $value );
 	}
 
+	public function __isset($name)
+    {
+        return property_exists($this, $name) || array_key_exists($name, static::$aliases);
+    }
 
-	public function __serialize() {
+
+    public function __serialize(): array
+    {
 
 		return $this->toArray();
 
 	}
 
 
-	protected function cleanArray( $array ) {
+    /**
+     * @param array $array
+     *
+     * @return array
+     */
+    protected function cleanArray( $array ):array {
 
 		$array = array_filter( $array, static function ( $item ) {
 
@@ -90,14 +101,18 @@ class FlexibleObject {
 	}
 
 
-	public function serialize() {
+	public function serialize(): string
+    {
 
 		return serialize( $this->toArray() );
 
 	}
 
 
-	public function toArray() {
+    /**
+     * @return array
+     */
+    public function toArray():array {
 
 		return $this->cleanArray( get_object_vars( $this ) );
 

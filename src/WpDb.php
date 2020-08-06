@@ -76,7 +76,7 @@ class WpDb
 	}
 
 
-	public function flush() {
+    public function flush():void {
 
 		$this->last_error_no = 0;
 

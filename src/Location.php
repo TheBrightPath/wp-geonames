@@ -93,7 +93,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setAdminCode1( $adminCode ) {
+	public function setAdminCode1( $adminCode ): Location
+    {
 
 		return $this->setAdminCode( 1, $adminCode );
 	}
@@ -115,7 +116,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setAdminCode2( $adminCode ) {
+	public function setAdminCode2( $adminCode ): Location
+    {
 
 		return $this->setAdminCode( 2, $adminCode );
 	}
@@ -137,7 +139,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setAdminCode3( $adminCode ) {
+	public function setAdminCode3( $adminCode ): Location
+    {
 
 		return $this->setAdminCode( 3, $adminCode );
 	}
@@ -159,7 +162,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setAdminCode4( $adminCode ) {
+	public function setAdminCode4( $adminCode ): Location
+    {
 
 		return $this->setAdminCode( 4, $adminCode );
 	}
@@ -179,7 +183,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setAlternateNames( $alternateNames ) {
+	public function setAlternateNames( $alternateNames ): Location
+    {
 
 		$this->alternateNames = $alternateNames;
 
@@ -201,7 +206,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setCountryCode( $countryCode ) {
+	public function setCountryCode( $countryCode ): Location
+    {
 
 		$this->countryCode = $countryCode;
 
@@ -223,7 +229,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setCountryId( $countryId ) {
+	public function setCountryId( $countryId ): Location
+    {
 
 		$this->countryId = $countryId;
 
@@ -245,7 +252,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setFeatureClass( $featureClass ) {
+	public function setFeatureClass( $featureClass ): Location
+    {
 
 		$this->featureClass = $featureClass;
 
@@ -267,7 +275,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setFeatureCode( $featureCode ) {
+	public function setFeatureCode( $featureCode ): Location
+    {
 
 		$this->featureCode = $featureCode;
 
@@ -289,7 +298,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setGeonameId( $geonameId ) {
+	public function setGeonameId( $geonameId ): Location
+    {
 
 		$this->geonameId = $geonameId;
 
@@ -311,7 +321,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setLatitude( $latitude ) {
+	public function setLatitude( $latitude ): Location
+    {
 
 		$this->latitude = $latitude;
 
@@ -333,7 +344,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setLongitude( $longitude ) {
+	public function setLongitude( $longitude ): Location
+    {
 
 		$this->longitude = $longitude;
 
@@ -355,7 +367,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setName( $name ) {
+	public function setName( $name ): Location
+    {
 
 		$this->name = $name;
 
@@ -377,7 +390,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	public function setPopulation( $population ) {
+	public function setPopulation( $population ): Location
+    {
 
 		$this->population = $population;
 
@@ -391,7 +405,8 @@ class Location
 	 *
 	 * @return Location
 	 */
-	protected function setAdminCode( $x, $adminCode ) {
+	protected function setAdminCode( $x, $adminCode ): Location
+    {
 
 		if ( is_numeric( $x ) ) {
 			$x = "adminCode$x";
