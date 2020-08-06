@@ -2,22 +2,26 @@
 
 namespace WPGeonames\HashTable;
 
-class Field {
-//  public properties
-	public $table;
-	public $field;
+class Field
+{
+    //  public properties
+    public $table;
+    public $field;
 
 
-	/**
-	 * wpGeonamesFieldDefinition constructor.
-	 *
-	 * @param $table
-	 * @param $field
-	 */
-	public function __construct( $table, $field ) {
+    /**
+     * wpGeonamesFieldDefinition constructor.
+     *
+     * @param $table
+     * @param $field
+     */
+    public function __construct(
+        $table,
+        $field
+    ) {
 
-		$this->table = $table;
-		$this->field = $field;
-	}
+        $this->table = $table;
+        $this->field = $field;
+    }
 
 }
