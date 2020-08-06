@@ -2081,7 +2081,7 @@ SQL
         array_walk(
             $apiResult->result,
             static function (
-                wpGeonamesLocation $location,
+                Location $location,
                 $i
             )
             use
@@ -2398,7 +2398,8 @@ SQL;
 
         $result = self::getCachedQuery($get, $start, $limit);
 
-        $apiResult->result += wpGeonamesLocation::parseArray($result);
+        /** @noinspection AdditionOperationOnArraysInspection */
+        $apiResult->result += Location::parseArray($result);
 
         return null;
     }
