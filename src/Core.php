@@ -188,7 +188,7 @@ class Core
         );
         foreach ($q as $k => $v)
         {
-            if ($v->cc2 != '')
+            if ($v->cc2 !== '')
             {
                 $q[$k]->country_code = $v->cc2;
             }
@@ -898,7 +898,7 @@ class Core
                 <?php
                 foreach ($country as $r)
                 {
-                    echo '<option value="' . $r->country_code . '" ' . (($Gcountry == $r->country_code)
+                    echo '<option value="' . $r->country_code . '" ' . (($Gcountry === $r->country_code)
                             ? 'selected'
                             : '') . '>' . $r->name . '</option>';
                 } ?>
@@ -920,7 +920,7 @@ class Core
                 {
                     foreach ($region as $r)
                     {
-                        echo '<option value="' . $r->admin1_code . '" ' . (($Gregion == $r->admin1_code)
+                        echo '<option value="' . $r->admin1_code . '" ' . (($Gregion === $r->admin1_code)
                                 ? 'selected'
                                 : '') . '>' . $r->name . '</option>';
                     }
@@ -964,7 +964,7 @@ class Core
                         <?php
                         foreach ($postalCountry as $r)
                         {
-                            echo '<option value="' . $r->country_code . '" ' . (($Gcountry == $r->country_code)
+                            echo '<option value="' . $r->country_code . '" ' . (($Gcountry === $r->country_code)
                                     ? 'selected'
                                     : '') . '>' . $r->name . '</option>';
                         } ?>
