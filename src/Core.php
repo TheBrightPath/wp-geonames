@@ -128,7 +128,7 @@ class Core
     /**
      * @return string full plugin file path
      */
-    public function getPluginDir()
+    public function getPluginDir(): string
     {
 
         return plugin_dir_path($this->getPluginFileFull());
@@ -138,7 +138,7 @@ class Core
     /**
      * @return string full plugin file path
      */
-    public function getPluginFileFull()
+    public function getPluginFileFull(): string
     {
 
         return $this->plugin_file;
@@ -148,7 +148,7 @@ class Core
     /**
      * @return string Path to the main plugin file from plugins directory
      */
-    public function getPluginFileRelative()
+    public function getPluginFileRelative(): string
     {
 
         return plugin_basename($this->getPluginFileFull());
@@ -158,14 +158,14 @@ class Core
     /**
      * @return string plugin slug
      */
-    public function getPluginSlug()
+    public function getPluginSlug(): string
     {
 
         return basename($this->getPluginDir());
     }
 
 
-    public function get_all_region()
+    public function get_all_region(): void
     {
 
         //
@@ -205,7 +205,7 @@ class Core
     }
 
 
-    public function get_country($postal = 0)
+    public function get_country($postal = 0): array
     {
 
         global $wpdb;
@@ -297,7 +297,7 @@ class Core
     }
 
 
-    public function get_region_by_country($iso = '')
+    public function get_region_by_country($iso = ''): array
     {
 
         //
@@ -347,7 +347,7 @@ class Core
     }
 
 
-    public function addAdminMenu()
+    public function addAdminMenu(): void
     {
 
         $this->verifyAdmin();
@@ -365,7 +365,11 @@ class Core
     }
 
 
-    public function addCountries()
+    /**
+     * @return bool
+     * @throws \ErrorException
+     */
+    public function addCountries(): bool
     {
 
         $this->verifyAdmin();
@@ -687,7 +691,11 @@ class Core
     }
 
 
-    public function addTimezones()
+    /**
+     * @return bool
+     * @throws \ErrorException
+     */
+    public function addTimezones(): bool
     {
 
         $this->verifyAdmin();
@@ -726,7 +734,7 @@ class Core
     }
 
 
-    public function adminMenu()
+    public function adminMenu(): void
     {
 
         $this->verifyAdmin();
@@ -819,7 +827,7 @@ class Core
     }
 
 
-    public function admin_check()
+    public function admin_check(): void
     {
 
         global $wpdb;
@@ -1045,7 +1053,7 @@ class Core
     }
 
 
-    public function admin_edit()
+    public function admin_edit(): void
     {
 
         global $wpdb;
@@ -1153,7 +1161,12 @@ class Core
     }
 
 
-    public function admin_general($wpGeoList)
+    /**
+     * @param $wpGeoList
+     *
+     * @throws \ErrorException
+     */
+    public function admin_general($wpGeoList): void
     {
 
         global $wpdb;
@@ -1747,7 +1760,7 @@ class Core
     }
 
 
-    public function admin_help()
+    public function admin_help(): void
     {
 
         ?>
@@ -1787,7 +1800,7 @@ class Core
     }
 
 
-    public function ajax_geoDataCity()
+    public function ajax_geoDataCity(): void
     {
 
         // AJAX Templates
@@ -1876,7 +1889,7 @@ class Core
     }
 
 
-    public function ajax_get_city_by_country_region()
+    public function ajax_get_city_by_country_region(): void
     {
 
         // AJAX Admin
@@ -1918,7 +1931,10 @@ SQL
     }
 
 
-    public function ajax_wpGeonamesAddLocation()
+    /**
+     * @throws \ErrorException
+     */
+    public function ajax_wpGeonamesAddLocation(): void
     {
 
         // AJAX Admin
@@ -1943,7 +1959,10 @@ SQL
     }
 
 
-    function ajax_wpGeonamesAddPostCode()
+    /**
+     * @throws \ErrorException
+     */
+    public function ajax_wpGeonamesAddPostCode(): void
     {
 
         // AJAX Admin
@@ -2016,7 +2035,7 @@ SQL
 
         array_walk(
             $recordsToCache,
-            static function (wpGeonamesLocation $location)
+            static function (Location $location)
             {
 
                 if (false === Core::$wpdb->replace(
@@ -2100,7 +2119,7 @@ SQL
         $name,
         $key,
         $value = null
-    ) {
+    ): bool {
 
         $keyExisted = false;
         $getter     = 'get' . ucfirst($name);
@@ -2140,7 +2159,7 @@ SQL
     public function checkCountry(
         $country_code,
         $country_name = null
-    ) {
+    ): bool {
 
         return $this->checkArray('countryCodes', $country_code, $country_name);
     }
@@ -2200,6 +2219,7 @@ SQL;
         $cachedQuery     = null;
         $cachedQueries   = self::$wpdb->get_results($sql);
 
+        /** @noinspection AlterInForeachInspection */
         foreach ($cachedQueries as $i => &$cachedQuery)
         {
 
@@ -2386,7 +2406,7 @@ SQL;
     public function checkSearchParamsMinRequirements(
         ?array $params,
         ApiQueryStatus $apiResult
-    ) {
+    ): ?array {
 
         if ($params === null)
         {
@@ -2461,7 +2481,7 @@ SQL;
     public function checkTimeZone(
         $time_zone_id,
         $country_code
-    ) {
+    ): bool {
 
         return $this->checkArray('timeZones', $time_zone_id, $country_code);
     }
@@ -2550,7 +2570,11 @@ SQL;
     }
 
 
-    public function creation_table()
+    /**
+     * @throws \ErrorException
+     * @noinspection SpellCheckingInspection
+     */
+    public function creation_table(): void
     {
 
         /*
@@ -2921,7 +2945,7 @@ SQL;
     }
 
 
-    public function enqueue_leaflet()
+    public function enqueue_leaflet(): void
     {
 
         wp_register_style('leaflet', plugins_url('wp-geonames/leaflet/leaflet.css'));
@@ -2938,7 +2962,7 @@ SQL;
         $mode,
         $callback = null,
         $regexDelimiter = '@'
-    ) {
+    ): bool {
 
         $wpdb = self::$wpdb;
         /** @noinspection FopenBinaryUnsafeUsageInspection */
@@ -3062,7 +3086,7 @@ SQL;
     }
 
 
-    public function postalAddDb($g)
+    public function postalAddDb($g): void
     {
 
         if (!current_user_can("administrator"))
@@ -3225,7 +3249,7 @@ SQL;
     }
 
 
-    public function shortcode($a)
+    public function shortcode($a): string
     {
 
         /** @noinspection SpellCheckingInspection */
@@ -3419,7 +3443,7 @@ SQL;
     }
 
 
-    public function verifyAdmin()
+    public function verifyAdmin(): void
     {
 
         if (!current_user_can("administrator"))
@@ -3429,7 +3453,7 @@ SQL;
     }
 
 
-    public function verifyToka()
+    public function verifyToka(): bool
     {
 
         if ($this->inActivation)
@@ -3444,7 +3468,7 @@ SQL;
     }
 
 
-    public static function Factory($file = null)
+    public static function Factory($file = null): Core
     {
 
         return self::$instance
@@ -3457,7 +3481,7 @@ SQL;
         $values,
         $relation = 'AND',
         $delim = '"'
-    ) {
+    ): string {
 
         $base = "\t$relation $field %s\n";
 
@@ -3563,7 +3587,7 @@ SQL;
     /**
      * @return array
      */
-    public static function &getCountryCodes()
+    public static function &getCountryCodes(): ?array
     {
 
         if (self::$countryCodes === null)
@@ -3578,7 +3602,7 @@ SQL;
     /**
      * @param  array  $countryCodes
      */
-    public static function setCountryCodes(&$countryCodes)
+    public static function setCountryCodes(&$countryCodes): void
     {
 
         self::$countryCodes = self::saveArray('countryCodes', $countryCodes);
@@ -3633,7 +3657,7 @@ SQL;
     /**
      * @return array
      */
-    public static function &getFeatureClasses()
+    public static function &getFeatureClasses(): ?array
     {
 
         if (self::$featureClasses === null)
@@ -3648,7 +3672,7 @@ SQL;
     /**
      * @param  array  $featureClasses
      */
-    public static function setFeatureClasses(&$featureClasses)
+    public static function setFeatureClasses(&$featureClasses): void
     {
 
         self::$featureClasses = self::saveArray('featureClasses', $featureClasses);
@@ -3658,7 +3682,7 @@ SQL;
     /**
      * @return array
      */
-    public static function &getFeatureCodes()
+    public static function &getFeatureCodes(): ?array
     {
 
         if (self::$featureCodes === null)
@@ -3673,7 +3697,7 @@ SQL;
     /**
      * @param  array  $featureCodes
      */
-    public static function setFeatureCodes(&$featureCodes)
+    public static function setFeatureCodes(&$featureCodes): void
     {
 
         self::$featureCodes = self::saveArray('featureCodes', $featureCodes);
@@ -3714,7 +3738,7 @@ SQL;
     public static function &getLiveSearch(
         $query,
         $output = OBJECT
-    ) {
+    ): array {
 
         //self::$instance->creation_table();
 
@@ -3853,7 +3877,7 @@ SQL;
     /**
      * @return array
      */
-    public static function &getTimeZones()
+    public static function &getTimeZones(): array
     {
 
         if (self::$timeZones === null)
@@ -3868,7 +3892,7 @@ SQL;
     /**
      * @param  array  $timeZones
      */
-    public static function setTimeZones(&$timeZones)
+    public static function setTimeZones(&$timeZones): void
     {
 
         self::$timeZones = self::saveArray('timeZones', $timeZones);
@@ -3896,7 +3920,7 @@ SQL;
         $name,
         &$array,
         $updateDb = true
-    ) {
+    ): array {
 
         if (empty($array))
         {
