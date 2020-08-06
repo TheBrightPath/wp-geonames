@@ -1222,6 +1222,14 @@ class ApiQuery
 
             if ($params === null || $params['startRow'] >= $this->maxStartRow)
             {
+                $apiResult = apply_filters("geonames/cache/result", $apiResult);
+                $apiResult = apply_filters("geonames/cache/result/type=$searchType", $apiResult);
+
+                if (!empty($apiResult->result))
+                {
+                    $results += $apiResult->result;
+                }
+
                 continue;
             }
 
