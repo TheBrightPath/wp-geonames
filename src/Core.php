@@ -2017,7 +2017,7 @@ SQL
         if (false === self::$wpdb->insert(
                 self::$instance->tblCacheQueries,
                 [
-                    'search_term'    => $searchTerm,
+                    'search_term'    => mb_strtolower($searchTerm),
                     'search_type'    => $search_type,
                     'search_country' => $country,
                     'search_params'  => serialize($apiResult->query->cleanArray($apiResult->params, true)),
@@ -2217,7 +2217,7 @@ SQL;
 
         $sql = self::$wpdb->prepare(
             $sql,
-            $apiResult->query->getSearchTerm(),
+            mb_strtolower($apiResult->query->getSearchTerm()),
             ApiQuery::translateSearchType($apiResult->type)
         );
 
