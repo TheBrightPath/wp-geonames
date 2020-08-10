@@ -25,7 +25,24 @@ class Core
 
     // constants
     // version
-    const geoVersion = "2.0.7";
+    // constants
+    public const FEATURE_FILTERS
+                            = [
+            'habitationOnly' => [
+                'P' => [
+                    'PPL',
+                    'PPLA',
+                    'PPLA2',
+                    'PPLA3',
+                    'PPLA4',
+                    'PPLC',
+                ],
+            ],
+            'countriesOnly'  => [
+                'A' => ['PCL', 'PCLD', 'PCLF', 'PCLI', 'PCLIX', 'PCLS'],
+            ],
+        ];
+    const        geoVersion = "2.0.7";
 
     // tables constants
     public const tblCountries        = self::tblPrefix . 'countries';
@@ -434,9 +451,9 @@ class Core
         $force = false,
         $features
         = [
-            'A' => ['ADM1', 'ADM2', 'ADM3', 'ADM4', 'PCL', 'PCLD', 'PCLF', 'PCLI', 'PCLIX', 'PCLS'],
+            'A' => ['ADM1', 'ADM2', 'ADM3', 'ADM4'] + Core::FEATURE_FILTERS['countriesOnly']['A'],
             'L' => ['AREA', 'CONT', 'TERR'],
-            'P' => ['PPL', 'PPLA', 'PPLA2', 'PPLA3', 'PPLA4', 'PPLC',],
+            'P' => Core::FEATURE_FILTERS['habitationOnly']['P'],
         ],
         $fieldNames = ['*', '-alternate_names',],
         $deleteSource = false
