@@ -88,7 +88,6 @@ class Core
     // other
     /** @var string plugin main file */
     private $plugin_file;
-    private $inActivation = false;
 
 
     /**
@@ -110,7 +109,7 @@ class Core
         $this->tblPostCodes      = self::$wpdb->base_prefix . self::tblPostCodes;
         $this->tblTimeZones      = self::$wpdb->base_prefix . self::tblTimeZones;
 
-        register_activation_hook($this->plugin_file, [$this, 'creation_table']);
+        register_activation_hook($this->plugin_file, ['WPGeonames\Update', 'Activate']);
 
         add_shortcode('wp-geonames', [$this, 'shortcode']);
         add_action('wp_ajax_nopriv_geoDataRegion', [$this, 'ajax_geoDataRegion']);
@@ -181,6 +180,76 @@ class Core
     {
 
         return basename($this->getPluginDir());
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblCacheLocations(): string
+    {
+
+        return $this->tblCacheLocations;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblCacheQueries(): string
+    {
+
+        return $this->tblCacheQueries;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblCacheResults(): string
+    {
+
+        return $this->tblCacheResults;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblCountries(): string
+    {
+
+        return $this->tblCountries;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblLocations(): string
+    {
+
+        return $this->tblLocations;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblPostCodes(): string
+    {
+
+        return $this->tblPostCodes;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblTimeZones(): string
+    {
+
+        return $this->tblTimeZones;
     }
 
 
@@ -392,8 +461,6 @@ class Core
     public function addCountries(): bool
     {
 
-        $this->verifyAdmin();
-
         $source = $this->downloadZip('general', self::urlCountries);
 
         $fields = [
@@ -458,13 +525,6 @@ class Core
         $fieldNames = ['*', '-alternate_names',],
         $deleteSource = false
     ) {
-
-        $this->verifyAdmin();
-
-        if ($this->verifyToka())
-        {
-            return false;
-        }
 
         if (key($features) === 0)
         {
@@ -637,6 +697,13 @@ class Core
         $f
     ) {
 
+        $this->verifyAdmin();
+
+        if ($this->verifyToka())
+        {
+            return false;
+        }
+
         $fe = [];
 
         if (!empty($f['wpGeoA']))
@@ -717,8 +784,6 @@ class Core
      */
     public function addTimezones(): bool
     {
-
-        $this->verifyAdmin();
 
         $source = $this->downloadZip('general', self::urlTimeZones);
 
@@ -3216,11 +3281,6 @@ SQL;
 
     public function verifyToka(): bool
     {
-
-        if ($this->inActivation)
-        {
-            return false;
-        }
 
         return (
             empty($_REQUEST['geoToka'])
