@@ -42,16 +42,16 @@ class Update
         }
 
         $feature_classes       = Core::getFeatureClasses();
-        $this->feature_classes = "'" . implode("', '", array_keys($feature_classes)) . "'";
+        $this->feature_classes = "'" . implode("','", array_keys($feature_classes)) . "'";
 
         $feature_codes       = Core::getFeatureCodes();
-        $this->feature_codes = "'" . implode("', '", array_keys($feature_codes)) . "'";
+        $this->feature_codes = "'" . implode("','", array_keys($feature_codes)) . "'";
 
         $country_codes       = Core::getCountryCodes();
-        $this->country_codes = "'" . implode("', '", array_keys($country_codes)) . "'";
+        $this->country_codes = "'" . implode("','", array_keys($country_codes)) . "'";
 
         $time_zones       = Core::getTimeZones();
-        $this->time_zones = "'" . implode("', '", $time_zones) . "'";
+        $this->time_zones = "'" . implode("','", $time_zones) . "'";
 
     }
 
@@ -133,15 +133,15 @@ SQL;
 
         $sql = <<<SQL
                 CREATE TABLE $nom  (
-                    `query_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                    `query_id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     `query_updated` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
                     `search_term` varchar(200) NOT NULL,
                     `search_type` enum('$searchTypes') NOT NULL,
                     `search_country` enum($this->country_codes) DEFAULT NULL,
                     `search_params` varchar(500) NOT NULL,
-                    `result_count` smallint NOT NULL,
-                    `result_total` smallint DEFAULT NULL, 
+                    `result_count` smallint(6) NOT NULL,
+                    `result_total` smallint(6) DEFAULT NULL, 
                 INDEX `idx_search` (`search_term`(10), `search_type`, `search_country`)
 			) {$this->charset_collate};
 SQL;
@@ -159,9 +159,9 @@ SQL;
 
         $sql = <<<SQL
                 CREATE TABLE $nom (
-                    `query_id` int NOT NULL AUTO_INCREMENT,
+                    `query_id` int(11) NOT NULL AUTO_INCREMENT,
                     `geoname_id` int(11) NOT NULL,
-                    `order` SMALLINT(3) unsigned NOT NULL,
+                    `order` smallint(3) unsigned NOT NULL,
                     `country_code` enum($this->country_codes) DEFAULT NULL,
                     PRIMARY KEY (`query_id`, `geoname_id`),
                 INDEX `idx_result` (`query_id`, `order`)
@@ -181,25 +181,25 @@ SQL;
 
         $sql = <<<SQL
                 CREATE TABLE $nom (
-                    iso2 CHAR(2) NOT NULL,
-                    iso3 CHAR(3) NOT NULL,
-                    isoN SMALLINT(3) NOT NULL,
-                    fips CHAR(2) DEFAULT NULL,
+                    iso2 char(2) NOT NULL,
+                    iso3 char(3) NOT NULL,
+                    isoN smallint(3) NOT NULL,
+                    fips char(2) DEFAULT NULL,
                     country varchar(200) NOT NULL,
                     capital varchar(200) DEFAULT NULL,
                     area int(11) DEFAULT NULL COMMENT '(in sq km)',
                     population int(11) DEFAULT NULL,
                     continent enum('af','an','as','eu','na','oc','sa') NOT NULL,
-                    tld CHAR(5) DEFAULT NULL,
+                    tld char(5) DEFAULT NULL,
                     currency_code char(3) DEFAULT NULL,
                     currency_name varchar(50) NOT NULL,
-                    phone smallint unsigned ,
+                    phone smallint(5) unsigned ,
                     postal_code_format varchar(50) DEFAULT NULL,
                     postal_code_regex varchar(200) DEFAULT NULL,
                     languages varchar(50) DEFAULT NULL,
                     geoname_id int(11) unsigned NOT NULL,
                     neighbours varchar(100) DEFAULT NULL, 
-                    equivalent_fips_code MEDIUMINT DEFAULT NULL,
+                    equivalent_fips_code mediumint(9) DEFAULT NULL,
                 PRIMARY KEY (`geoname_id`),
                 UNIQUE KEY `idxIso2` (`iso2`),
                 UNIQUE KEY `idxIso3` (`iso3`),
@@ -322,13 +322,13 @@ SQL;
         $sql = <<<SQL
                 CREATE TABLE $nom (
                     country_code enum($this->country_codes) DEFAULT NULL,
-                    time_zone_id VARCHAR(40) NOT NULL,
-                    city VARCHAR(40) NOT NULL,
-                    caption VARCHAR(40) NOT NULL,
-                    php VARCHAR(40) NOT NULL,
-                    offsetJan DECIMAL (3,1) COMMENT '(GMT offset 1. Jan 2020)',
-                    offsetJul DECIMAL (3,1) COMMENT '(DST offset 1. Jul 2020)',
-                    offsetRaw DECIMAL (3,1) COMMENT '(GMT offset independent of DST)',
+                    time_zone_id varchar(40) NOT NULL,
+                    city varchar(40) NOT NULL,
+                    caption varchar(40) NOT NULL,
+                    php varchar(40) NOT NULL,
+                    offsetJan decimal(3,1) COMMENT '(GMT offset 1. Jan 2020)',
+                    offsetJul decimal(3,1) COMMENT '(DST offset 1. Jul 2020)',
+                    offsetRaw decimal(3,1) COMMENT '(GMT offset independent of DST)',
                 PRIMARY KEY (`time_zone_id`),
                 KEY `idxCountry` (country_code, city)
 			    ) {$this->charset_collate};
