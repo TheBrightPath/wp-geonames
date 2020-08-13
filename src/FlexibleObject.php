@@ -8,11 +8,20 @@ namespace WPGeonames;
  */
 class FlexibleObject
 {
+    // constants
+    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT        = false;
+    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_ONCE       = true;
+    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY = null;
 
     // protected properties
     protected static $aliases
         = [
         ];
+
+    // private properties
+
+    /** @var bool|null */
+    private $ignoreNonExistingPropertyOnSet = self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT;
 
 
     /**
@@ -40,7 +49,7 @@ class FlexibleObject
 
         }
 
-        $self = $this;
+        $self   = $this->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY);
         $values = wp_parse_args($values, $defaults);
         $values = $this->cleanArray($values);
 
@@ -56,15 +65,32 @@ class FlexibleObject
             )
             {
 
-                if ($value !== null
-                    && (property_exists($self, $property)
-                        || array_key_exists($property, static::$aliases)))
+                // skip empty values
+                if ($value === null)
                 {
-                    $self->__set($property, $value);
+                    return;
                 }
+
+                $self->__set($property, $value);
             }
         );
 
+        $this->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT);
+
+    }
+
+
+    /**
+     * @param  bool|null  $ignoreNonExistingPropertyOnSet
+     *
+     * @return FlexibleObject
+     */
+    public function setIgnoreNonExistingPropertyOnSet(?bool $ignoreNonExistingPropertyOnSet): FlexibleObject
+    {
+
+        $this->ignoreNonExistingPropertyOnSet = $ignoreNonExistingPropertyOnSet;
+
+        return $this;
     }
 
 
@@ -90,6 +116,20 @@ class FlexibleObject
     ) {
 
         $setter = 'set' . ucfirst(static::$aliases[$property] ?? $property);
+
+        if ($this->ignoreNonExistingPropertyOnSet !== false)
+        {
+            // if it's a one-off setting (true vs null), reset to false
+            if ($this->ignoreNonExistingPropertyOnSet === true)
+            {
+                $this->ignoreNonExistingPropertyOnSet = false;
+            }
+
+            if (!method_exists($this, $setter))
+            {
+                return $this;
+            }
+        }
 
         return $this->$setter($value);
     }
