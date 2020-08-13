@@ -3,6 +3,7 @@
  * @noinspection SqlResolve
  * @noinspection SpellCheckingInspection
  * @noinspection HtmlUnknownTarget
+ * @noinspection UnknownInspectionInspection
  */
 
 namespace WPGeonames;
@@ -42,7 +43,7 @@ class Core
                 'A' => ['PCL', 'PCLD', 'PCLF', 'PCLI', 'PCLIX', 'PCLS'],
             ],
         ];
-    const        geoVersion = "2.0.7";
+    public const geoVersion = "2.0.7";
 
     // tables constants
     public const tblCountries        = self::tblPrefix . 'countries';
@@ -283,23 +284,32 @@ class Core
         $a = [];
         foreach ($q as $r)
         {
-            if (!isset($a[$r->country_code . $r->name]))
+            $key = $r->country_code . $r->name;
+            if (!isset($a[$key]))
             {
-                $out                            .= "('r', '" . $r->name . "', '" . $r->country_code . "', ''),\r\n";
-                $a[$r->country_code . $r->name] = 1;
+                $out     .= "('r', '" . $r->name . "', '" . $r->country_code . "', ''),\r\n";
+                $a[$key] = 1;
             }
         }
-        file_put_contents($this->getPluginDir() . ' / liste_region . txt', $out);
+        file_put_contents($this->getPluginDir() . '/liste_region.txt', $out);
     }
 
 
+    /**
+     * @see http://www.nationsonline.org/oneworld/country_code_list.htm (country list)
+     * @see https://en.wikipedia.org/wiki/ISO_3166-1 (country list - Only Independent)
+     *
+     *
+     * @param  int  $postal
+     *
+     * @return array Object : country_code, name
+     */
     public function get_country($postal = 0): array
     {
 
         global $wpdb;
-        // OUTPUT Object : country_code, name
-        // country list : http://www.nationsonline.org/oneworld/country_code_list.htm
-        // country list : https://en.wikipedia.org/wiki/ISO_3166-1 - Only Independent*
+
+        /** @noinspection PhpIncludeInspection */
         $list = require($this->getPluginDir() . '/includes/country_codes.php');
 
         if (!$postal)
@@ -1068,7 +1078,7 @@ class Core
             {
                 echo $outPostal;
             } ?></div>
-        <!--suppress JSPotentiallyInvalidConstructorUsage -->
+        <!--suppress JSPotentiallyInvalidConstructorUsage, JSUnresolvedVariable -->
         <script>
             let wpgeoajx;
 
@@ -2669,6 +2679,8 @@ SQL;
      *
      * @return false|string
      * @throws \ErrorException
+     *
+     * @noinspection MultiAssignmentUsageInspection
      */
     public function downloadZip(
         $name,
@@ -3122,11 +3134,16 @@ SQL;
             $inc = $this->getPluginDir() . '/templates/wp-geonames_location_taxonomy.php';
         }
         ob_start();
-        /** @noinspection PhpIncludeInspection */
+        /**
+         * $geoData is used in included file!
+         *
+         * @noinspection PhpIncludeInspection
+         */
         include($inc);
         $out .= ob_get_clean();
 
         // ************************
+        unset($geoData);
         return $out;
     }
 
@@ -3612,6 +3629,7 @@ SQL;
         $where  = '';
         $limits = '';
 
+        /** @noinspection CallableParameterUseCaseInTypeContextInspection */
         $args = wp_parse_args(
             $args,
             [

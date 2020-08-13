@@ -60,6 +60,7 @@ class ApiQuery
     public const SEARCH_TYPE_NAME          = 2 ** 4;
     public const SEARCH_TYPE_Q             = 2 ** 1;
     public const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
+
     // protected properties
     protected static $aliases
         = [
@@ -210,6 +211,7 @@ class ApiQuery
      *      style=FULL
      */
     protected $inclBbox = false;
+
     // private properties
     /**
      * @var int
