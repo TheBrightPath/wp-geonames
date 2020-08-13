@@ -1,5 +1,6 @@
 <?php
 /**
+ * @noinspection AdditionOperationOnArraysInspection
  * @noinspection SqlResolve
  * @noinspection UnknownInspectionInspection
  */
@@ -17,6 +18,7 @@ class Update
     protected        $feature_codes;
     protected        $country_codes;
     protected        $time_zones;
+    protected        $updateLog = [];
 
 
     public function __construct()
@@ -51,6 +53,23 @@ class Update
         $time_zones       = Core::getTimeZones();
         $this->time_zones = "'" . implode("', '", $time_zones) . "'";
 
+    }
+
+
+    /**
+     * @return array
+     */
+    public function getUpdateLog(bool $reset = true): array
+    {
+
+        $log = $this->updateLog;
+
+        if ($reset)
+        {
+            $this->updateLog = [];
+        }
+
+        return $log;
     }
 
 
@@ -110,12 +129,9 @@ SQL;
         // locations cache queries
         $nom = $this->core->getTblCacheQueries();
 
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
+        $searchTypes = implode("','", ApiQuery::SEARCH_TYPES);
 
-            $searchTypes = implode("','", ApiQuery::SEARCH_TYPES);
-
-            $sql = <<<SQL
+        $sql = <<<SQL
                 CREATE TABLE $nom  (
                     `query_id` int NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -129,8 +145,8 @@ SQL;
                 INDEX `idx_search` (`search_term`(10), `search_type`, `search_country`)
 			) {$this->charset_collate};
 SQL;
-            dbDelta($sql);
-        }
+
+        $this->updateLog += dbDelta($sql);
 
     }
 
@@ -141,9 +157,7 @@ SQL;
         // locations cache results
         $nom = $this->core->getTblCacheResults();
 
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            $sql = <<<SQL
+        $sql = <<<SQL
                 CREATE TABLE $nom (
                     `query_id` int NOT NULL AUTO_INCREMENT,
                     `geoname_id` int(11) NOT NULL,
@@ -153,8 +167,8 @@ SQL;
                 INDEX `idx_result` (`query_id`, `order`)
 			) {$this->charset_collate};
 SQL;
-            dbDelta($sql);
-        }
+
+        $this->updateLog += dbDelta($sql);
 
     }
 
@@ -165,9 +179,7 @@ SQL;
         // countries
         $nom = $this->core->getTblCountries();
 
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            $sql = <<<SQL
+        $sql = <<<SQL
                 CREATE TABLE $nom (
                     iso2 CHAR(2) NOT NULL,
                     iso3 CHAR(3) NOT NULL,
@@ -195,8 +207,8 @@ SQL;
                 UNIQUE KEY `idxCountry` (country)
 			    ) {$this->charset_collate};
 SQL;
-            dbDelta($sql);
-        }
+
+        $this->updateLog += dbDelta($sql);
 
     }
 
@@ -262,20 +274,12 @@ SQL;
 SQL;
 
         // locations
-        $nom = $this->core->getTblLocations();
-
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            dbDelta(sprintf($sql, $nom));
-        }
+        $nom             = $this->core->getTblLocations();
+        $this->updateLog += dbDelta(sprintf($sql, $nom));
 
         // locations cache
-        $nom = $this->core->getTblCacheLocations();
-
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            dbDelta(sprintf($sql, $nom));
-        }
+        $nom             = $this->core->getTblCacheLocations();
+        $this->updateLog += dbDelta(sprintf($sql, $nom));
 
     }
 
@@ -286,9 +290,7 @@ SQL;
         // post codes
         $nom = $this->core->getTblPostCodes();
 
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            $sql = "CREATE TABLE " . $nom . " (
+        $sql = "CREATE TABLE " . $nom . " (
 			`geoname_id` int(11) unsigned NOT NULL,
 			`country_code` varchar(2) NOT NULL,
 			`postal_code` varchar(20) NOT NULL,
@@ -305,8 +307,8 @@ SQL;
 			PRIMARY KEY (`geoname_id`),
 			INDEX `index1` (`country_code`,`postal_code`,`place_name`(3))
 			) {$this->charset_collate};";
-            dbDelta($sql);
-        }
+
+        $this->updateLog += dbDelta($sql);
 
     }
 
@@ -317,9 +319,7 @@ SQL;
         // time zones
         $nom = $this->core->getTblTimeZones();
 
-        if ($this->wpdb->get_var("SHOW TABLES LIKE '$nom'") !== $nom)
-        {
-            $sql = <<<SQL
+        $sql = <<<SQL
                 CREATE TABLE $nom (
                     country_code enum($this->country_codes) DEFAULT NULL,
                     time_zone_id VARCHAR(40) NOT NULL,
@@ -333,8 +333,8 @@ SQL;
                 KEY `idxCountry` (country_code, city)
 			    ) {$this->charset_collate};
 SQL;
-            dbDelta($sql);
-        }
+
+        $this->updateLog += dbDelta($sql);
 
     }
 
@@ -342,8 +342,13 @@ SQL;
     /**
      * @throws \ErrorException
      */
-    public static function Activate(): void
+    public static function Activate(): array
     {
+
+        $result = [
+            'success'  => true,
+            'messages' => [],
+        ];
 
         $update = self::Factory();
 
@@ -354,7 +359,11 @@ SQL;
         $update->createTblCacheResults();
         $update->createTblPostCodes();
         $update->addData();
-    }
+
+        $result['messages'] = $update->getUpdateLog();
+
+        return $result;
+   }
 
 
     public static function Factory(): self
