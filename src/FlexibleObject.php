@@ -18,34 +18,34 @@ class FlexibleObject
     /**
      * wpGeonamesClientQuery constructor.
      *
-     * @param         $query
+     * @param         $values
      * @param  array  $defaults
      */
     public function __construct(
-        $query,
+        &$values,
         $defaults = []
     ) {
 
-        if (is_object($query))
+        if (is_object($values))
         {
 
-            if (method_exists($query, '__serialize'))
+            if (method_exists($values, '__serialize'))
             {
-                $query = $query->__serialize($query);
+                $values = $values->__serialize($values);
             }
             else
             {
-                $query = get_object_vars($query);
+                $values = get_object_vars($values);
             }
 
         }
 
         $self = $this;
-        $query = wp_parse_args($query, $defaults);
-        $query = $this->cleanArray($query);
+        $values = wp_parse_args($values, $defaults);
+        $values = $this->cleanArray($values);
 
         array_walk(
-            $query,
+            $values,
             static function (
                 &$value,
                 $property

@@ -1287,11 +1287,11 @@ class ApiQuery
         {
 
         case self::SEARCH_TYPE_Q:
-            $search_type = self::SEARCH_NAME_Q;
+            $searchParameter = self::SEARCH_NAME_Q;
             break;
 
         case self::SEARCH_TYPE_START_OF_NAME:
-            $search_type = self::SEARCH_NAME_START_OF_NAME;
+            $searchParameter = self::SEARCH_NAME_START_OF_NAME;
             unset($params['fuzzy']);
             break;
 
@@ -1301,22 +1301,22 @@ class ApiQuery
             // continue with next
 
         case self::SEARCH_TYPE_FUZZY_NAME:
-            $search_type = self::SEARCH_NAME_NAME;
+            $searchParameter = self::SEARCH_NAME_NAME;
             break;
 
         case self::SEARCH_TYPE_EXACT_NAME:
-            $search_type = self::SEARCH_NAME_EXACT_NAME;
+            $searchParameter = self::SEARCH_NAME_EXACT_NAME;
             unset($params['fuzzy']);
             break;
 
         }
 
-        if ($search_type === null)
+        if ($searchParameter === null)
         {
             return false;
         }
 
-        return [$search_type => $this->searchTerm] + $params;
+        return [$searchParameter => $this->searchTerm] + $params;
 
     }
 
