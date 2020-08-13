@@ -2271,7 +2271,7 @@ SQL
             return null;
         }
 
-        if ($apiResult->query->getStartRow() + $apiResult->query->getmaxRows() <= $apiResult->processRecords)
+        if ($apiResult->query->getStartRow() + $apiResult->query->getMaxRows() <= $apiResult->processRecords)
         {
             return null;
         }
@@ -3580,20 +3580,8 @@ SQL;
 
             $query = new ApiQuery(
                 $query, [
-                    'maxRows'        => 20,
+                    'maxRows' => 20,
                     // the maximal number of rows in the document returned by the service. Default is 100, the maximal allowed value is 1000.
-                    'startRow'       => 0,
-                    // Used for paging results. If you want to get results 30 to 40, use startRow=30 and maxRows=10. Default is 0, the maximal allowed value is 5000 for the free services and 25000 for the premium services
-                    'isNameRequired' => true,
-                    //At least one of the search term needs to be part of the place name. Example : A normal search for Berlin will return all places within the state of Berlin. If we only want to find places with 'Berlin' in the name we set the parameter isNameRequired to 'true'. The difference to the name_equals parameter is that this will allow searches for 'Berlin, Germany' as only one search term needs to be part of the name.
-                    'orderby'        => 'relevance',
-                    // [population,elevation,relevance]	in combination with the name_startsWith, if set to 'relevance' than the result is sorted by relevance.
-                    'fuzzy'          => 0.8,
-                    // default is '1', defines the fuzziness of the search terms. float between 0 and 1. The search term is only applied to the name attribute.
-                    // With the parameter 'fuzzy' the search will find results even if the search terms are incorrectly spelled. Example: http://api.geonames.org/search?q=londoz&fuzzy=0.8&username=demo
-                    'operator'       => 'AND',
-                    // default is 'AND', with the operator 'OR' not all search terms need to be matched by the response
-                    // required for removing irrelevant search parameters
                 ]
             );
         }

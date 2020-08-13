@@ -22,8 +22,26 @@ class ApiQuery
 {
 
     // constants
+    public const MAX_ROWS                  = 1000;
     public const MAX_START_ROW_FREE        = 5000;
     public const MAX_START_ROW_PREMIUM     = 25000;
+    public const QUERY_DEFAULTS
+                                           = [
+            'maxRows'        => self::MAX_ROWS,
+            // the maximal number of rows in the document returned by the service. Default is 100, the maximal allowed value is 1000.
+            'startRow'       => 0,
+            // Used for paging results. If you want to get results 30 to 40, use startRow=30 and maxRows=10. Default is 0, the maximal allowed value is 5000 for the free services and 25000 for the premium services
+            'isNameRequired' => true,
+            //At least one of the search term needs to be part of the place name. Example : A normal search for Berlin will return all places within the state of Berlin. If we only want to find places with 'Berlin' in the name we set the parameter isNameRequired to 'true'. The difference to the name_equals parameter is that this will allow searches for 'Berlin, Germany' as only one search term needs to be part of the name.
+            'orderby'        => 'relevance',
+            // [population,elevation,relevance]	in combination with the name_startsWith, if set to 'relevance' than the result is sorted by relevance.
+            'fuzzy'          => 0.8,
+            // default is '1', defines the fuzziness of the search terms. float between 0 and 1. The search term is only applied to the name attribute.
+            // With the parameter 'fuzzy' the search will find results even if the search terms are incorrectly spelled. Example: http://api.geonames.org/search?q=londoz&fuzzy=0.8&username=demo
+            'operator'       => 'AND',
+            // default is 'AND', with the operator 'OR' not all search terms need to be matched by the response
+            // required for removing irrelevant search parameters
+        ];
     public const SEARCH_NAME_EXACT_NAME    = 'name_equals';
     public const SEARCH_NAME_FUZZY_NAME    = 'name_fuzzy';
     public const SEARCH_NAME_NAME          = 'name';
@@ -198,35 +216,24 @@ class ApiQuery
      */
     private $maxStartRow = self::MAX_START_ROW_FREE;
 
+    /**
+     * @var int|null
+     */
+    private $page;
+
 
     /**
      * WpGeonames\ApiQuery constructor.
      *
-     * @param         $query
+     * @param         $values
      * @param  array  $defaults
      */
     public function __construct(
-        $query,
-        $defaults
-        = [
-            'maxRows'        => 1000,
-            // the maximal number of rows in the document returned by the service. Default is 100, the maximal allowed value is 1000.
-            'startRow'       => 0,
-            // Used for paging results. If you want to get results 30 to 40, use startRow=30 and maxRows=10. Default is 0, the maximal allowed value is 5000 for the free services and 25000 for the premium services
-            'isNameRequired' => true,
-            //At least one of the search term needs to be part of the place name. Example : A normal search for Berlin will return all places within the state of Berlin. If we only want to find places with 'Berlin' in the name we set the parameter isNameRequired to 'true'. The difference to the name_equals parameter is that this will allow searches for 'Berlin, Germany' as only one search term needs to be part of the name.
-            'orderby'        => 'relevance',
-            // [population,elevation,relevance]	in combination with the name_startsWith, if set to 'relevance' than the result is sorted by relevance.
-            'fuzzy'          => 0.8,
-            // default is '1', defines the fuzziness of the search terms. float between 0 and 1. The search term is only applied to the name attribute.
-            // With the parameter 'fuzzy' the search will find results even if the search terms are incorrectly spelled. Example: http://api.geonames.org/search?q=londoz&fuzzy=0.8&username=demo
-            'operator'       => 'AND',
-            // default is 'AND', with the operator 'OR' not all search terms need to be matched by the response
-            // required for removing irrelevant search parameters
-        ]
+        $values,
+        $defaults = self::QUERY_DEFAULTS
     ) {
 
-        parent::__construct($query, $defaults);
+        parent::__construct($values, wp_parse_args($defaults, self::QUERY_DEFAULTS));
 
     }
 
@@ -782,7 +789,10 @@ class ApiQuery
     public function setStartRow($startRow): ApiQuery
     {
 
-        $this->startRow = $startRow;
+        if ($this->page === null)
+        {
+            $this->startRow = $startRow;
+        }
 
         return $this;
     }
@@ -1033,6 +1043,39 @@ class ApiQuery
     }
 
 
+    public function setPaged($page)
+    {
+        // reset page status
+        $this->page = null;
+
+        if ($page === null || !is_numeric($page))
+        {
+            // ignore invalid values
+            return $this;
+        }
+
+        $page = (int)$page;
+
+        if ($page <= 0)
+        {
+            // return as much as we can
+            return $this->setStartRow(0)
+                        ->setMaxRows(self::MAX_ROWS)
+                ;
+        }
+
+        // calculate the first to-be-returned row
+        $start = ($page - 1) * $this->getMaxRows();
+
+        $this->setStartRow($start);
+
+        // remember the page, also to avoid overwriting the $startRow
+        $this->page = $page;
+
+        return $this;
+    }
+
+
     /**
      * @param  string  $q
      *
@@ -1090,7 +1133,7 @@ class ApiQuery
 
         $array = parent::cleanArray(
             wp_parse_args(
-                $array ?? get_object_vars($this),
+                $array ?? $this->toArray(),
                 ['operator' => 'AND']
             )
         );
@@ -1198,14 +1241,6 @@ class ApiQuery
 
             $search_type = key($params);
 
-            $params = wp_parse_args(
-                [
-                    'maxRows'  => 1000,
-                    'startRow' => 0,
-                ],
-                $params
-            );
-
             $apiResult = new ApiQueryStatus(
                 $searchType,
                 $this,
@@ -1232,6 +1267,9 @@ class ApiQuery
 
                 continue;
             }
+
+            $params['startRow'] = 0;
+            $params['maxRows']  = self::MAX_ROWS;
 
             do
             {
@@ -1279,9 +1317,11 @@ class ApiQuery
             return $params;
         }
 
-        $search_type = null;
+        $searchParameter = null;
 
-        unset($params['searchType'], $params['searchTerm']);
+        unset($params['searchType']);
+        unset($params['searchTerm']);
+        unset($params['ignoreNonExistingPropertyOnSet']);
 
         switch ($searchType)
         {
