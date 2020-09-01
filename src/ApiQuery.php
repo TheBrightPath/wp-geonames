@@ -6,6 +6,7 @@
 namespace WPGeonames;
 
 use ErrorException;
+use WPGeonames\Entities\Location;
 
 /**
  * Class ApiQuery
@@ -1273,6 +1274,8 @@ class ApiQuery
 
             $params['startRow'] = 0;
             $params['maxRows']  = self::MAX_ROWS;
+            $params['style']    = 'full';
+            $params['orderby']  = 'relevance';
 
             do
             {

@@ -35,21 +35,9 @@ class FlexibleObject
         $defaults = []
     ) {
 
-        if (is_object($values))
-        {
-
-            if (method_exists($values, '__serialize'))
-            {
-                $values = $values->__serialize($values);
-            }
-            else
-            {
-                $values = get_object_vars($values);
-            }
-
-        }
-
-        $self   = $this->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY);
+        $self   = $this->cleanInput($values)
+                       ->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY)
+        ;
         $values = wp_parse_args($values, $defaults);
         $values = $this->cleanArray($values);
 
@@ -97,16 +85,9 @@ class FlexibleObject
     public function __get($property)
     {
 
-        $p = static::$aliases[$property]
-            ?: null;
+        $p = static::$aliases[$property] ?? $property;
 
-        if ($p)
-        {
-            return $this->$p;
-        }
-
-        return $this->$property;
-
+        return $this->$p;
     }
 
 
@@ -169,7 +150,31 @@ class FlexibleObject
 
         ksort($array);
 
+        unset($array["ignoreNonExistingPropertyOnSet"]);
+
         return $array;
+
+    }
+
+
+    public function cleanInput(&$values): self
+    {
+
+        if (is_object($values))
+        {
+
+            if (method_exists($values, '__serialize'))
+            {
+                $values = $values->__serialize($values);
+            }
+            else
+            {
+                $values = get_object_vars($values);
+            }
+
+        }
+
+        return $this;
 
     }
 

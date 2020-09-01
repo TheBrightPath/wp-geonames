@@ -12,6 +12,7 @@ use ErrorException;
 use GeoNames\Client as GeoNamesClient;
 use RuntimeException;
 use StdClass;
+use WPGeonames\Entities\Location;
 use ZipArchive;
 
 // exit if accessed directly
@@ -2132,6 +2133,71 @@ SQL
 
         $recordsToCache = array_diff_key($apiResult->result, $apiResult->results);
 
+        $admin = [];
+
+        array_walk(
+            $recordsToCache,
+            static function (Location $location) use
+            (
+                &
+                $admin
+            )
+            {
+
+                $admin[$location->country] = true;
+
+                for ($i = 1; $i <= 4; $i++)
+                {
+                    $getter = "getAdminId$i";
+                    $x      = $location->$getter();
+
+                    if ($x === null)
+                    {
+                        return;
+                    }
+
+                    $admin[$x] = true;
+                }
+            }
+        );
+
+        $admin = array_filter($admin);
+
+        if (!empty($admin))
+        {
+
+            $tbl      = $this->getTblCacheLocations();
+            $sqlWhere = sprintf('geoname_id IN (%s)', implode(',', array_keys($admin)));
+            $sql      = <<<SQL
+    SELECT
+        geoname_id
+    FROM
+        $tbl
+    WHERE
+        $sqlWhere
+    ;
+SQL;
+
+            $existing = static::$wpdb->get_col($sql);
+            $existing = array_flip($existing);
+            $admin    = array_diff_key($admin, $existing);
+            $g        = Core::getGeoNameClient();
+
+            foreach ($admin as $geonameId => &$item)
+            {
+                $params = [
+                    'geonameId' => $geonameId,
+                    'style'     => 'full',
+                ];
+
+                $item = $g->get($params);
+            }
+
+            $recordsToCache += Location::parseArray($admin, 'geonameId', '_');
+        }
+
+        unset($admin, $existing, $item, $geonameId, $params, $sqlWhere);
+
         array_walk(
             $recordsToCache,
             static function (Location $location)
@@ -2140,32 +2206,54 @@ SQL
                 if (false === Core::$wpdb->replace(
                         self::$instance->tblCacheLocations,
                         [
-                            'geoname_id'    => $location->geonameId,
-                            'name'          => $location->name,
-                            'feature_class' => $location->featureClass,
-                            'feature_code'  => $location->featureCode,
-                            'country_code'  => $location->countryCode,
-                            'latitude'      => $location->latitude,
-                            'longitude'     => $location->longitude,
-                            'population'    => $location->population,
-                            'admin1_code'   => $location->getAdminCode1(),
-                            'admin2_code'   => $location->getAdminCode2(),
-                            'admin3_code'   => $location->getAdminCode3(),
-                            'admin4_code'   => $location->getAdminCode4(),
+                            'geoname_id'      => $location->geonameId,
+                            'name'            => $location->name,
+                            'ascii_name'      => $location->asciiName,
+                            'alternate_names' => $location->getAlternateNames('json'),
+                            'feature_class'   => $location->featureClass,
+                            'feature_code'    => $location->featureCode,
+                            'continent'       => $location->continent,
+                            'country_code'    => $location->getCountry()->iso2,
+                            'country_id'      => $location->getCountry()->geonameId,
+                            'latitude'        => $location->latitude,
+                            'longitude'       => $location->longitude,
+                            'population'      => $location->population,
+                            'elevation'       => $location->elevation,
+                            'admin1_code'     => $location->getAdminCode1(),
+                            'admin1_id'       => $location->getAdminId1(),
+                            'admin2_code'     => $location->getAdminCode2(),
+                            'admin2_id'       => $location->getAdminId2(),
+                            'admin3_code'     => $location->getAdminCode3(),
+                            'admin3_id'       => $location->getAdminId3(),
+                            'admin4_code'     => $location->getAdminCode4(),
+                            'admin4_id'       => $location->getAdminId4(),
+                            'timezone'        => $location->getTimezone()->timeZoneId,
+                            'bbox'            => $location->getBbox('json'),
                         ],
                         [
                             '%d', // geoname_id
                             '%s', // name
+                            '%s', // ascii_name
+                            '%s', // alternate_names
                             '%s', // feature_class
                             '%s', // feature_code
+                            '%s', // continent
                             '%s', // country_code
+                            '%d', // country_id
                             '%f', // latitude
                             '%f', // longitude
                             '%d', // population
+                            '%d', // elevation
                             '%s', // admin1_code
+                            '%d', // admin1_id
                             '%s', // admin2_code
+                            '%d', // admin2_id
                             '%s', // admin3_code
+                            '%d', // admin3_id
                             '%s', // admin4_code
+                            '%d', // admin4_id
+                            '%s', // timezone
+                            '%s', // bbox
                         ]
                     ))
                 {
@@ -2176,16 +2264,18 @@ SQL
 
         unset ($recordsToCache);
 
+        $i = 0;
         array_walk(
             $apiResult->result,
             static function (
-                Location $location,
-                $i
+                Location $location
             )
             use
             (
                 &
-                $cachedQuery
+                $cachedQuery,
+                &
+                $i
             )
             {
 
@@ -2194,13 +2284,15 @@ SQL
                         [
                             'query_id'     => $cachedQuery->query_id,
                             'geoname_id'   => $location->geonameId,
-                            'order'        => $i,
-                            'country_code' => $location->countryCode,
+                            'order'        => ++$i,
+                            'score'        => $location->getScore(),
+                            'country_code' => $location->getCountry()->iso2,
                         ],
                         [
                             '%d', // query_id
                             '%d', // geoname_id
                             '%d', // order
+                            '%f', // score
                             '%s', // country_code
                         ]
                     ))

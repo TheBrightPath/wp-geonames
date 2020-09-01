@@ -162,9 +162,11 @@ SQL;
                     `query_id` int(11) NOT NULL AUTO_INCREMENT,
                     `geoname_id` int(11) NOT NULL,
                     `order` smallint(3) unsigned NOT NULL,
+                    `score` float DEFAULT NULL,
                     `country_code` enum($this->country_codes) DEFAULT NULL,
                     PRIMARY KEY (`query_id`, `geoname_id`),
-                INDEX `idx_result` (`query_id`, `order`)
+                UNIQUE `idx_result` (`query_id`, `order`),
+                INDEX `query_id_country_code_order` (`query_id`, `country_code`, `order`)
 			) {$this->charset_collate};
 SQL;
 
@@ -251,25 +253,35 @@ SQL;
                 `geoname_id` int(11) NOT NULL,
                 `name` varchar(200) NOT NULL,
                 `ascii_name` varchar(200) NOT NULL,
-                `alternate_names` text DEFAULT NULL,
+                `alternate_names` json DEFAULT NULL,
                 `latitude` decimal(10,5) DEFAULT NULL,
                 `longitude` decimal(10,5) DEFAULT NULL,
+                `bbox` json DEFAULT NULL,
                 `feature_class` enum($this->feature_classes) NOT NULL,
                 `feature_code` enum($this->feature_codes) NOT NULL,
                 `country_code` enum($this->country_codes) DEFAULT NULL,
+                `country_id` int(11) DEFAULT NULL,
                 `cc2` varchar(60) DEFAULT NULL,
+                `continent` enum('af','an','as','eu','na','oc','sa') DEFAULT NULL,
                 `admin1_code` varchar(20) DEFAULT NULL,
+                `admin1_id` int(11) DEFAULT NULL,
                 `admin2_code` varchar(80) DEFAULT NULL,
+                `admin2_id` int(11) DEFAULT NULL,
                 `admin3_code` varchar(20) DEFAULT NULL,
+                `admin3_id` int(11) DEFAULT NULL,
                 `admin4_code` varchar(20) DEFAULT NULL,
+                `admin4_id` int(11) DEFAULT NULL,
                 `population` int(20) unsigned DEFAULT NULL,
                 `elevation` smallint(6) DEFAULT NULL,
                 `dem` smallint(6) DEFAULT NULL,
                 `timezone` enum($this->time_zones) DEFAULT NULL,
                 `modification_date` date DEFAULT NULL,
+                `db_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`geoname_id`),
             KEY `index1` (`feature_class`,`feature_code`,`country_code`,`cc2`(2),`name`(3)),
-            KEY `country_code_admin` (`country_code`,`admin1_code`,`admin2_code`,`admin3_code`,`admin4_code`,`name`(3))
+            KEY `country_code_admin` (`country_code`,`admin1_code`,`admin2_code`,`admin3_code`,`admin4_code`,`name`(3)),
+            KEY `country_id` (`country_id`,`name`(4))
+            KEY `admin1_id` (`admin1_id`,`name`(4))
 			) {$this->charset_collate};
 SQL;
 
