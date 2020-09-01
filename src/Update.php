@@ -275,6 +275,7 @@ SQL;
                 `elevation` smallint(6) DEFAULT NULL,
                 `dem` smallint(6) DEFAULT NULL,
                 `timezone` enum($this->time_zones) DEFAULT NULL,
+                `children` json DEFAULT NULL,
                 `modification_date` date DEFAULT NULL,
                 `db_update` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                 PRIMARY KEY (`geoname_id`),

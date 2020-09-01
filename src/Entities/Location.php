@@ -80,6 +80,7 @@ class Location
     protected        $bbox;
     protected        $elevation;
     protected        $timezone;
+    protected        $children = [];
     /** @var string */
     protected $continentCode;
     /** @var float|null */
@@ -426,6 +427,118 @@ class Location
     {
 
         $this->bbox = $bbox;
+
+        return $this;
+    }
+
+
+    /**
+     * @return int[]|\WPGeonames\Entities\Location[]|array|string|null
+     */
+    public function getChildren(
+        $hierarchy = 'adm',
+        ?bool $returnAsLocations = true
+    ) {
+
+        static $hierarchies = ['adm', 'tourism', 'geography', 'dependency'];
+
+        if ($hierarchy === null && $returnAsLocations === null)
+        {
+            return $this->children;
+        }
+
+        if ($hierarchy === 'json')
+        {
+            return empty($this->children)
+                ? null
+                : \GuzzleHttp\json_encode($this->getChildren(false, false));
+        }
+
+        if (!array_key_exists($hierarchy, $hierarchies))
+        {
+            return null;
+        }
+
+        $keys = $hierarchy
+            ? [$hierarchy]
+            : $hierarchies;
+
+        $result = [];
+        $save   = false;
+
+        foreach ($keys as $key)
+        {
+            if ($hierarchy !== false && !array_key_exists($hierarchy, $this->children))
+            {
+                $g      = Core::getGeoNameClient();
+                $params = [
+                    'geonameId' => $this->getGeonameId(),
+                    'style'     => 'full',
+                    'maxRows'   => 1000,
+                ];
+
+                if ($hierarchy !== 'adm')
+                {
+                    $params['hierarchy'] = $hierarchy;
+                }
+
+                $this->children[$key] = $g->children($params);
+
+                array_walk(
+                    $this->children[$key],
+                    static function (&$child)
+                    {
+
+                        $child = new Location($child);
+                        $child->save();
+                    }
+                );
+
+                $save = true;
+            }
+
+            foreach ($this->children[$key] as $value)
+            {
+                switch (true)
+                {
+                case $returnAsLocations === true:
+                    $result[$key][] = $value instanceof Location
+                        ? $value
+                        : new Location($value);
+                    break;
+
+                case $returnAsLocations === false:
+                    $result[$key][] = $value instanceof Location
+                        ? $value->getGeonameId()
+                        : $value;
+                    break;
+
+                case $returnAsLocations === null:
+                    $result[$key][] = $value;
+                }
+            }
+        }
+
+        if ($save)
+        {
+            $this->save();
+        }
+
+        return $hierarchy === null
+            ? $result
+            : $result[$hierarchy];
+    }
+
+
+    /**
+     * @param  int[]|\WPGeonames\Entities\Location[]|null  $children
+     *
+     * @return Location
+     */
+    public function setChildren($children)
+    {
+
+        $this->children = $children;
 
         return $this;
     }
@@ -868,6 +981,7 @@ class Location
                     'admin4_id'       => $this->getAdminId4(),
                     'timezone'        => $this->getTimezone()->timeZoneId,
                     'bbox'            => $this->getBbox('json'),
+                    'children'        => $this->getChildren('json'),
                 ],
                 [
                     '%d', // geoname_id
@@ -893,6 +1007,7 @@ class Location
                     '%d', // admin4_id
                     '%s', // timezone
                     '%s', // bbox
+                    '%s', // children
                 ]
             ))
         {
