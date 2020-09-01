@@ -51,7 +51,7 @@ class Update
         $this->country_codes = "'" . implode("','", array_keys($country_codes)) . "'";
 
         $time_zones       = Core::getTimeZones();
-        $this->time_zones = "'" . implode("','", $time_zones) . "'";
+        $this->time_zones = "'" . implode("','", array_keys($time_zones)) . "'";
 
     }
 
