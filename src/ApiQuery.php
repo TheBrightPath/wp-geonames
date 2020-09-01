@@ -1047,6 +1047,7 @@ class ApiQuery
 
     public function setPaged($page)
     {
+
         // reset page status
         $this->page = null;
 

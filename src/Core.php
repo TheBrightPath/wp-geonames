@@ -2214,7 +2214,8 @@ SQL
     }
 
 
-    public function checkArray(
+    public
+    function checkArray(
         $name,
         $key,
         $value = null
@@ -2255,7 +2256,8 @@ SQL
     }
 
 
-    public function checkCountry(
+    public
+    function checkCountry(
         $country_code,
         $country_name = null
     ): bool {
@@ -2271,7 +2273,8 @@ SQL
      * @return array|null
      * @throws \ErrorException
      */
-    public function checkSearchParams(
+    public
+    function checkSearchParams(
         ?array $params,
         ApiQueryStatus $apiResult
     ): ?array {
@@ -2504,7 +2507,8 @@ SQL;
     }
 
 
-    public function checkSearchParamsMinRequirements(
+    public
+    function checkSearchParamsMinRequirements(
         ?array $params,
         ApiQueryStatus $apiResult
     ): ?array {
@@ -2579,7 +2583,8 @@ SQL;
     }
 
 
-    public function checkTimeZone(
+    public
+    function checkTimeZone(
         $time_zone_id,
         $country_code
     ): bool {
@@ -2588,8 +2593,10 @@ SQL;
     }
 
 
-    public function check_options($options)
-    {
+    public
+    function check_options(
+        $options
+    ) {
 
         if (empty($options)
             || empty($options['filenames']['countries'])
@@ -2605,8 +2612,10 @@ SQL;
     }
 
 
-    public function clear($table)
-    {
+    public
+    function clear(
+        $table
+    ) {
 
         global $wpdb;
 
@@ -2643,28 +2652,32 @@ SQL;
     }
 
 
-    public function clearCountries()
+    public
+    function clearCountries()
     {
 
         return $this->clear(self::tblCountries);
     }
 
 
-    public function clearLocations()
+    public
+    function clearLocations()
     {
 
         return $this->clear(self::tblLocations);
     }
 
 
-    public function clearPostCodes()
+    public
+    function clearPostCodes()
     {
 
         return $this->clear(self::tblPostCodes);
     }
 
 
-    public function clearTimeZones()
+    public
+    function clearTimeZones()
     {
 
         return $this->clear(self::tblTimeZones);
@@ -2682,7 +2695,8 @@ SQL;
      *
      * @noinspection MultiAssignmentUsageInspection
      */
-    public function downloadZip(
+    public
+    function downloadZip(
         $name,
         $url,
         $filename = null,
@@ -2775,7 +2789,8 @@ SQL;
     }
 
 
-    public function enqueue_leaflet(): void
+    public
+    function enqueue_leaflet(): void
     {
 
         wp_register_style('leaflet', plugins_url('wp-geonames/leaflet/leaflet.css'));
@@ -2796,7 +2811,8 @@ SQL;
      * @return bool
      * @throws \ErrorException
      */
-    public function loadFileIntoDb(
+    public
+    function loadFileIntoDb(
         $source,
         $table,
         $fields,
@@ -2915,7 +2931,9 @@ SQL;
             if ($sql && $wpdb->query($sql) === false)
             {
 
-                throw new ErrorException(__("Error while updating data", 'wpGeonames') . "\n$wpdb->last_error\n$sql");
+                throw new ErrorException(
+                    __("Error while updating data", 'wpGeonames') . "\n$wpdb->last_error\n$sql"
+                );
             }
             unset($sql);
         }
@@ -2926,8 +2944,10 @@ SQL;
     }
 
 
-    public function postalAddDb($g): void
-    {
+    public
+    function postalAddDb(
+        $g
+    ): void {
 
         if (!current_user_can("administrator"))
         {
@@ -2960,7 +2980,8 @@ SQL;
      * @return false|string|void
      * @throws \ErrorException
      */
-    public function postalAddZip(
+    public
+    function postalAddZip(
         $url,
         $f
     ) {
@@ -3069,8 +3090,10 @@ SQL;
     }
 
 
-    public function regionCode2($iso = 'ZZZ'): bool
-    {
+    public
+    function regionCode2(
+        $iso = 'ZZZ'
+    ): bool {
 
         $a = ',BE,';
 
@@ -3078,17 +3101,23 @@ SQL;
     }
 
 
-    public function settings_link($links)
-    {
+    public
+    function settings_link(
+        $links
+    ) {
 
-        $links[] = '<a href = "options-general.php?page=wpGeonames-options">' . __('Settings', 'wpGeonames') . ' </a> ';
+        $links[] = '<a href = "options-general.php?page=wpGeonames-options">'
+            . __('Settings', 'wpGeonames')
+            . ' </a> ';
 
         return $links;
     }
 
 
-    public function shortcode($a): string
-    {
+    public
+    function shortcode(
+        $a
+    ): string {
 
         /** @noinspection SpellCheckingInspection */
         $shortcode = shortcode_atts(
@@ -3144,11 +3173,13 @@ SQL;
 
         // ************************
         unset($geoData);
+
         return $out;
     }
 
 
-    public function sortCountry(
+    public
+    function sortCountry(
         $a,
         $b
     ) {
@@ -3157,7 +3188,8 @@ SQL;
     }
 
 
-    public function sortCountry2(
+    public
+    function sortCountry2(
         $a,
         $b
     ) {
@@ -3171,8 +3203,10 @@ SQL;
     }
 
 
-    public function update_options($force = false)
-    {
+    public
+    function update_options(
+        $force = false
+    ) {
 
         static $isUpdating = false;
 
@@ -3286,7 +3320,8 @@ SQL;
     }
 
 
-    public function verifyAdmin(): void
+    public
+    function verifyAdmin(): void
     {
 
         if (!current_user_can("administrator"))
@@ -3296,7 +3331,8 @@ SQL;
     }
 
 
-    public function verifyToka(): bool
+    public
+    function verifyToka(): bool
     {
 
         return (
@@ -3306,15 +3342,18 @@ SQL;
     }
 
 
-    public static function Factory($file = null): Core
-    {
+    public
+    static function Factory(
+        $file = null
+    ): Core {
 
         return self::$instance
             ?: self::$instance = new self($file);
     }
 
 
-    protected static function createWhereFilterIn(
+    protected
+    static function createWhereFilterIn(
         $field,
         $values,
         $relation = 'AND',
@@ -3350,7 +3389,8 @@ SQL;
      * @return array|null
      * @throws \ErrorException
      */
-    public static function getCachedQuery(
+    public
+    static function getCachedQuery(
         $query,
         $offset = 0,
         $limit = -1,
@@ -3436,7 +3476,8 @@ SQL;
     /**
      * @return array
      */
-    public static function &getCountryCodes(): ?array
+    public
+    static function &getCountryCodes(): ?array
     {
 
         if (self::$countryCodes === null)
@@ -3451,8 +3492,10 @@ SQL;
     /**
      * @param  array  $countryCodes
      */
-    public static function setCountryCodes(&$countryCodes): void
-    {
+    public
+    static function setCountryCodes(
+        &$countryCodes
+    ): void {
 
         self::$countryCodes = self::saveArray('countryCodes', $countryCodes);
     }
@@ -3461,7 +3504,8 @@ SQL;
     /**
      * @return object
      */
-    public static function getEnums()
+    public
+    static function getEnums()
     {
 
         $self = self::Factory();
@@ -3506,7 +3550,8 @@ SQL;
     /**
      * @return array
      */
-    public static function &getFeatureClasses(): ?array
+    public
+    static function &getFeatureClasses(): ?array
     {
 
         if (self::$featureClasses === null)
@@ -3521,8 +3566,10 @@ SQL;
     /**
      * @param  array  $featureClasses
      */
-    public static function setFeatureClasses(&$featureClasses): void
-    {
+    public
+    static function setFeatureClasses(
+        &$featureClasses
+    ): void {
 
         self::$featureClasses = self::saveArray('featureClasses', $featureClasses);
     }
@@ -3531,7 +3578,8 @@ SQL;
     /**
      * @return array
      */
-    public static function &getFeatureCodes(): ?array
+    public
+    static function &getFeatureCodes(): ?array
     {
 
         if (self::$featureCodes === null)
@@ -3546,8 +3594,10 @@ SQL;
     /**
      * @param  array  $featureCodes
      */
-    public static function setFeatureCodes(&$featureCodes): void
-    {
+    public
+    static function setFeatureCodes(
+        &$featureCodes
+    ): void {
 
         self::$featureCodes = self::saveArray('featureCodes', $featureCodes);
     }
@@ -3556,7 +3606,8 @@ SQL;
     /**
      * @return mixed
      */
-    public static function getGeoNameClient()
+    public
+    static function getGeoNameClient()
     {
 
         return self::$geoNameClient
@@ -3585,7 +3636,8 @@ SQL;
      *
      * @throws \ErrorException
      */
-    public static function &getLiveSearch(
+    public
+    static function &getLiveSearch(
         $query,
         $output = OBJECT
     ): array {
@@ -3620,7 +3672,8 @@ SQL;
      *
      * @return array|object|null Database query results
      */
-    public static function getLocations(
+    public
+    static function getLocations(
         $args = [],
         $output = OBJECT
     ) {
@@ -3716,7 +3769,8 @@ SQL;
     /**
      * @return array
      */
-    public static function &getTimeZones(): array
+    public
+    static function &getTimeZones(): array
     {
 
         if (self::$timeZones === null)
@@ -3731,15 +3785,19 @@ SQL;
     /**
      * @param  array  $timeZones
      */
-    public static function setTimeZones(&$timeZones): void
-    {
+    public
+    static function setTimeZones(
+        &$timeZones
+    ): void {
 
         self::$timeZones = self::saveArray('timeZones', $timeZones);
     }
 
 
-    public static function &loadArray($name)
-    {
+    public
+    static function &loadArray(
+        $name
+    ) {
 
         /** @noinspection PhpIncludeInspection */
         self::$$name = require(self::getEnums()->$name->file);
@@ -3755,7 +3813,8 @@ SQL;
      *
      * @return array
      */
-    public static function &saveArray(
+    public
+    static function &saveArray(
         $name,
         &$array,
         $updateDb = true
