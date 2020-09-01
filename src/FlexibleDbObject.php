@@ -19,6 +19,9 @@ abstract class FlexibleDbObject
     }
 
 
+    abstract public function save();
+
+
     abstract public static function load($ids);
 
 

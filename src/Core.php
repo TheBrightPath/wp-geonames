@@ -2203,62 +2203,7 @@ SQL;
             static function (Location $location)
             {
 
-                if (false === Core::$wpdb->replace(
-                        self::$instance->tblCacheLocations,
-                        [
-                            'geoname_id'      => $location->geonameId,
-                            'name'            => $location->name,
-                            'ascii_name'      => $location->asciiName,
-                            'alternate_names' => $location->getAlternateNames('json'),
-                            'feature_class'   => $location->featureClass,
-                            'feature_code'    => $location->featureCode,
-                            'continent'       => $location->continent,
-                            'country_code'    => $location->getCountry()->iso2,
-                            'country_id'      => $location->getCountry()->geonameId,
-                            'latitude'        => $location->latitude,
-                            'longitude'       => $location->longitude,
-                            'population'      => $location->population,
-                            'elevation'       => $location->elevation,
-                            'admin1_code'     => $location->getAdminCode1(),
-                            'admin1_id'       => $location->getAdminId1(),
-                            'admin2_code'     => $location->getAdminCode2(),
-                            'admin2_id'       => $location->getAdminId2(),
-                            'admin3_code'     => $location->getAdminCode3(),
-                            'admin3_id'       => $location->getAdminId3(),
-                            'admin4_code'     => $location->getAdminCode4(),
-                            'admin4_id'       => $location->getAdminId4(),
-                            'timezone'        => $location->getTimezone()->timeZoneId,
-                            'bbox'            => $location->getBbox('json'),
-                        ],
-                        [
-                            '%d', // geoname_id
-                            '%s', // name
-                            '%s', // ascii_name
-                            '%s', // alternate_names
-                            '%s', // feature_class
-                            '%s', // feature_code
-                            '%s', // continent
-                            '%s', // country_code
-                            '%d', // country_id
-                            '%f', // latitude
-                            '%f', // longitude
-                            '%d', // population
-                            '%d', // elevation
-                            '%s', // admin1_code
-                            '%d', // admin1_id
-                            '%s', // admin2_code
-                            '%d', // admin2_id
-                            '%s', // admin3_code
-                            '%d', // admin3_id
-                            '%s', // admin4_code
-                            '%d', // admin4_id
-                            '%s', // timezone
-                            '%s', // bbox
-                        ]
-                    ))
-                {
-                    throw new ErrorException(Core::$wpdb->last_error);
-                }
+                $location->save();
             }
         );
 

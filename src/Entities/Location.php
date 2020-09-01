@@ -2,6 +2,7 @@
 
 namespace WPGeonames\Entities;
 
+use ErrorException;
 use WPGeonames\Core;
 use WPGeonames\FlexibleDbObject;
 use WPGeonames\FlexibleObject;
@@ -834,6 +835,69 @@ class Location
         }
 
         return $this;
+    }
+
+
+    public function save()
+    {
+
+        if (false === Core::$wpdb->replace(
+                Core::Factory()
+                    ->getTblCacheLocations(),
+                [
+                    'geoname_id'      => $this->geonameId,
+                    'name'            => $this->name,
+                    'ascii_name'      => $this->asciiName,
+                    'alternate_names' => $this->getAlternateNames('json'),
+                    'feature_class'   => $this->featureClass,
+                    'feature_code'    => $this->featureCode,
+                    'continent'       => $this->continent,
+                    'country_code'    => $this->getCountry()->iso2,
+                    'country_id'      => $this->getCountry()->geonameId,
+                    'latitude'        => $this->latitude,
+                    'longitude'       => $this->longitude,
+                    'population'      => $this->population,
+                    'elevation'       => $this->elevation,
+                    'admin1_code'     => $this->getAdminCode1(),
+                    'admin1_id'       => $this->getAdminId1(),
+                    'admin2_code'     => $this->getAdminCode2(),
+                    'admin2_id'       => $this->getAdminId2(),
+                    'admin3_code'     => $this->getAdminCode3(),
+                    'admin3_id'       => $this->getAdminId3(),
+                    'admin4_code'     => $this->getAdminCode4(),
+                    'admin4_id'       => $this->getAdminId4(),
+                    'timezone'        => $this->getTimezone()->timeZoneId,
+                    'bbox'            => $this->getBbox('json'),
+                ],
+                [
+                    '%d', // geoname_id
+                    '%s', // name
+                    '%s', // ascii_name
+                    '%s', // alternate_names
+                    '%s', // feature_class
+                    '%s', // feature_code
+                    '%s', // continent
+                    '%s', // country_code
+                    '%d', // country_id
+                    '%f', // latitude
+                    '%f', // longitude
+                    '%d', // population
+                    '%d', // elevation
+                    '%s', // admin1_code
+                    '%d', // admin1_id
+                    '%s', // admin2_code
+                    '%d', // admin2_id
+                    '%s', // admin3_code
+                    '%d', // admin3_id
+                    '%s', // admin4_code
+                    '%d', // admin4_id
+                    '%s', // timezone
+                    '%s', // bbox
+                ]
+            ))
+        {
+            throw new ErrorException(Core::$wpdb->last_error);
+        }
     }
 
 
