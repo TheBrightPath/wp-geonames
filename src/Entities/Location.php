@@ -348,7 +348,10 @@ class Location
 
                 foreach ($alternateNames as $alternateName)
                 {
-                    $new[$alternateName->lang] = $alternateName->name;
+                    if (isset($alternateName->lang))
+                    {
+                        $new[$alternateName->lang] = $alternateName->name;
+                    }
                 }
 
                 $alternateNames = $new;
