@@ -736,12 +736,9 @@ class ApiQuery
     public function getSingleCountry(): ?string
     {
 
-        $country = array_filter($this->country);
-
-        if (is_array($country))
-        {
-            $country = array_filter($country);
-        }
+        $country = is_array($this->country)
+            ? array_filter($this->country)
+            : $this->country;
 
         if (empty($country))
         {
