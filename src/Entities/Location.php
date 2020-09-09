@@ -1070,7 +1070,7 @@ class Location
         $sql = <<<SQL
     SELECT
         *
-    FROM 
+    FROM
         $tblCacheLocations
     WHERE
         $sqlWhere
