@@ -3527,11 +3527,11 @@ SQL;
 
 
     /**
-     * @param  array  $countryCodes
+     * @param  string[]  $countryCodes
      */
     public
     static function setCountryCodes(
-        &$countryCodes
+        array &$countryCodes
     ): void {
 
         self::$countryCodes = self::saveArray('countryCodes', $countryCodes);
@@ -3601,11 +3601,11 @@ SQL;
 
 
     /**
-     * @param  array  $featureClasses
+     * @param  string[]  $featureClasses
      */
     public
     static function setFeatureClasses(
-        &$featureClasses
+        array &$featureClasses
     ): void {
 
         self::$featureClasses = self::saveArray('featureClasses', $featureClasses);
@@ -3633,7 +3633,7 @@ SQL;
      */
     public
     static function setFeatureCodes(
-        &$featureCodes
+        array &$featureCodes
     ): void {
 
         self::$featureCodes = self::saveArray('featureCodes', $featureCodes);
@@ -3824,7 +3824,7 @@ SQL;
      */
     public
     static function setTimeZones(
-        &$timeZones
+        array &$timeZones
     ): void {
 
         self::$timeZones = self::saveArray('timeZones', $timeZones);
@@ -3852,8 +3852,8 @@ SQL;
      */
     public
     static function &saveArray(
-        $name,
-        &$array,
+        string $name,
+        array &$array,
         $updateDb = true
     ): array {
 

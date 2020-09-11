@@ -264,7 +264,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode1($adminCode1): ApiQuery
+    public function setAdminCode1(string $adminCode1): ApiQuery
     {
 
         $this->adminCode1 = $adminCode1;
@@ -328,7 +328,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCharset($charset): ApiQuery
+    public function setCharset(string $charset): ApiQuery
     {
 
         $this->charset = $charset;
@@ -352,7 +352,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCities($cities): ApiQuery
+    public function setCities(string $cities): ApiQuery
     {
 
         $this->cities = $cities;
@@ -362,9 +362,9 @@ class ApiQuery
 
 
     /**
-     * @return string
+     * @return string|string[]|null
      */
-    public function getContinentCode(): string
+    public function getContinentCode()
     {
 
         return $this->continentCode;
@@ -372,7 +372,7 @@ class ApiQuery
 
 
     /**
-     * @param  string  $continentCode
+     * @param  string|string[]|null  $continentCode
      *
      * @return ApiQuery
      */
@@ -434,7 +434,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCountryBias($countryBias): ApiQuery
+    public function setCountryBias(string $countryBias): ApiQuery
     {
 
         $this->countryBias = $countryBias;
@@ -458,7 +458,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setEast($east): ApiQuery
+    public function setEast(float $east): ApiQuery
     {
 
         $this->east = $east;
@@ -468,7 +468,7 @@ class ApiQuery
 
 
     /**
-     * @return string|string[]
+     * @return string|string[]|null
      */
     public function getFeatureClass()
     {
@@ -478,7 +478,7 @@ class ApiQuery
 
 
     /**
-     * @param  string|string[]  $featureClass
+     * @param  string|string[]|null  $featureClass
      *
      * @return ApiQuery
      */
@@ -492,9 +492,9 @@ class ApiQuery
 
 
     /**
-     * @return string
+     * @return string|string[]|null
      */
-    public function getFeatureCode(): string
+    public function getFeatureCode()
     {
 
         return $this->featureCode;
@@ -502,7 +502,7 @@ class ApiQuery
 
 
     /**
-     * @param  string  $featureCode
+     * @param  string|string[]|null  $featureCode
      *
      * @return ApiQuery
      */
@@ -530,7 +530,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setFuzzy($fuzzy): ApiQuery
+    public function setFuzzy(float $fuzzy): ApiQuery
     {
 
         $this->fuzzy = $fuzzy;
@@ -554,7 +554,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setLang($lang): ApiQuery
+    public function setLang(string $lang): ApiQuery
     {
 
         $this->lang = $lang;
@@ -578,7 +578,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setMaxRows($maxRows): ApiQuery
+    public function setMaxRows(int $maxRows): ApiQuery
     {
 
         $this->maxRows = $maxRows;
@@ -636,7 +636,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setOperator($operator): ApiQuery
+    public function setOperator(string $operator): ApiQuery
     {
 
         $this->operator = strtoupper($operator);
@@ -660,7 +660,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setOrderby($orderby): ApiQuery
+    public function setOrderby(string $orderby): ApiQuery
     {
 
         $this->orderby = $orderby;
@@ -732,7 +732,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSearchlang($searchlang): ApiQuery
+    public function setSearchlang(string $searchlang): ApiQuery
     {
 
         $this->searchlang = $searchlang;
@@ -794,7 +794,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setStartRow($startRow): ApiQuery
+    public function setStartRow(int $startRow): ApiQuery
     {
 
         if ($this->page === null)
@@ -821,7 +821,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setStyle($style): ApiQuery
+    public function setStyle(string $style): ApiQuery
     {
 
         $this->style = $style;
@@ -845,7 +845,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setTag($tag): ApiQuery
+    public function setTag(string $tag): ApiQuery
     {
 
         $this->tag = $tag;
@@ -869,7 +869,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setType($type): ApiQuery
+    public function setType(string $type): ApiQuery
     {
 
         $this->type = $type;
@@ -903,7 +903,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setInclBbox($inclBbox): ApiQuery
+    public function setInclBbox(bool $inclBbox): ApiQuery
     {
 
         $this->inclBbox = $inclBbox;
@@ -927,7 +927,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setIsNameRequired($isNameRequired): ApiQuery
+    public function setIsNameRequired(bool $isNameRequired): ApiQuery
     {
 
         $this->isNameRequired = $isNameRequired;
@@ -941,7 +941,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode2($adminCode2): ApiQuery
+    public function setAdminCode2(string $adminCode2): ApiQuery
     {
 
         $this->adminCode2 = $adminCode2;
@@ -955,7 +955,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode3($adminCode3): ApiQuery
+    public function setAdminCode3(string $adminCode3): ApiQuery
     {
 
         $this->adminCode3 = $adminCode3;
@@ -969,7 +969,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode4($adminCode4): ApiQuery
+    public function setAdminCode4(string $adminCode4): ApiQuery
     {
 
         $this->adminCode4 = $adminCode4;
@@ -983,7 +983,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode5($adminCode5): ApiQuery
+    public function setAdminCode5(string $adminCode5): ApiQuery
     {
 
         $this->adminCode5 = $adminCode5;
@@ -997,7 +997,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setName($name): ApiQuery
+    public function setName(string $name): ApiQuery
     {
 
         $this->searchTerm = $name;
@@ -1012,7 +1012,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNameEquals($name_equals): ApiQuery
+    public function setNameEquals(string $name_equals): ApiQuery
     {
 
         $this->searchTerm = $name_equals;
@@ -1027,7 +1027,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNameStartsWith($name_startsWith): ApiQuery
+    public function setNameStartsWith(string $name_startsWith): ApiQuery
     {
 
         $this->searchTerm = $name_startsWith;
@@ -1042,7 +1042,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNorth($north): ApiQuery
+    public function setNorth(float $north): ApiQuery
     {
 
         $this->north = $north;
@@ -1090,7 +1090,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setQ($q): ApiQuery
+    public function setQ(string $q): ApiQuery
     {
 
         $this->searchTerm = $q;
@@ -1105,7 +1105,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSouth($south): ApiQuery
+    public function setSouth(float $south): ApiQuery
     {
 
         $this->south = $south;
@@ -1119,7 +1119,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setWest($west): ApiQuery
+    public function setWest(float $west): ApiQuery
     {
 
         $this->west = $west;
@@ -1136,7 +1136,7 @@ class ApiQuery
      * @throws \ErrorException
      */
     public function cleanArray(
-        $array = null,
+        array $array = null,
         $unset = null
     ): array {
 
