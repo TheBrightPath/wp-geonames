@@ -2144,7 +2144,7 @@ SQL
             )
             {
 
-                $admin[$location->country] = true;
+                $admin[$location->getCountryId()] = true;
 
                 for ($i = 1; $i <= 4; $i++)
                 {
