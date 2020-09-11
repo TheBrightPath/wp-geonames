@@ -849,9 +849,9 @@ class Location
 
 
     /**
-     * @return mixed
+     * @return \WPGeonames\Entities\Timezone|null
      */
-    public function getTimezone()
+    public function getTimezone(): ?Timezone
     {
 
         if ($this->timezone instanceof Timezone)
@@ -859,12 +859,12 @@ class Location
             return $this->timezone;
         }
 
-        return $this->timezone = Timezone::load($this->timezone);
+        return $this->timezone = new Timezone($this->timezone);
     }
 
 
     /**
-     * @param  mixed  $timezone
+     * @param  \WPGeonames\Entities\Timezone|string|null  $timezone
      *
      * @return Location
      */
