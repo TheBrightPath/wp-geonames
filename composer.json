@@ -3,15 +3,9 @@
   "version": "2.0.8",
   "description": "WP Geonames Plugin",
   "license": "GPL-3.0",
-  "repositories": [
-    {
-      "type": "github",
-      "url": "git@github.com:metaworx/geonames-client.git"
-    }
-  ],
   "require": {
     "php": ">=7.2.0",
-    "aternus/geonames-client": "^1.0",
+    "aternus/geonames-client": "^2.1",
     "ext-mysqli": "*"
   },
   "require-dev": {
