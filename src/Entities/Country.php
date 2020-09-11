@@ -549,7 +549,7 @@ class Country
         $sql   = <<<SQL
     SELECT
         *
-    FROM 
+    FROM
         $table
     WHERE
         $sqlWhere

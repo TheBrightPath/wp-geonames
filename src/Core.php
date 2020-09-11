@@ -361,7 +361,7 @@ class Core
 			" . $wpdb->base_prefix . "geonamesPostal
 		WHERE
 			country_code='" . $iso . "'
-			and postal_code LIKE ' % " . $postal . " % ' 
+			and postal_code LIKE ' % " . $postal . " % '
 		ORDER BY postal_code
 		LIMIT 200
 		"
@@ -2497,7 +2497,7 @@ FROM
 WHERE
        query_id IN ($inQueryId)
    AND country_code IN ($inCountryCode)
-GROUP BY 
+GROUP BY
     country_code
 ORDER BY
     country_code
@@ -3004,7 +3004,7 @@ SQL;
 		admin3_code,
 		latitude,
 		longitude,
-		accuracy) 
+		accuracy)
 		VALUES" . substr($g, 0, -1)
         );
     }
