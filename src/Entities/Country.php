@@ -4,6 +4,7 @@ namespace WPGeonames\Entities;
 
 use WPGeonames\Core;
 use WPGeonames\FlexibleObject;
+use WPGeonames\Traits\FlexibleObjectTrait;
 
 /**
  * Class Country
@@ -28,8 +29,10 @@ use WPGeonames\FlexibleObject;
  * @property string $equivalentFipsCode
  */
 class Country
-    extends FlexibleObject
+    implements FlexibleObject
 {
+    use FlexibleObjectTrait;
+
     // protected properties
     /** @var \WPGeonames\Entities\Country[] */
     protected static $countries = [];

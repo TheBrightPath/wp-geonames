@@ -2,11 +2,18 @@
 
 namespace WPGeonames;
 
+use WPGeonames\Traits\FlexibleObjectTrait;
+
 abstract class FlexibleDbObject
-    extends FlexibleObject
+    implements FlexibleObject
 {
+    use FlexibleObjectTrait
+    {
+        __construct as protected ___construct;
+    }
+
     public function __construct(
-        &$values,
+        $values,
         $defaults = []
     ) {
 
@@ -15,7 +22,7 @@ abstract class FlexibleDbObject
             $values = static::loadRecords($values);
         }
 
-        parent::__construct($values, $defaults);
+        $this->___construct($values, $defaults);
     }
 
 

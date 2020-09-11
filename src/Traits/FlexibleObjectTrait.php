@@ -1,27 +1,16 @@
 <?php
 
-namespace WPGeonames;
+namespace WPGeonames\Traits;
 
-/**
- * Class FlexibleObject
- *
- */
-class FlexibleObject
+use WPGeonames\FlexibleObject;
+use WPGeonames\WpDb;
+
+trait FlexibleObjectTrait
 {
-    // constants
-    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT        = false;
-    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_ONCE       = true;
-    public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY = null;
-
-    // protected properties
-    protected static $aliases
-        = [
-        ];
-
     // private properties
 
     /** @var bool|null */
-    private $ignoreNonExistingPropertyOnSet = self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT;
+    private $ignoreNonExistingPropertyOnSet = FlexibleObject::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT;
 
 
     /**
@@ -31,12 +20,14 @@ class FlexibleObject
      * @param  array  $defaults
      */
     public function __construct(
-        &$values,
+        $values,
         $defaults = []
     ) {
 
-        $self   = $this->cleanInput($values)
-                       ->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY)
+        $self = $this->cleanInput($values)
+                     ->setIgnoreNonExistingPropertyOnSet(
+                         FlexibleObject::IGNORE_NON_EXISTING_PROPERTY_ON_SET_REPEATEDLY
+                     )
         ;
         $values = wp_parse_args($values, $defaults);
         $values = $this->cleanArray($values);
@@ -63,7 +54,7 @@ class FlexibleObject
             }
         );
 
-        $this->setIgnoreNonExistingPropertyOnSet(self::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT);
+        $this->setIgnoreNonExistingPropertyOnSet(FlexibleObject::IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT);
 
     }
 
@@ -71,7 +62,7 @@ class FlexibleObject
     /**
      * @param  bool|null  $ignoreNonExistingPropertyOnSet
      *
-     * @return FlexibleObject
+     * @return \WPGeonames\FlexibleObject|\WPGeonames\Traits\FlexibleObjectTrait
      */
     public function setIgnoreNonExistingPropertyOnSet(?bool $ignoreNonExistingPropertyOnSet): FlexibleObject
     {
@@ -85,9 +76,9 @@ class FlexibleObject
     public function __get($property)
     {
 
-        $p = static::$aliases[$property] ?? $property;
+        $getter = 'get' . ucfirst(static::$aliases[$property] ?? $property);
 
-        return $this->$p;
+        return $this->$getter();
     }
 
 
@@ -136,7 +127,7 @@ class FlexibleObject
      *
      * @return array
      */
-    protected function cleanArray($array): array
+    protected function cleanArray(array $array): array
     {
 
         $array = array_filter(
@@ -157,7 +148,7 @@ class FlexibleObject
     }
 
 
-    public function cleanInput(&$values): self
+    public function cleanInput(&$values): FlexibleObject
     {
 
         if (is_object($values))
@@ -174,6 +165,7 @@ class FlexibleObject
 
         }
 
+        /** @noinspection PhpIncompatibleReturnTypeInspection */
         return $this;
 
     }

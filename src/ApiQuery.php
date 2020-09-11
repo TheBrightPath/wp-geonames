@@ -7,6 +7,7 @@ namespace WPGeonames;
 
 use ErrorException;
 use WPGeonames\Entities\Location;
+use WPGeonames\Traits\FlexibleObjectTrait;
 
 /**
  * Class ApiQuery
@@ -19,8 +20,14 @@ use WPGeonames\Entities\Location;
  *
  */
 class ApiQuery
-    extends FlexibleObject
+    implements FlexibleObject
 {
+    use FlexibleObjectTrait
+    {
+        __construct as protected ___construct;
+        cleanArray as protected ___cleanArray;
+        toArray as protected ___toArray;
+    }
 
     // constants
     public const MAX_ROWS                  = 1000;
@@ -62,8 +69,8 @@ class ApiQuery
     public const SEARCH_TYPE_Q             = 2 ** 1;
     public const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
 
-    // protected properties
-    protected static $aliases
+    //  public properties
+    static $aliases
         = [
             'feature_class'                     => 'featureClass',
             'feature_code'                      => 'featureCode',
@@ -77,6 +84,7 @@ class ApiQuery
             ApiQuery::SEARCH_NAME_START_OF_NAME => 'nameStartsWith',
         ];
 
+    // protected properties
     /**
      * @var string
      */
@@ -236,7 +244,7 @@ class ApiQuery
         $defaults = self::QUERY_DEFAULTS
     ) {
 
-        parent::__construct($values, wp_parse_args($defaults, self::QUERY_DEFAULTS));
+        $this->___construct($values, wp_parse_args($defaults, self::QUERY_DEFAULTS));
 
     }
 
@@ -1132,7 +1140,7 @@ class ApiQuery
         $unset = null
     ): array {
 
-        $array = parent::cleanArray(
+        $array = $this->___cleanArray(
             wp_parse_args(
                 $array ?? $this->toArray(),
                 ['operator' => 'AND']
@@ -1313,7 +1321,7 @@ class ApiQuery
     public function toArray($searchType = null): array
     {
 
-        $params = parent::toArray();
+        $params = $this->___toArray();
 
         if ($searchType === null)
         {

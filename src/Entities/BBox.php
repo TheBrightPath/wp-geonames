@@ -3,10 +3,12 @@
 namespace WPGeonames\Entities;
 
 use WPGeonames\FlexibleObject;
+use WPGeonames\Traits\FlexibleObjectTrait;
 
 class BBox
-    extends FlexibleObject
+    implements FlexibleObject
 {
+    use FlexibleObjectTrait;
 
     // protected properties
     /** @var float */
