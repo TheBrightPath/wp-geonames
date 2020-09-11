@@ -16,7 +16,7 @@ use WPGeonames\FlexibleObject;
  * @property string                                     $featureClass
  * @property string                                     $featureCode
  * @property string                                     $continentCode
- * @property string                                     $country
+ * @property \WPGeonames\Entities\Country               $country
  * @property string|null                                $adminCode1
  * @property int|null                                   $adminId1
  * @property string|null                                $adminCode2
@@ -31,6 +31,7 @@ use WPGeonames\FlexibleObject;
  * @property int                                        $population
  * @property int                                        $elevation
  * @property \WPGeonames\Entities\Location[]|int[]|null $children
+ * @property string                                     countryCode
  */
 class Location
     extends FlexibleDbObject
@@ -47,9 +48,8 @@ class Location
             'fcl'             => 'featureClass',
             'feature_code'    => 'featureCode',
             'fcode'           => 'featureCode',
-            'countryCode'     => 'country',
-            'country_code'    => 'country',
-            'country_id'      => 'country',
+            'country_code'    => 'countryCode',
+            'country_id'      => 'countryId',
             'continent'       => 'continentCode',
             'admin1_code'     => 'adminCode1',
             'admin2_code'     => 'adminCode2',
@@ -572,12 +572,12 @@ class Location
 
 
     /**
-     * @return Country
+     * @return Country|null
      */
-    public function getCountry(): Country
+    public function getCountry(): ?Country
     {
 
-        if ($this->country instanceof Country)
+        if ($this->country instanceof Country || $this->country === null)
         {
             return $this->country;
         }
@@ -594,6 +594,11 @@ class Location
     public function getCountryCode($format = 'iso2'): string
     {
 
+        if (is_string($this->country) && $format === 'iso2' && strlen($this->country) === 2)
+        {
+            return $this->country;
+        }
+
         return $this->getCountry()->$format;
     }
 
@@ -603,6 +608,11 @@ class Location
      */
     public function getCountryId(): int
     {
+
+        if (is_int($this->country))
+        {
+            return $this->country;
+        }
 
         return $this->getCountry()->geonameId;
     }
