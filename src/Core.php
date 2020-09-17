@@ -44,7 +44,7 @@ class Core
                 'A' => ['PCL', 'PCLD', 'PCLF', 'PCLI', 'PCLIX', 'PCLS'],
             ],
         ];
-    public const geoVersion = "2.0.8";
+    public const geoVersion = "2.1.0";
 
     // tables constants
     public const tblCountries        = self::tblPrefix . 'countries';
