@@ -52,9 +52,13 @@ class Location
             'country_id'      => 'countryId',
             'continent'       => 'continentCode',
             'admin1_code'     => 'adminCode1',
+            'admin1_id'       => 'adminId1',
             'admin2_code'     => 'adminCode2',
+            'admin2_id'       => 'adminId2',
             'admin3_code'     => 'adminCode3',
+            'admin3_id'       => 'adminId3',
             'admin4_code'     => 'adminCode4',
+            'admin4_id'       => 'adminId4',
             'lng'             => 'longitude',
             'lat'             => 'latitude',
         ];
@@ -1035,15 +1039,6 @@ class Location
     {
 
         $locations = static::loadRecords($ids);
-
-        array_walk(
-            $locations,
-            static function (&$item)
-            {
-
-                $item = new static($item);
-            }
-        );
 
         return is_array($ids)
             ? $locations
