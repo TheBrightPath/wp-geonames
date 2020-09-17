@@ -2358,6 +2358,8 @@ SQL;
         $cachedQuery     = null;
         $cachedQueries   = self::$wpdb->get_results($sql);
 
+        $searchCountry = $apiResult->query->getCountryAsArray();
+
         /** @noinspection AlterInForeachInspection */
         foreach ($cachedQueries as $i => &$cachedQuery)
         {
@@ -2367,8 +2369,6 @@ SQL;
             {
                 break;
             }
-
-            $searchCountry = $apiResult->query->getCountryAsArray();
 
             // bail if we search all countries, but current query uses a specific country
             if (empty($searchCountry) && $cachedQuery->search_country)
