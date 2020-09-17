@@ -2,6 +2,7 @@
 
 namespace WPGeonames\Entities;
 
+use DateTime;
 use DateTimeZone;
 use WPGeonames\FlexibleObject;
 use WPGeonames\Traits\FlexibleObjectTrait;
@@ -95,6 +96,20 @@ class Timezone
                 ->setDate($year ?? date_create()->format('Y'), 7, 1)
                 ->setTime(14, 0, 0)
         );
+    }
+
+
+    public function __toString()
+    {
+
+        return $this->getName();
+    }
+
+
+    public function createDateTime($dateTimeString)
+    {
+
+        return new DateTime($dateTimeString, $this);
     }
 
 }
