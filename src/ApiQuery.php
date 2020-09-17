@@ -1220,7 +1220,7 @@ class ApiQuery
     }
 
 
-    public function query()
+    public function query($output = Location::class)
     {
 
         $searchTypes = [
@@ -1288,7 +1288,7 @@ class ApiQuery
                 $result             = $g->search($params);
                 $count              = count($result);
                 $apiResult->total   = $g->getLastTotalResultsCount();
-                $apiResult->result  += Location::parseArray($result, 'geonameId', '_');
+                $apiResult->result  += WpDb::formatOutput($result, $output, 'geonameId', '_');
                 $params['startRow'] += $count;
 
                 unset ($result);

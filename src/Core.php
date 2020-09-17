@@ -3692,9 +3692,9 @@ SQL;
             );
         }
 
-        $apiResult = $query->query();
+        $apiResult = $query->query($output);
 
-        return WpDb::formatOutput($apiResult, $output);
+        return $apiResult;
     }
 
 
@@ -3712,7 +3712,7 @@ SQL;
     public
     static function getLocations(
         $args = [],
-        $output = OBJECT
+        $output = Location::class
     ) {
 
         $self   = self::$instance;
@@ -3799,7 +3799,9 @@ SQL;
 
         //echo '<pre>'; print_r( $sql ); echo '</pre>';
 
-        return self::$wpdb->get_results($sql, $output);
+        $result = self::$wpdb->get_results($sql);
+
+        return  WpDb::formatOutput($result, $output,  'geonameId', '_');
     }
 
 

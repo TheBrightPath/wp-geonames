@@ -85,6 +85,8 @@ class Location
     protected $continentCode;
     /** @var float|null */
     protected $score;
+    /** @var string */
+    protected static $timezoneClass = Timezone::class;
 
 
     /**
@@ -859,7 +861,7 @@ class Location
             return $this->timezone;
         }
 
-        return $this->timezone = new Timezone($this->timezone);
+        return $this->timezone = new static::$timezoneClass($this->timezone);
     }
 
 
@@ -1097,7 +1099,7 @@ SQL;
             throw new \ErrorException(Core::$wpdb->last_error);
         }
 
-        return $locations;
+        return static::parseArray($locations);
     }
 
 
