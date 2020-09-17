@@ -215,7 +215,7 @@ class WpDb
                         {
                             /** @noinspection PhpMissingBreakStatementInspection */
                         case ARRAY_K:
-                            $row =& $object_vars;
+                            $object_vars =& $row;
                             // continue with next
 
                         case OBJECT_K:
