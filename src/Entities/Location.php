@@ -2,7 +2,9 @@
 
 namespace WPGeonames\Entities;
 
+use DateTimeInterface;
 use ErrorException;
+use IntlDateFormatter;
 use WPGeonames\Core;
 use WPGeonames\FlexibleDbObject;
 use WPGeonames\FlexibleObject;
@@ -91,6 +93,36 @@ class Location
     protected $score;
     /** @var string */
     protected static $timezoneClass = Timezone::class;
+
+
+    public function format(
+        DateTimeInterface $dateTime,
+        string $format,
+        $locale = null
+    ) {
+
+        if ($locale === false)
+        {
+            return $dateTime->format($format);
+        }
+
+        if (class_exists("IntlDateFormatter"))
+        {
+            /**
+             * @see https://unicode-org.github.io/icu/userguide/format_parse/datetime/
+             */
+            return IntlDateFormatter::formatObject($dateTime, $format, $locale ?? setlocale(LC_TIME, 0));
+        }
+        else
+        {
+            $oldLocale = setlocale(LC_TIME, $locale ?? 0);
+            $result    = utf8_encode(strftime($format, $dateTime->getTimestamp()));
+            setlocale(LC_TIME, $oldLocale);
+
+            return $result;
+        }
+
+    }
 
 
     /**
