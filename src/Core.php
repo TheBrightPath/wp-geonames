@@ -3812,7 +3812,7 @@ SQL;
 
         $result = self::$wpdb->get_results($sql);
 
-        return  WpDb::formatOutput($result, $output,  'geonameId', '_');
+        return WpDb::formatOutput($result, $output, 'geonameId', '_');
     }
 
 
