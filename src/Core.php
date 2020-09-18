@@ -136,11 +136,6 @@ class Core
             add_filter('plugin_action_links_' . $this->getPluginFileRelative(), [$this, 'settings_link']);
             add_filter('option_wpGeonames_dataList', [$this, 'check_options'], 10, 2);
             add_filter('default_option_wpGeonames_dataList', [$this, 'check_options'], 10, 2);
-            if (file_exists($this->getPluginDir() . '/patch.php'))
-            {
-                /** @noinspection PhpIncludeInspection */
-                include($this->getPluginDir() . '/patch.php');
-            }
         }
     }
 
@@ -448,8 +443,6 @@ class Core
 
     public function addAdminMenu(): void
     {
-
-        $this->verifyAdmin();
 
         add_options_page(
             'WP GeoNames Options',
@@ -2635,6 +2628,11 @@ SQL;
         $options
     ) {
 
+        if (!$this->verifyAdmin())
+        {
+            return $options;
+        }
+
         if (empty($options)
             || empty($options['filenames']['countries'])
             || empty($options['filenames']['postal'])
@@ -3143,6 +3141,11 @@ SQL;
         $links
     ) {
 
+        if (!$this->verifyAdmin(false))
+        {
+            return $links;
+        }
+
         $links[] = '<a href = "options-general.php?page=wpGeonames-options">'
             . __('Settings', 'wpGeonames')
             . ' </a> ';
@@ -3358,13 +3361,21 @@ SQL;
 
 
     public
-    function verifyAdmin(): void
-    {
+    function verifyAdmin(
+        bool $die = true
+    ): bool {
 
-        if (!current_user_can("administrator"))
+        if (current_user_can("administrator"))
         {
-            die();
+            return true;
         }
+
+        if ($die === false)
+        {
+            return false;
+        }
+
+        die();
     }
 
 
