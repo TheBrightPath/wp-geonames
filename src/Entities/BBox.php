@@ -10,15 +10,20 @@ class BBox
 {
     use FlexibleObjectTrait;
 
-    // protected properties
+// protected properties
+
     /** @var float */
     protected $east;
+
     /** @var float */
     protected $south;
+
     /** @var float */
     protected $north;
+
     /** @var float */
     protected $west;
+
     /** @var int */
     protected $accuracyLevel;
 
@@ -38,7 +43,7 @@ class BBox
      *
      * @return BBox
      */
-    public function setAccuracyLevel(int $accuracyLevel): BBox
+    public function setAccuracyLevel( int $accuracyLevel ): BBox
     {
 
         $this->accuracyLevel = $accuracyLevel;
@@ -62,7 +67,7 @@ class BBox
      *
      * @return BBox
      */
-    public function setEast(float $east): BBox
+    public function setEast( float $east ): BBox
     {
 
         $this->east = $east;
@@ -86,7 +91,7 @@ class BBox
      *
      * @return BBox
      */
-    public function setNorth(float $north): BBox
+    public function setNorth( float $north ): BBox
     {
 
         $this->north = $north;
@@ -110,7 +115,7 @@ class BBox
      *
      * @return BBox
      */
-    public function setSouth(float $south): BBox
+    public function setSouth( float $south ): BBox
     {
 
         $this->south = $south;
@@ -134,7 +139,7 @@ class BBox
      *
      * @return BBox
      */
-    public function setWest(float $west): BBox
+    public function setWest( float $west ): BBox
     {
 
         $this->west = $west;
@@ -146,7 +151,7 @@ class BBox
     public function __toString(): string
     {
 
-        return \GuzzleHttp\json_encode($this->__serialize());
+        return \GuzzleHttp\json_encode( $this->__serialize() );
     }
 
 }

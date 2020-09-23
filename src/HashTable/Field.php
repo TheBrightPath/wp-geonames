@@ -4,7 +4,7 @@ namespace WPGeonames\HashTable;
 
 class Field
 {
-    //  public properties
+//  public properties
     public $table;
     public $field;
 

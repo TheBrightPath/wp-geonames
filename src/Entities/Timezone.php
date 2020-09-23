@@ -20,12 +20,15 @@ use WPGeonames\Traits\FlexibleObjectTrait;
  * @property int|null    $offsetRaw
  */
 class Timezone
-    extends DateTimeZone
-    implements FlexibleObject
+    extends
+    DateTimeZone
+    implements
+    FlexibleObject
 {
+
     use FlexibleObjectTrait;
 
-    // protected properties
+// protected properties
 
     protected static $aliases
         = [
@@ -43,12 +46,12 @@ class Timezone
         $defaultsAreIgnored = []
     ) {
 
-        if ($timezone instanceof DateTimeZone)
+        if ( $timezone instanceof DateTimeZone )
         {
             $timezone = $timezone->getName();
         }
 
-        if (is_array($timezone))
+        if ( is_array( $timezone ) )
         {
             $timezone = $timezone['timezone']
                 ?? $timezone['timezoneId']
@@ -57,7 +60,7 @@ class Timezone
                 ?? $timezone['tz'];
         }
 
-        parent::__construct($timezone);
+        parent::__construct( $timezone );
     }
 
 
@@ -74,13 +77,13 @@ class Timezone
     /**
      * @return int|null
      */
-    public function getOffsetJan(?int $year = null): ?int
+    public function getOffsetJan( ?int $year = null ): ?int
     {
 
         return $this->getOffset(
             date_create()
-                ->setDate($year ?? date_create()->format('Y'), 1, 1)
-                ->setTime(14, 0, 0)
+                ->setDate( $year ?? date_create()->format( 'Y' ), 1, 1 )
+                ->setTime( 14, 0, 0 )
         );
     }
 
@@ -88,13 +91,13 @@ class Timezone
     /**
      * @return int|null
      */
-    public function getOffsetJul(?int $year = null): ?int
+    public function getOffsetJul( ?int $year = null ): ?int
     {
 
         return $this->getOffset(
             date_create()
-                ->setDate($year ?? date_create()->format('Y'), 7, 1)
-                ->setTime(14, 0, 0)
+                ->setDate( $year ?? date_create()->format( 'Y' ), 7, 1 )
+                ->setTime( 14, 0, 0 )
         );
     }
 
@@ -106,10 +109,10 @@ class Timezone
     }
 
 
-    public function createDateTime($dateTimeString)
+    public function createDateTime( $dateTimeString )
     {
 
-        return new DateTime($dateTimeString, $this);
+        return new DateTime( $dateTimeString, $this );
     }
 
 }

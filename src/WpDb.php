@@ -6,20 +6,22 @@ use ErrorException;
 use mysqli;
 use function mysqli_errno;
 
-if (!defined('ARRAY_K'))
+if ( ! defined( 'ARRAY_K' ) )
 {
-    define('ARRAY_K', 'ARRAY_K');
+    define( 'ARRAY_K', 'ARRAY_K' );
 }
 
 
 class WpDb
-    extends \wpdb
+    extends
+    \wpdb
 {
 
     //  public properties
     public $last_error_no = 0;
 
-    // protected properties
+// protected properties
+
     protected $use_mysqli    = false;
     protected $has_connected = false;
 
@@ -32,7 +34,7 @@ class WpDb
      * @noinspection PhpMissingParentConstructorInspection
      * @noinspection MagicMethodsValidityInspection
      */
-    public function __construct(\wpdb $db = null)
+    public function __construct( \wpdb $db = null )
     {
 
         global $wpdb;
@@ -41,7 +43,7 @@ class WpDb
 
         $db->flush();
 
-        $x = get_object_vars($db);
+        $x = get_object_vars( $db );
 
         /*
          $skip = array_merge(
@@ -56,14 +58,14 @@ class WpDb
         );
         */
 
-        foreach ($x as $property => &$value)
+        foreach ( $x as $property => &$value )
         {
 
             //if ( in_array( $property, $skip ) ) {
             //continue;
             //}
 
-            if (property_exists($this, $property))
+            if ( property_exists( $this, $property ) )
             {
                 $this->$property =& $value;
             }
@@ -74,17 +76,22 @@ class WpDb
 
         }
 
-        unset ($value);
+        unset ( $value );
 
-        foreach (['use_mysqli', 'has_connected'] as $property)
+        foreach (
+            [
+                'use_mysqli',
+                'has_connected',
+            ] as $property
+        )
         {
 
-            $this->$property = $wpdb->__get($property);
-            $this->__set($property, $this->$property);
+            $this->$property = $wpdb->__get( $property );
+            $this->__set( $property, $this->$property );
 
         }
 
-        if ($wpdb instanceof \wpdb)
+        if ( $wpdb instanceof \wpdb )
         {
             $wpdb = $this;
         }
@@ -101,19 +108,19 @@ class WpDb
     }
 
 
-    public function query($query)
+    public function query( $query )
     {
 
-        $return_val = parent::query($query);
+        $return_val = parent::query( $query );
 
-        if (!empty($this->dbh))
+        if ( ! empty( $this->dbh ) )
         {
 
-            if ($this->use_mysqli)
+            if ( $this->use_mysqli )
             {
-                if ($this->dbh instanceof mysqli)
+                if ( $this->dbh instanceof mysqli )
                 {
-                    $this->last_error_no = mysqli_errno($this->dbh);
+                    $this->last_error_no = mysqli_errno( $this->dbh );
                 }
                 else
                 {
@@ -122,13 +129,13 @@ class WpDb
                     $this->last_error_no = 2006;
                 }
             }
-            elseif (is_resource($this->dbh))
+            elseif ( is_resource( $this->dbh ) )
             {
                 /**
                  * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
                  * @noinspection PhpFullyQualifiedNameUsageInspection
                  */
-                $this->last_error_no = \mysql_errno($this->dbh);
+                $this->last_error_no = \mysql_errno( $this->dbh );
             }
             else
             {
@@ -157,7 +164,7 @@ class WpDb
         $prefix = ''
     ): ?array {
 
-        if ($result === null)
+        if ( $result === null )
         {
             return $result;
         }
@@ -165,8 +172,18 @@ class WpDb
         $class = null;
 
         if (
-            !in_array($output, [OBJECT, OBJECT_K, ARRAY_K, ARRAY_A, ARRAY_N], true)
-            && class_exists($output)
+            ! in_array(
+                $output,
+                [
+                    OBJECT,
+                    OBJECT_K,
+                    ARRAY_K,
+                    ARRAY_A,
+                    ARRAY_N,
+                ],
+                true
+            )
+            && class_exists( $output )
         )
         {
 
@@ -177,7 +194,7 @@ class WpDb
 
         }
 
-        switch (strtoupper($output))
+        switch ( strtoupper( $output ) )
         {
             // Back compat for OBJECT being previously case-insensitive.
 
@@ -193,12 +210,15 @@ class WpDb
 
             // Return an array of row objects with keys from column 1.
             // (Duplicates are discarded.)
-            if ($result)
+            if ( $result )
             {
 
                 array_walk(
                     $result,
-                    static function ($row, $key)
+                    static function (
+                        $row,
+                        $key
+                    )
                     use
                     (
                         &
@@ -209,9 +229,9 @@ class WpDb
                     )
                     {
 
-                        $object_vars = get_object_vars($row);
+                        $object_vars = get_object_vars( $row );
 
-                        switch ($output)
+                        switch ( $output )
                         {
                             /** @noinspection PhpMissingBreakStatementInspection */
                         case ARRAY_K:
@@ -219,36 +239,39 @@ class WpDb
                             // continue with next
 
                         case OBJECT_K:
-                            switch (true) {
-                            case is_string($key):
+                            switch ( true )
+                            {
+                            case is_string( $key ):
                                 // keep current key
                                 break;
 
-                            case empty($keyName):
-                                   $key = $prefix . reset($object_vars);
-                                   break;
+                            case empty( $keyName ):
+                                $key = $prefix . reset( $object_vars );
+                                break;
 
                             default:
-                                $keyNames = (array)$keyName;
+                                $keyNames = (array) $keyName;
 
-                                foreach ($keyNames as $keyName)
+                                foreach ( $keyNames as $keyName )
                                 {
-                                    if (array_key_exists($keyName, $object_vars))
+                                    if ( array_key_exists( $keyName, $object_vars ) )
                                     {
-                                        $key = $prefix . $object_vars[$keyName];
+                                        $key = $prefix . $object_vars[ $keyName ];
                                         break;
                                     }
                                 }
 
-                                if ($key === null)
+                                if ( $key === null )
                                 {
-                                    throw new ErrorException('Key not found in object: ' . implode(', ', $keyNames));
+                                    throw new ErrorException(
+                                        'Key not found in object: ' . implode( ', ', $keyNames )
+                                    );
                                 }
                             }
 
-                            if (!isset($new_array[$key]))
+                            if ( ! isset( $new_array[ $key ] ) )
                             {
-                                $new_array[$key] = $row;
+                                $new_array[ $key ] = $row;
                             }
                             break;
 
@@ -261,7 +284,7 @@ class WpDb
                         case ARRAY_N:
                             // Return an integer-keyed array of...
                             // ...integer-keyed row arrays.
-                            $new_array[] = array_values($object_vars);
+                            $new_array[] = array_values( $object_vars );
                             break;
                         }
                     }
@@ -269,27 +292,28 @@ class WpDb
 
             }
 
-            $result = $new_array;
+            $result =& $new_array;
+            unset( $new_array );
             break;
 
         default:
-            throw new ErrorException("Unknown output format or class '$output'");
+            throw new ErrorException( "Unknown output format or class '$output'" );
         }
 
-        if ($class !== null)
+        if ( $class !== null )
         {
 
             array_walk(
                 $result,
-                static function (&$item) use
+                static function ( &$item ) use
                 (
                     $class
                 )
                 {
 
-                    if (get_class($item) !== $class)
+                    if ( get_class( $item ) !== $class )
                     {
-                        $item = new $class($item);
+                        $item = new $class( $item );
                     }
                 }
             );

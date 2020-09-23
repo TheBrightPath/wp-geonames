@@ -9,49 +9,66 @@ namespace WPGeonames;
 
 class Update
 {
-    // protected properties
+
+// protected properties
+
+    /** @var \WPGeonames\Update */
     protected static $instance;
-    protected        $wpdb;
-    protected        $core;
-    protected        $charset_collate;
-    protected        $feature_classes;
-    protected        $feature_codes;
-    protected        $country_codes;
-    protected        $time_zones;
-    protected        $updateLog = [];
+
+    /** @var \WPGeonames\WpDb */
+    protected $wpdb;
+
+    /** @var \WPGeonames\Core */
+    protected $core;
+
+    /** @var string */
+    protected $charset_collate = '';
+
+    /** @var string */
+    protected $feature_classes;
+
+    /** @var string */
+    protected $feature_codes;
+
+    /** @var string */
+    protected $country_codes;
+
+    /** @var string */
+    protected $time_zones;
+
+    /** @var string[] */
+    protected $updateLog = [];
 
 
     public function __construct()
     {
 
-        require_once(ABSPATH . 'wp-admin/includes/upgrade.php'); // dbDelta()
+        require_once( ABSPATH . 'wp-admin/includes/upgrade.php' ); // dbDelta()
 
         $this->wpdb = Core::$wpdb;
         $this->core = Core::Factory();
 
-        $this->charset_collate = '';
-
-        if (!empty($this->wpdb->charset))
+        if ( ! empty( $this->wpdb->charset ) )
         {
             $this->charset_collate = "DEFAULT CHARACTER SET {$this->wpdb->charset}";
         }
 
-        if (!empty($this->wpdb->collate))
+        if ( ! empty( $this->wpdb->collate ) )
         {
             $this->charset_collate .= " COLLATE {$this->wpdb->collate}";
         }
 
         $feature_classes       = Core::getFeatureClasses();
-        $this->feature_classes = "'" . implode("','", array_keys($feature_classes)) . "'";
+        $this->feature_classes = "'" . implode( "','", array_keys( $feature_classes ) ) . "'";
 
         $feature_codes       = Core::getFeatureCodes();
-        $this->feature_codes = "'" . implode("','", array_keys($feature_codes)) . "'";
+        $this->feature_codes = "'" . implode( "','", array_keys( $feature_codes ) ) . "'";
 
         $country_codes       = Core::getCountryCodes();
-        $this->country_codes = "'" . implode("','", array_keys($country_codes)) . "'";
+        $this->country_codes = "'" . implode( "','", array_keys( $country_codes ) ) . "'";
 
         $time_zones       = Core::getTimeZones();
-        $this->time_zones = "'" . implode("','", array_keys($time_zones)) . "'";
+        $this->time_zones = "'" . implode( "','", array_keys( $time_zones ) ) . "'";
 
     }
 
@@ -59,12 +76,12 @@ class Update
     /**
      * @return array
      */
-    public function getUpdateLog(bool $reset = true): array
+    public function getUpdateLog( bool $reset = true ): array
     {
 
         $log = $this->updateLog;
 
-        if ($reset)
+        if ( $reset )
         {
             $this->updateLog = [];
         }
@@ -113,10 +130,15 @@ ON DUPLICATE KEY UPDATE
 ;
 SQL;
 
-        foreach ([$this->core->getTblLocations(), $this->core->getTblCacheLocations()] as $nom)
+        foreach (
+            [
+                $this->core->getTblLocations(),
+                $this->core->getTblCacheLocations(),
+            ] as $nom
+        )
         {
 
-            $this->wpdb->query(sprintf($sql, $nom, $this->core->getTblCountries()));
+            $this->wpdb->query( sprintf( $sql, $nom, $this->core->getTblCountries() ) );
 
         }
 
@@ -129,7 +151,7 @@ SQL;
         // locations cache queries
         $nom = $this->core->getTblCacheQueries();
 
-        $searchTypes = implode("','", ApiQuery::SEARCH_TYPES);
+        $searchTypes = implode( "','", ApiQuery::SEARCH_TYPES );
 
         $sql = <<<SQL
                 CREATE TABLE $nom  (
@@ -146,7 +168,7 @@ SQL;
 			) {$this->charset_collate};
 SQL;
 
-        $this->updateLog += dbDelta($sql);
+        $this->updateLog += dbDelta( $sql );
 
     }
 
@@ -170,7 +192,7 @@ SQL;
 			) {$this->charset_collate};
 SQL;
 
-        $this->updateLog += dbDelta($sql);
+        $this->updateLog += dbDelta( $sql );
 
     }
 
@@ -210,7 +232,7 @@ SQL;
 			    ) {$this->charset_collate};
 SQL;
 
-        $this->updateLog += dbDelta($sql);
+        $this->updateLog += dbDelta( $sql );
 
     }
 
@@ -288,11 +310,11 @@ SQL;
 
         // locations
         $nom             = $this->core->getTblLocations();
-        $this->updateLog += dbDelta(sprintf($sql, $nom));
+        $this->updateLog += dbDelta( sprintf( $sql, $nom ) );
 
         // locations cache
         $nom             = $this->core->getTblCacheLocations();
-        $this->updateLog += dbDelta(sprintf($sql, $nom));
+        $this->updateLog += dbDelta( sprintf( $sql, $nom ) );
 
     }
 
@@ -321,7 +343,7 @@ SQL;
 			INDEX `index1` (`country_code`,`postal_code`,`place_name`(3))
 			) {$this->charset_collate};";
 
-        $this->updateLog += dbDelta($sql);
+        $this->updateLog += dbDelta( $sql );
 
     }
 
@@ -347,7 +369,7 @@ SQL;
 			    ) {$this->charset_collate};
 SQL;
 
-        $this->updateLog += dbDelta($sql);
+        $this->updateLog += dbDelta( $sql );
 
     }
 
@@ -376,7 +398,7 @@ SQL;
         $result['messages'] = $update->getUpdateLog();
 
         return $result;
-   }
+    }
 
 
     public static function Factory(): self

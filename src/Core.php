@@ -16,7 +16,7 @@ use WPGeonames\Entities\Location;
 use ZipArchive;
 
 // exit if accessed directly
-if (!defined('ABSPATH'))
+if ( ! defined( 'ABSPATH' ) )
 {
     exit;
 }
@@ -25,11 +25,9 @@ if (!defined('ABSPATH'))
 class Core
 {
 
-    // constants
-    // version
-    // constants
+// constants
     public const FEATURE_FILTERS
-                            = [
+        = [
             'habitationOnly' => [
                 'P' => [
                     'PPL',
@@ -41,9 +39,18 @@ class Core
                 ],
             ],
             'countriesOnly'  => [
-                'A' => ['PCL', 'PCLD', 'PCLF', 'PCLI', 'PCLIX', 'PCLS'],
+                'A' => [
+                    'PCL',
+                    'PCLD',
+                    'PCLF',
+                    'PCLI',
+                    'PCLIX',
+                    'PCLS',
+                ],
             ],
         ];
+
+    // version
     public const geoVersion = "2.1.1";
 
     // tables constants
@@ -63,31 +70,59 @@ class Core
     public const urlPostal      = 'http://download.geonames.org/export/zip/';
     public const urlTimeZones   = self::urlLocations . 'timeZones.txt';
 
-    //  public properties
+//  public properties
+
+    /** @var \WPGeonames\WpDb */
     public static $wpdb;
 
-    // protected properties
+// protected properties
+
+    /** @var GeoNamesClient */
     static protected $geoNameClient;
+
+    /** @var string[]|null */
     static protected $featureClasses;
+
+    /** @var array[]|null */
     static protected $featureCodes; // countries
+
+    /** @var string[]|null */
     static protected $countryCodes; // postal codes
+
+    /** @var string[]|null */
     static protected $timeZones;
+
+    /** @var string[]|null */
     static protected $enums;
 
     // table vars
+
+    /** @var string */
     protected $tblLocations;
+
+    /** @var string */
     protected $tblCacheLocations;
+
+    /** @var string */
     protected $tblCacheQueries;
+
+    /** @var string */
     protected $tblCacheResults;
+
+    /** @var string */
     protected $tblCountries;
+
+    /** @var string */
     protected $tblPostCodes;
+
+    /** @var string */
     protected $tblTimeZones;
 
-    // private properties
+// private properties
+
     /** @var Core */
     static private $instance;
 
-    // other
     /** @var string plugin main file */
     private $plugin_file;
 
@@ -97,7 +132,7 @@ class Core
      *
      * @param $file
      */
-    public function __construct($file)
+    public function __construct( $file )
     {
 
         self::$wpdb = new WpDb();
@@ -111,31 +146,168 @@ class Core
         $this->tblPostCodes      = self::$wpdb->base_prefix . self::tblPostCodes;
         $this->tblTimeZones      = self::$wpdb->base_prefix . self::tblTimeZones;
 
-        register_activation_hook($this->plugin_file, ['WPGeonames\Update', 'Activate']);
+        /** @noinspection ClassConstantCanBeUsedInspection */
+        register_activation_hook(
+            $this->plugin_file,
+            [
+                'WPGeonames\Update',
+                'Activate',
+            ]
+        );
 
-        add_shortcode('wp-geonames', [$this, 'shortcode']);
-        add_action('wp_ajax_nopriv_geoDataRegion', [$this, 'ajax_geoDataRegion']);
-        add_action('wp_ajax_geoDataRegion', [$this, 'ajax_geoDataRegion']);
-        add_action('wp_ajax_nopriv_geoDataCity', [$this, 'ajax_geoDataCity']);
-        add_action('wp_ajax_geoDataCity', [$this, 'ajax_geoDataCity']);
-        add_action('wp_ajax_wpgeonameGetCity', [$this, 'ajax_get_city_by_country_region']);
+        add_shortcode(
+            'wp-geonames',
+            [
+                $this,
+                'shortcode',
+            ]
+        );
 
-        add_filter('geonames/api/params', [$this, 'checkSearchParams'], 10, 2);
-        add_filter('geonames/api/params', [$this, 'checkSearchParamsMinRequirements'], 5, 2);
-        add_filter('geonames/api/result', [$this, 'cacheSearchResult'], 10, 2);
+        add_action(
+            'wp_ajax_nopriv_geoDataRegion',
+            [
+                $this,
+                'ajax_geoDataRegion',
+            ]
+        );
 
-        if (is_admin())
+        add_action(
+            'wp_ajax_geoDataRegion',
+            [
+                $this,
+                'ajax_geoDataRegion',
+            ]
+        );
+
+        add_action(
+            'wp_ajax_nopriv_geoDataCity',
+            [
+                $this,
+                'ajax_geoDataCity',
+            ]
+        );
+
+        add_action(
+            'wp_ajax_geoDataCity',
+            [
+                $this,
+                'ajax_geoDataCity',
+            ]
+        );
+
+        add_action(
+            'wp_ajax_wpgeonameGetCity',
+            [
+                $this,
+                'ajax_get_city_by_country_region',
+            ]
+        );
+
+        add_filter(
+            'geonames/api/params',
+            [
+                $this,
+                'checkSearchParamsMinRequirements',
+            ],
+            5,
+            2
+        );
+        add_filter(
+            'geonames/api/cache/lookup',
+            [
+                $this,
+                'cacheLookupSearch',
+            ],
+            10,
+            2
+        );
+        add_filter(
+            'geonames/api/result',
+            [
+                $this,
+                'cacheSearchResult',
+            ],
+            10,
+            2
+        );
+
+        if ( is_admin() )
         {
-            load_plugin_textdomain('wpGeonames', false, dirname($this->getPluginFileRelative()) . '/lang/'); // language
-            add_action('wp_ajax_wpgeonamesAjax', 'wpgeonamesAjax');
-            add_action('wp_ajax_wpgeonameGetCity', [$this, 'ajax_get_city_by_country_region']);
-            add_action('wp_ajax_wpGeonamesAddCountry', [$this, 'ajax_wpGeonamesAddLocation']);
-            add_action('wp_ajax_wpGeonamesAddPostal', [$this, 'ajax_wpGeonamesAddPostCode']);
-            add_action('admin_enqueue_scripts', [$this, 'enqueue_leaflet']);
-            add_action('admin_menu', [$this, 'addAdminMenu']);
-            add_filter('plugin_action_links_' . $this->getPluginFileRelative(), [$this, 'settings_link']);
-            add_filter('option_wpGeonames_dataList', [$this, 'check_options'], 10, 2);
-            add_filter('default_option_wpGeonames_dataList', [$this, 'check_options'], 10, 2);
+            load_plugin_textdomain(
+                'wpGeonames',
+                false,
+                dirname( $this->getPluginFileRelative() ) . '/lang/'
+            ); // language
+
+            add_action( 'wp_ajax_wpgeonamesAjax', 'wpgeonamesAjax' );
+
+            add_action(
+                'wp_ajax_wpgeonameGetCity',
+                [
+                    $this,
+                    'ajax_get_city_by_country_region',
+                ]
+            );
+
+            add_action(
+                'wp_ajax_wpGeonamesAddCountry',
+                [
+                    $this,
+                    'ajax_wpGeonamesAddLocation',
+                ]
+            );
+
+            add_action(
+                'wp_ajax_wpGeonamesAddPostal',
+                [
+                    $this,
+                    'ajax_wpGeonamesAddPostCode',
+                ]
+            );
+
+            add_action(
+                'admin_enqueue_scripts',
+                [
+                    $this,
+                    'enqueue_leaflet',
+                ]
+            );
+
+            add_action(
+                'admin_menu',
+                [
+                    $this,
+                    'addAdminMenu',
+                ]
+            );
+
+            add_filter(
+                'plugin_action_links_' . $this->getPluginFileRelative(),
+                [
+                    $this,
+                    'settings_link',
+                ]
+            );
+
+            add_filter(
+                'option_wpGeonames_dataList',
+                [
+                    $this,
+                    'check_options',
+                ],
+                10,
+                2
+            );
+
+            add_filter(
+                'default_option_wpGeonames_dataList',
+                [
+                    $this,
+                    'check_options',
+                ],
+                10,
+                2
+            );
         }
     }
 
@@ -146,7 +318,7 @@ class Core
     public function getPluginDir(): string
     {
 
-        return plugin_dir_path($this->getPluginFileFull());
+        return plugin_dir_path( $this->getPluginFileFull() );
     }
 
 
@@ -166,7 +338,7 @@ class Core
     public function getPluginFileRelative(): string
     {
 
-        return plugin_basename($this->getPluginFileFull());
+        return plugin_basename( $this->getPluginFileFull() );
     }
 
 
@@ -176,7 +348,7 @@ class Core
     public function getPluginSlug(): string
     {
 
-        return basename($this->getPluginDir());
+        return basename( $this->getPluginDir() );
     }
 
 
@@ -269,25 +441,25 @@ class Core
 		ORDER BY cc2,country_code,name
 		"
         );
-        foreach ($q as $k => $v)
+        foreach ( $q as $k => $v )
         {
-            if ($v->cc2 !== '')
+            if ( $v->cc2 !== '' )
             {
-                $q[$k]->country_code = $v->cc2;
+                $q[ $k ]->country_code = $v->cc2;
             }
         }
-        usort($q, "wpGeonames_sortCountry2");
+        usort( $q, "wpGeonames_sortCountry2" );
         $a = [];
-        foreach ($q as $r)
+        foreach ( $q as $r )
         {
             $key = $r->country_code . $r->name;
-            if (!isset($a[$key]))
+            if ( ! isset( $a[ $key ] ) )
             {
-                $out     .= "('r', '" . $r->name . "', '" . $r->country_code . "', ''),\r\n";
-                $a[$key] = 1;
+                $out       .= "('r', '" . $r->name . "', '" . $r->country_code . "', ''),\r\n";
+                $a[ $key ] = 1;
             }
         }
-        file_put_contents($this->getPluginDir() . '/liste_region.txt', $out);
+        file_put_contents( $this->getPluginDir() . '/liste_region.txt', $out );
     }
 
 
@@ -300,15 +472,15 @@ class Core
      *
      * @return array Object : country_code, name
      */
-    public function get_country($postal = 0): array
+    public function get_country( $postal = 0 ): array
     {
 
         global $wpdb;
 
         /** @noinspection PhpIncludeInspection */
-        $list = require($this->getPluginDir() . '/includes/country_codes.php');
+        $list = require( $this->getPluginDir() . '/includes/country_codes.php' );
 
-        if (!$postal)
+        if ( ! $postal )
         {
             $q = $wpdb->get_results(
                 "SELECT DISTINCT country_code FROM " . $this->tblLocations . " ORDER BY country_code"
@@ -321,17 +493,17 @@ class Core
             );
         }
         $result = [];
-        foreach ($q as $r)
+        foreach ( $q as $r )
         {
-            if (isset($list[$r->country_code]))
+            if ( isset( $list[ $r->country_code ] ) )
             {
                 $a               = new StdClass();
                 $a->country_code = $r->country_code;
-                $a->name         = $list[$r->country_code];
+                $a->name         = $list[ $r->country_code ];
                 $result[]        = $a;
             }
         }
-        usort($result, "wpGeonames_sortCountry");
+        usort( $result, "wpGeonames_sortCountry" );
 
         return $result;
     }
@@ -344,7 +516,7 @@ class Core
 
         global $wpdb;
 
-        if (strlen($postal) < 3)
+        if ( strlen( $postal ) < 3 )
         {
             return false;
         }
@@ -361,28 +533,28 @@ class Core
 		LIMIT 200
 		"
         );
-        if ($q)
+        if ( $q )
         {
             $c = 0;
             $o .= '<table class="widefat">';
-            foreach ($q as $r)
+            foreach ( $q as $r )
             {
-                if (!$c)
+                if ( ! $c )
                 {
                     $o .= '<thead><tr>';
-                    foreach ($r as $k => $v)
+                    foreach ( $r as $k => $v )
                     {
-                        $o .= '<th>' . str_replace('_', '<br>', $k) . ' </th>';
+                        $o .= '<th>' . str_replace( '_', '<br>', $k ) . ' </th>';
                     }
                     $o .= '</tr></thead>';
                 }
                 $o .= '<tr>';
-                foreach ($r as $k => $v)
+                foreach ( $r as $k => $v )
                 {
                     $o .= '<td>' . $v . '</td>';
                 }
                 $o .= '</tr>';
-                ++$c;
+                ++ $c;
             }
             $o .= '</table>';
         }
@@ -391,17 +563,17 @@ class Core
     }
 
 
-    public function get_region_by_country($iso = ''): array
+    public function get_region_by_country( $iso = '' ): array
     {
 
         //
         global $wpdb;
         $result = [];
-        if ($iso)
+        if ( $iso )
         {
             $a = "admin1_code";
             $b = "ADM1";
-            if ($this->regionCode2($iso))
+            if ( $this->regionCode2( $iso ) )
             {
                 $a = "admin2_code";
                 $b = "ADM2";
@@ -423,16 +595,16 @@ class Core
 			"
             );
             $c = [];
-            foreach ($q as $r)
+            foreach ( $q as $r )
             {
-                if ($r->$a === '00')
+                if ( $r->$a === '00' )
                 {
                     $r->$a = $r->country_code;
                 }
-                if (!isset($c[$r->name]))
+                if ( ! isset( $c[ $r->name ] ) )
                 {
-                    $result[]    = $r;
-                    $c[$r->name] = 1;
+                    $result[]      = $r;
+                    $c[ $r->name ] = 1;
                 }
             }
         }
@@ -465,28 +637,104 @@ class Core
     public function addCountries(): bool
     {
 
-        $source = $this->downloadZip('general', self::urlCountries);
+        $source = $this->downloadZip( 'general', self::urlCountries );
 
         $fields = [
-            'iso2'                 => (object)['save' => true, 'format' => 's', 'regex' => '[A-Z]{2}'],
-            'iso3'                 => (object)['save' => true, 'format' => 's', 'regex' => '[A-Z]{3}'],
-            'isoN'                 => (object)['save' => true, 'format' => 'd', 'regex' => '\d{3}'],
-            'fips'                 => (object)['save' => true, 'format' => 's', 'regex' => '(?:[A-Z]{2})?'],
-            'country'              => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'capital'              => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'area'                 => (object)['save' => true, 'format' => 'd', 'regex' => '\d*'],
-            'population'           => (object)['save' => true, 'format' => 'd', 'regex' => '\d*'],
-            'continent'            => (object)['save' => true, 'format' => 's', 'regex' => '[A-Z]{2}'],
-            'tld'                  => (object)['save' => true, 'format' => 's', 'regex' => '.[\w.]{2,}'],
-            'currency_code'        => (object)['save' => true, 'format' => 's', 'regex' => '[A-Z]{3}'],
-            'currency_name'        => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'phone'                => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'postal_code_format'   => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'postal_code_regex'    => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'languages'            => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'geoname_id'           => (object)['save' => true, 'format' => 'd', 'regex' => '\d+'],
-            'neighbours'           => (object)['save' => true, 'format' => 's', 'regex' => '[^\t]*'],
-            'equivalent_fips_code' => (object)['save' => true, 'format' => 'd', 'regex' => '\d*'],
+            'iso2'                 => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[A-Z]{2}',
+            ],
+            'iso3'                 => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[A-Z]{3}',
+            ],
+            'isoN'                 => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => '\d{3}',
+            ],
+            'fips'                 => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '(?:[A-Z]{2})?',
+            ],
+            'country'              => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'capital'              => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'area'                 => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => '\d*',
+            ],
+            'population'           => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => '\d*',
+            ],
+            'continent'            => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[A-Z]{2}',
+            ],
+            'tld'                  => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '.[\w.]{2,}',
+            ],
+            'currency_code'        => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[A-Z]{3}',
+            ],
+            'currency_name'        => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'phone'                => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'postal_code_format'   => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'postal_code_regex'    => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'languages'            => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'geoname_id'           => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => '\d+',
+            ],
+            'neighbours'           => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[^\t]*',
+            ],
+            'equivalent_fips_code' => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => '\d*',
+            ],
         ];
 
         return $this->loadFileIntoDb(
@@ -494,10 +742,10 @@ class Core
             $this->tblCountries,
             $fields,
             1,
-            static function (&$row)
+            static function ( &$row )
             {
 
-                return self::$instance->checkCountry($row['iso2'], $row['country']);
+                return self::$instance->checkCountry( $row['iso2'], $row['country'] );
             }
         );
     }
@@ -522,168 +770,182 @@ class Core
         $force = false,
         $features
         = [
-            'A' => ['ADM1', 'ADM2', 'ADM3', 'ADM4'] + Core::FEATURE_FILTERS['countriesOnly']['A'],
-            'L' => ['AREA', 'CONT', 'TERR'],
+            'A' => [
+                    'ADM1',
+                    'ADM2',
+                    'ADM3',
+                    'ADM4',
+                ] + Core::FEATURE_FILTERS['countriesOnly']['A'],
+            'L' => [
+                'AREA',
+                'CONT',
+                'TERR',
+            ],
             'P' => Core::FEATURE_FILTERS['habitationOnly']['P'],
         ],
-        $fieldNames = ['*', '-alternate_names',],
+        $fieldNames
+        = [
+            '*',
+            '-alternate_names',
+        ],
         $deleteSource = false
     ) {
 
-        if (key($features) === 0)
+        if ( key( $features ) === 0 )
         {
-            $features = array_fill_keys($features, true);
+            $features = array_fill_keys( $features, true );
         }
 
-        if (key($fieldNames) === 0)
+        if ( key( $fieldNames ) === 0 )
         {
-            $fieldNames = array_flip($fieldNames);
+            $fieldNames = array_flip( $fieldNames );
         }
 
-        $source        = $this->downloadZip('names', $url, $filename, $force);
-        $feature_class = array_keys($features);
-        $rxClass       = implode('|', $feature_class);
-        $saveField     = static function ($fieldName) use
+        $source        = $this->downloadZip( 'names', $url, $filename, $force );
+        $feature_class = array_keys( $features );
+        $rxClass       = implode( '|', $feature_class );
+        $saveField     = static function ( $fieldName ) use
         (
             &
             $fieldNames
         )
         {
 
-            if (array_key_exists('*', $fieldNames) && !array_key_exists("-$fieldName", $fieldNames))
+            if ( array_key_exists( '*', $fieldNames ) && ! array_key_exists( "-$fieldName", $fieldNames ) )
             {
                 return true;
             }
 
-            return isset($fieldNames[$fieldName]);
+            return isset( $fieldNames[ $fieldName ] );
         };
 
         $fields = [
-            'geoname_id'        => (object)[
+            'geoname_id'        => (object) [
                 'save'   => true,
                 'format' => 'd',
                 'regex'  => '\d+',
             ],
-            'name'              => (object)[
-                'save'   => $saveField('name'),
+            'name'              => (object) [
+                'save'   => $saveField( 'name' ),
                 'format' => 's',
                 'regex'  => '[^\t]*',
             ],
-            'ascii_name'        => (object)[
-                'save'   => $saveField('ascii_name'),
+            'ascii_name'        => (object) [
+                'save'   => $saveField( 'ascii_name' ),
                 'format' => 's',
                 'regex'  => '[^\t]*',
             ],
-            'alternate_names'   => (object)[
-                'save'   => $saveField('alternate_names'),
+            'alternate_names'   => (object) [
+                'save'   => $saveField( 'alternate_names' ),
                 'format' => 's',
                 'regex'  => '[^\t]*',
             ],
-            'latitude'          => (object)[
-                'save'   => $saveField('latitude'),
+            'latitude'          => (object) [
+                'save'   => $saveField( 'latitude' ),
                 'format' => 'f',
                 'regex'  => '[^\t]*',
             ],
-            'longitude'         => (object)[
-                'save'   => $saveField('longitude'),
+            'longitude'         => (object) [
+                'save'   => $saveField( 'longitude' ),
                 'format' => 'f',
                 'regex'  => '[^\t]*',
             ],
-            'feature_class'     => (object)[
-                'save'   => $saveField('feature_class'),
+            'feature_class'     => (object) [
+                'save'   => $saveField( 'feature_class' ),
                 'format' => 's',
                 'regex'  => $rxClass,
             ],
-            'feature_code'      => (object)[
-                'save'   => $saveField('feature_code'),
+            'feature_code'      => (object) [
+                'save'   => $saveField( 'feature_code' ),
                 'format' => 's',
                 'regex'  => '\w+',
             ],
-            'country_code'      => (object)[
-                'save'   => $saveField('country_code'),
+            'country_code'      => (object) [
+                'save'   => $saveField( 'country_code' ),
                 'format' => 's',
                 'regex'  => '\w*',
             ],
-            'cc2'               => (object)[
-                'save'   => $saveField('ascii_name'),
+            'cc2'               => (object) [
+                'save'   => $saveField( 'ascii_name' ),
                 'format' => 's',
                 'regex'  => '[^\t]*',
             ],
-            'admin1_code'       => (object)[
-                'save'   => $saveField('admin1_code'),
+            'admin1_code'       => (object) [
+                'save'   => $saveField( 'admin1_code' ),
                 'format' => 's',
                 'regex'  => '\w*',
             ],
-            'admin2_code'       => (object)[
-                'save'   => $saveField('admin2_code'),
+            'admin2_code'       => (object) [
+                'save'   => $saveField( 'admin2_code' ),
                 'format' => 's',
                 'regex'  => '\w*',
             ],
-            'admin3_code'       => (object)[
-                'save'   => $saveField('admin3_code'),
+            'admin3_code'       => (object) [
+                'save'   => $saveField( 'admin3_code' ),
                 'format' => 's',
                 'regex'  => '\w*',
             ],
-            'admin4_code'       => (object)[
-                'save'   => $saveField('admin4_code'),
+            'admin4_code'       => (object) [
+                'save'   => $saveField( 'admin4_code' ),
                 'format' => 'd',
                 'regex'  => '\w*',
             ],
-            'population'        => (object)[
-                'save'   => $saveField('population'),
+            'population'        => (object) [
+                'save'   => $saveField( 'population' ),
                 'format' => 'd',
                 'regex'  => '\d*',
             ],
-            'elevation'         => (object)[
-                'save'   => $saveField('elevation'),
+            'elevation'         => (object) [
+                'save'   => $saveField( 'elevation' ),
                 'format' => 'd',
                 'regex'  => '-?\d*',
             ],
-            'dem'               => (object)[
-                'save'   => $saveField('dem'),
+            'dem'               => (object) [
+                'save'   => $saveField( 'dem' ),
                 'format' => 'd',
                 'regex'  => '-?\d*',
             ],
-            'timezone'          => (object)[
-                'save'   => $saveField('timezone'),
+            'timezone'          => (object) [
+                'save'   => $saveField( 'timezone' ),
                 'format' => 's',
                 'regex'  => '[^\t]*',
             ],
-            'modification_date' => (object)[
-                'save'   => $saveField('modification_date'),
+            'modification_date' => (object) [
+                'save'   => $saveField( 'modification_date' ),
                 'format' => 's',
                 'regex'  => '[^\t\n]*',
             ],
         ];
 
         /** @noinspection NotOptimalIfConditionsInspection */
-        if ($this->loadFileIntoDb(
+        if ( $this->loadFileIntoDb(
                 $source,
                 $this->tblLocations,
                 $fields,
                 $mode,
-                static function ($row) use
+                static function ( $row ) use
                 (
                     &
                     $features
                 )
                 {
 
-                    return !(!array_key_exists($row['feature_class'], $features)
-                        || !($features[$row['feature_class']] === true
-                            || in_array($row['feature_code'], $features[$row['feature_class']], true)
-                        ));
+                    return ! ( ! array_key_exists( $row['feature_class'], $features )
+                        || ! ( $features[ $row['feature_class'] ] === true
+                            || in_array( $row['feature_code'], $features[ $row['feature_class'] ], true )
+                        ) );
                 }
             )
 
-            && $deleteSource)
+            && $deleteSource
+        )
         {
-            @unlink($source);
+            @unlink( $source );
         }
 
         $this->update_options();
 
-        return __('Done, data are in base.', 'wpGeonames');
+        return __( 'Done, data are in base.', 'wpGeonames' );
     }
 
 
@@ -703,28 +965,28 @@ class Core
 
         $this->verifyAdmin();
 
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return false;
         }
 
         $fe = [];
 
-        if (!empty($f['wpGeoA']))
+        if ( ! empty( $f['wpGeoA'] ) )
         {
             $fe["A"] = true;
         }
-        if (!empty($f['wpGeoH']))
+        if ( ! empty( $f['wpGeoH'] ) )
         {
             $fe["H"] = true;
         }
-        if (!empty($f['wpGeoL']))
+        if ( ! empty( $f['wpGeoL'] ) )
         {
             $fe["L"] = true;
         }
-        if (!empty($f['wpGeoP']))
+        if ( ! empty( $f['wpGeoP'] ) )
         {
-            $fe["P"] = empty($f['wpGeoCity'])
+            $fe["P"] = empty( $f['wpGeoCity'] )
                 ? true
                 : [
                     'PPL',
@@ -735,23 +997,23 @@ class Core
                     'PPLC',
                 ];
         }
-        if (!empty($f['wpGeoR']))
+        if ( ! empty( $f['wpGeoR'] ) )
         {
             $fe["R"] = true;
         }
-        if (!empty($f['wpGeoS']))
+        if ( ! empty( $f['wpGeoS'] ) )
         {
             $fe["S"] = true;
         }
-        if (!empty($f['wpGeoT']))
+        if ( ! empty( $f['wpGeoT'] ) )
         {
             $fe["T"] = true;
         }
-        if (!empty($f['wpGeoU']))
+        if ( ! empty( $f['wpGeoU'] ) )
         {
             $fe["U"] = true;
         }
-        if (!empty($f['wpGeoV']))
+        if ( ! empty( $f['wpGeoV'] ) )
         {
             $fe["V"] = true;
         }
@@ -760,10 +1022,13 @@ class Core
             $mode,
             $url,
             $f['wpGeonamesAdd'],
-            isset($f['wpGeoForce']),
+            isset( $f['wpGeoForce'] ),
             $fe,
-            ['*', '-alternate_names',],
-            isset($fieldNames['wpGeoDeleteFiles'])
+            [
+                '*',
+                '-alternate_names',
+            ],
+            isset( $fieldNames['wpGeoDeleteFiles'] )
         );
     }
 
@@ -789,18 +1054,46 @@ class Core
     public function addTimezones(): bool
     {
 
-        $source = $this->downloadZip('general', self::urlTimeZones);
+        $source = $this->downloadZip( 'general', self::urlTimeZones );
 
         $regexTZ = '-?\d+\.\d{1,2}';
 
         $fields = [
-            'country_code' => (object)['save' => true, 'format' => 's', 'regex' => '[[A-Z]{2}'],
-            'time_zone_id' => (object)['save' => true, 'format' => 's', 'regex' => '[-\w_/]+/(?<city>[-\w_]+)'],
-            'offsetJan'    => (object)['save' => true, 'format' => 'd', 'regex' => $regexTZ],
-            'offsetJul'    => (object)['save' => true, 'format' => 'd', 'regex' => $regexTZ],
-            'offsetRaw'    => (object)['save' => true, 'format' => 'd', 'regex' => $regexTZ],
-            'city'         => (object)['save' => true, 'format' => 's', 'regex' => null],
-            'caption'      => (object)['save' => true, 'format' => 's', 'regex' => null],
+            'country_code' => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[[A-Z]{2}',
+            ],
+            'time_zone_id' => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => '[-\w_/]+/(?<city>[-\w_]+)',
+            ],
+            'offsetJan'    => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => $regexTZ,
+            ],
+            'offsetJul'    => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => $regexTZ,
+            ],
+            'offsetRaw'    => (object) [
+                'save'   => true,
+                'format' => 'd',
+                'regex'  => $regexTZ,
+            ],
+            'city'         => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => null,
+            ],
+            'caption'      => (object) [
+                'save'   => true,
+                'format' => 's',
+                'regex'  => null,
+            ],
         ];
 
         return $this->loadFileIntoDb(
@@ -808,16 +1101,17 @@ class Core
             $this->tblTimeZones,
             $fields,
             1,
-            static function (&$row)
+            static function ( &$row )
             {
 
-                $row['city']    = str_replace('_', ' ', $row['city']);
-                $row['caption'] = str_replace('_', ' ', $row['time_zone_id']);
+                $row['city']    = str_replace( '_', ' ', $row['city'] );
+                $row['caption'] = str_replace( '_', ' ', $row['time_zone_id'] );
 
                 return self::$instance->checkTimeZone(
                         $row['time_zone_id'],
                         $row['country_code']
-                    ) && self::$instance->checkCountry($row['country_code']);
+                    )
+                    && self::$instance->checkCountry( $row['country_code'] );
             }
         );
     }
@@ -831,15 +1125,20 @@ class Core
 
         $this->verifyAdmin();
 
-        $wpGeoList = empty($_GET['checkData'])
-            ? get_option('wpGeonames_dataList')
-            : $this->update_options(true);
+        $wpGeoList = empty( $_GET['checkData'] )
+            ? get_option( 'wpGeonames_dataList' )
+            : $this->update_options( true );
 
-        if (!empty($wpGeoList['date']))
+        if ( ! empty( $wpGeoList['date'] ) )
         {
-            [$year, $month, $day] = explode('-', $wpGeoList['date']);
-            $old = mktime(0, 0, 0, $month, $day, $year);
-            if (time() - $old > 31536000)
+            [
+                $year,
+                $month,
+                $day,
+            ]
+                = explode( '-', $wpGeoList['date'] );
+            $old = mktime( 0, 0, 0, $month, $day, $year );
+            if ( time() - $old > 31536000 )
             { // 1 year : 31536000 -
                 ?>
 
@@ -867,37 +1166,37 @@ class Core
             <h2 class="nav-tab-wrapper">
                 <a href="options-general.php?page=wpGeonames-options"
                    class="nav-tab<?php
-                   if (empty($geoTab))
+                   if ( empty( $geoTab ) )
                    {
                        echo ' nav-tab-active';
                    } ?>"><?php
-                    _e('General', 'wpGeonames'); ?></a>
+                    _e( 'General', 'wpGeonames' ); ?></a>
                 <a href="options-general.php?page=wpGeonames-options&geotab=check"
                    class="nav-tab<?php
-                   if ($geoTab === 'check')
+                   if ( $geoTab === 'check' )
                    {
                        echo ' nav-tab-active';
                    } ?>"><?php
-                    _e('Check Data', 'wpGeonames'); ?></a>
+                    _e( 'Check Data', 'wpGeonames' ); ?></a>
                 <a href="options-general.php?page=wpGeonames-options&geotab=edit"
                    class="nav-tab<?php
-                   if ($geoTab === 'edit')
+                   if ( $geoTab === 'edit' )
                    {
                        echo ' nav-tab-active';
                    } ?>"><?php
-                    _e('Edit Data', 'wpGeonames'); ?></a>
+                    _e( 'Edit Data', 'wpGeonames' ); ?></a>
                 <a href="options-general.php?page=wpGeonames-options&geotab=help"
                    class="nav-tab<?php
-                   if ($geoTab === 'help')
+                   if ( $geoTab === 'help' )
                    {
                        echo ' nav-tab-active';
                    } ?>"><?php
-                    _e('Help', 'wpGeonames'); ?></a>
+                    _e( 'Help', 'wpGeonames' ); ?></a>
             </h2>
             <?php
 
-            switch ($_GET['geotab']
-                ?: null)
+            switch ( $_GET['geotab']
+                ?: null )
             {
             case 'check':
                 $this->admin_check();
@@ -909,7 +1208,7 @@ class Core
                 $this->admin_help();
                 break;
             default:
-                $this->admin_general($wpGeoList);
+                $this->admin_general( $wpGeoList );
             }
 
             ?>
@@ -924,30 +1223,30 @@ class Core
 
         global $wpdb;
         $country       = $this->get_country();
-        $postalCountry = $this->get_country(1);
-        $Gcountry      = (!empty($_GET['country'])
-            ? sanitize_text_field($_GET['country'])
-            : '');
-        $Gregion       = (!empty($_GET['region'])
-            ? sanitize_text_field($_GET['region'])
-            : '');
-        $Gcityid       = (!empty($_GET['cityid'])
-            ? sanitize_text_field($_GET['cityid'])
-            : '');
-        $Gpostal       = (!empty($_GET['postal'])
-            ? sanitize_text_field($_GET['postal'])
-            : '');
+        $postalCountry = $this->get_country( 1 );
+        $Gcountry      = ( ! empty( $_GET['country'] )
+            ? sanitize_text_field( $_GET['country'] )
+            : '' );
+        $Gregion       = ( ! empty( $_GET['region'] )
+            ? sanitize_text_field( $_GET['region'] )
+            : '' );
+        $Gcityid       = ( ! empty( $_GET['cityid'] )
+            ? sanitize_text_field( $_GET['cityid'] )
+            : '' );
+        $Gpostal       = ( ! empty( $_GET['postal'] )
+            ? sanitize_text_field( $_GET['postal'] )
+            : '' );
         //
-        $geoToka = wp_create_nonce('geoToka');
-        if ($Gcountry)
+        $geoToka = wp_create_nonce( 'geoToka' );
+        if ( $Gcountry )
         {
-            if (isset($_GET['cityid']))
+            if ( isset( $_GET['cityid'] ) )
             {
-                $region = $this->get_region_by_country($Gcountry);
+                $region = $this->get_region_by_country( $Gcountry );
             }
-            elseif (isset($_GET['postal']))
+            elseif ( isset( $_GET['postal'] ) )
             {
-                $outPostal = $this->get_postalCheck($Gcountry, $Gpostal);
+                $outPostal = $this->get_postalCheck( $Gcountry, $Gpostal );
             }
         }
         ?>
@@ -964,8 +1263,8 @@ class Core
             }
         </style>
         <h2><?php
-            _e('Check your Geonames data', 'wpGeonames') ?> - <?php
-            _e('Countries', 'wpGeonames'); ?></h2>
+            _e( 'Check your Geonames data', 'wpGeonames' ) ?> - <?php
+            _e( 'Countries', 'wpGeonames' ); ?></h2>
         <form name="geoCheck" action="" method="GET">
             <input type="hidden" name="page" value="wpGeonames-options"/>
             <input type="hidden" name="geotab" value="check"/>
@@ -977,38 +1276,38 @@ class Core
         </form>
         <div style="float:left;width:48%;overflow:hidden;">
             <label for="geoCheckCountry"><?php
-                _e('Country', 'wpGeonames') ?></label><br/>
+                _e( 'Country', 'wpGeonames' ) ?></label><br/>
             <select id="geoCheckCountry" name="geoCheckCountry"
                     onchange="document.forms['geoCheck'].elements['country'].value=this.options[this.selectedIndex].value;document.forms['geoCheck'].submit();">
                 <option value=""> -</option>
                 <?php
-                foreach ($country as $r)
+                foreach ( $country as $r )
                 {
-                    echo '<option value="' . $r->country_code . '" ' . (($Gcountry === $r->country_code)
+                    echo '<option value="' . $r->country_code . '" ' . ( ( $Gcountry === $r->country_code )
                             ? 'selected'
-                            : '') . '>' . $r->name . '</option>';
+                            : '' ) . '>' . $r->name . '</option>';
                 } ?>
 
             </select>
         </div>
         <div style="float:left;width:48%;overflow:hidden;">
             <label for="geoCheckRegion"><?php
-                _e('Region', 'wpGeonames') ?></label><br/>
+                _e( 'Region', 'wpGeonames' ) ?></label><br/>
             <select id="geoCheckRegion" name="geoCheckRegion" <?php
-            if (empty($region))
+            if ( empty( $region ) )
             {
                 echo 'style="display:none;"';
             } ?>
                     onchange="document.forms['geoCheck'].elements['country'].value=document.getElementById('geoCheckCountry').options[document.getElementById('geoCheckCountry').selectedIndex].value;document.forms['geoCheck'].elements['region'].value=this.options[this.selectedIndex].value;document.forms['geoCheck'].submit();">
                 <option value=""> -</option>
                 <?php
-                if (!empty($region))
+                if ( ! empty( $region ) )
                 {
-                    foreach ($region as $r)
+                    foreach ( $region as $r )
                     {
-                        echo '<option value="' . $r->admin1_code . '" ' . (($Gregion === $r->admin1_code)
+                        echo '<option value="' . $r->admin1_code . '" ' . ( ( $Gregion === $r->admin1_code )
                                 ? 'selected'
-                                : '') . '>' . $r->name . '</option>';
+                                : '' ) . '>' . $r->name . '</option>';
                     }
                 } ?>
 
@@ -1017,12 +1316,12 @@ class Core
         <div style="clear:both;margin-bottom:40px;"></div>
         <div style="float:left;width:48%;overflow:hidden;">
             <label for="geoCheckCity"><?php
-                _e('City', 'wpGeonames') ?></label><br/>
+                _e( 'City', 'wpGeonames' ) ?></label><br/>
             <input type="text" id="geoCheckCity" name="geoCheckCity"
                    onkeyup="wpGeonameListCity(this.value,'<?php
                    echo $Gcountry; ?>','<?php
                    echo $Gregion; ?>');" <?php
-            if (!$Gregion)
+            if ( ! $Gregion )
             {
                 echo 'style="display:none;"';
             } ?> />
@@ -1034,9 +1333,9 @@ class Core
         <div style="clear:both;margin-bottom:20px;"></div>
         <hr/>
         <h2><?php
-            _e('Check your Geonames datas', 'wpGeonames') ?>
+            _e( 'Check your Geonames datas', 'wpGeonames' ) ?>
             - <?php
-            _e('Postal codes', 'wpGeonames'); ?></h2>
+            _e( 'Postal codes', 'wpGeonames' ); ?></h2>
         <form name="geoCheckPostal" action="" method="GET">
             <input type="hidden" name="page" value="wpGeonames-options"/>
             <input type="hidden" name="geotab" value="check"/>
@@ -1044,31 +1343,31 @@ class Core
             echo $geoToka; ?>"/>
             <div style="float:left;width:48%;overflow:hidden;">
                 <label><?php
-                    _e('Country', 'wpGeonames') ?><br/>
+                    _e( 'Country', 'wpGeonames' ) ?><br/>
                     <select name="country" id="wpGeonamesPostalCountry">
                         <option value=""> -</option>
                         <?php
-                        foreach ($postalCountry as $r)
+                        foreach ( $postalCountry as $r )
                         {
-                            echo '<option value="' . $r->country_code . '" ' . (($Gcountry === $r->country_code)
+                            echo '<option value="' . $r->country_code . '" ' . ( ( $Gcountry === $r->country_code )
                                     ? 'selected'
-                                    : '') . '>' . $r->name . '</option>';
+                                    : '' ) . '>' . $r->name . '</option>';
                         } ?>
 
                     </select></label>
             </div>
             <div style="float:left;width:48%;overflow:hidden;">
                 <label><?php
-                    _e('Postal codes', 'wpGeonames'); ?><br/>
+                    _e( 'Postal codes', 'wpGeonames' ); ?><br/>
                     <input type="text" name="postal"/></label>
             </div>
             <div class="submit" style="clear:both;margin-top:10px;">
                 <input type="submit" class="button-primary" value="<?php
-                _e('Search', 'wpGeonames') ?>"/>
+                _e( 'Search', 'wpGeonames' ) ?>"/>
             </div>
         </form>
         <div><?php
-            if (!empty($outPostal))
+            if ( ! empty( $outPostal ) )
             {
                 echo $outPostal;
             } ?></div>
@@ -1080,7 +1379,7 @@ class Core
                 jQuery(document).ready(function () {
                     if (ci.length > 2) {
                         wpgeoajx = null;
-                        wpgeoajx = jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                        wpgeoajx = jQuery.post('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
                             'action': 'wpgeonameGetCity',
                             'city': ci,
                             'iso': iso,
@@ -1115,7 +1414,7 @@ class Core
                 const wpgeomark = L.marker([lat, lon]).addTo(wpgeomap);
                 wpgeomark.bindPopup("<b>" + ci + "</b>").openPopup();
             }
-            <?php if ($Gcityid)
+            <?php if ( $Gcityid )
             {
                 $q = $wpdb->get_row(
                     "SELECT
@@ -1128,9 +1427,9 @@ class Core
 			"
                 );
                 $a = '';
-                foreach ($q as $k => $v)
+                foreach ( $q as $k => $v )
                 {
-                    if (!empty($v))
+                    if ( ! empty( $v ) )
                     {
                         $a .= '<div><strong>' . $k . '</strong> : ' . $v . '</div>';
                     }
@@ -1149,30 +1448,30 @@ class Core
     {
 
         global $wpdb;
-        $GgeoType = (!empty($_GET['geoType'])
-            ? preg_replace("/[^a-zA-Z0-9_,-]/", "", $_GET['geoType'])
-            : '');
-        $geoToka  = wp_create_nonce('geoToka');
+        $GgeoType = ( ! empty( $_GET['geoType'] )
+            ? preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_GET['geoType'] )
+            : '' );
+        $geoToka  = wp_create_nonce( 'geoToka' );
         $o        = '';
-        if (!empty($_GET['geoid']) && !empty($_GET['geodata']))
+        if ( ! empty( $_GET['geoid'] ) && ! empty( $_GET['geodata'] ) )
         {
-            $a  = stripslashes(strip_tags($_GET['geodata']));
-            $id = (int)$_GET['geoid'];
-            $wpdb->update($wpdb->base_prefix . self::urlLocations, ['name' => $a], ['geoname_id' => $id]);
+            $a  = stripslashes( strip_tags( $_GET['geodata'] ) );
+            $id = (int) $_GET['geoid'];
+            $wpdb->update( $wpdb->base_prefix . self::urlLocations, [ 'name' => $a ], [ 'geoname_id' => $id ] );
             echo '<script>window.location.replace("options-general.php?page=wpGeonames-options&geotab=edit");</script>';
             exit;
         }
 
-        if (!empty($_GET['geoSearch']))
+        if ( ! empty( $_GET['geoSearch'] ) )
         {
-            $a = strip_tags($_GET['geoSearch']);
+            $a = strip_tags( $_GET['geoSearch'] );
             $o = '<hr />';
             $w = '';
-            if ($GgeoType === 'region')
+            if ( $GgeoType === 'region' )
             {
                 $w = "and feature_class='A' and feature_code IN ('ADM1','ADM2','PCLD')";
             }
-            elseif ($GgeoType === 'city')
+            elseif ( $GgeoType === 'city' )
             {
                 $w = "and feature_class='P'";
             }
@@ -1187,9 +1486,9 @@ class Core
 				name LIKE '%" . $a . "%'
 				" . $w
             );
-            if (!empty($q))
+            if ( ! empty( $q ) )
             {
-                foreach ($q as $v)
+                foreach ( $q as $v )
                 {
                     $o .= '<div>' . $v->geoname_id;
                     $o .= '<input type="text" name="geadata' . $v->geoname_id . '" value="' . $v->name . '" style="margin: 0 10px;width:360px;" />';
@@ -1204,7 +1503,7 @@ class Core
         }
         ?>
         <h2><?php
-            _e('Edit Datas', 'wpGeonames'); ?></h2>
+            _e( 'Edit Datas', 'wpGeonames' ); ?></h2>
         <form name="geoEdit" action="" method="GET">
             <input type="hidden" name="page" value="wpGeonames-options"/>
             <input type="hidden" name="geotab" value="edit"/>
@@ -1214,27 +1513,27 @@ class Core
             echo $geoToka; ?>"/>
             <div style="float:left;margin-right:20px;overflow:hidden;">
                 <label><?php
-                    _e('Type of data', 'wpGeonames') ?><br/>
+                    _e( 'Type of data', 'wpGeonames' ) ?><br/>
                     <select id="geoType" name="geoType">
                         <option value="region" <?php
-                        if ($GgeoType === 'region')
+                        if ( $GgeoType === 'region' )
                         {
                             echo 'selected';
                         } ?>><?php
-                            _e('Region', 'wpGeonames') ?></option>
+                            _e( 'Region', 'wpGeonames' ) ?></option>
                         <option value="city" <?php
-                        if ($GgeoType === 'city')
+                        if ( $GgeoType === 'city' )
                         {
                             echo 'selected';
                         } ?>><?php
-                            _e('City', 'wpGeonames') ?></option>
+                            _e( 'City', 'wpGeonames' ) ?></option>
                     </select></label>
             </div>
             <div style="float:left;margin-right:20px;overflow:hidden;">
                 <label><?php
-                    _e('Data', 'wpGeonames') ?><br/>
+                    _e( 'Data', 'wpGeonames' ) ?><br/>
                     <input type="text" name="geoSearch" value="<?php
-                    if (!empty($_GET['geoSearch']))
+                    if ( ! empty( $_GET['geoSearch'] ) )
                     {
                         echo $_GET['geoSearch'];
                     } ?>"/></label>
@@ -1243,7 +1542,7 @@ class Core
                 <input type="submit" class="button-primary"
                        onClick="document.forms['geoEdit'].elements['geodata'].value='';document.forms['geoEdit'].elements['geoid'].value='';"
                        value="<?php
-                       _e('Search', 'wpGeonames') ?>"/>
+                       _e( 'Search', 'wpGeonames' ) ?>"/>
             </div>
 
             <?php
@@ -1259,7 +1558,7 @@ class Core
      *
      * @throws \ErrorException
      */
-    public function admin_general($wpGeoList): void
+    public function admin_general( $wpGeoList ): void
     {
 
         global $wpdb;
@@ -1267,17 +1566,20 @@ class Core
         global $geoVersion;
 
         $zip     = '';
-        $geoToka = wp_create_nonce('geoToka');
+        $geoToka = wp_create_nonce( 'geoToka' );
 
-        if (isset($_POST['wpGeonamesClear']))
+        if ( isset( $_POST['wpGeonamesClear'] ) )
         {
             $zip = '<p style="font-weight:700;color:#D54E21;">' . $this->clearLocations() . '</p>';
         }
-        elseif (isset($_POST['wpGeonamesPostalAdd']))
+        elseif ( isset( $_POST['wpGeonamesPostalAdd'] ) )
         {
-            $zip = '<p style="font-weight:700;color:#D54E21;">' . $this->postalAddZip(self::urlPostal, $_POST) . '</p>';
+            $zip = '<p style="font-weight:700;color:#D54E21;">' . $this->postalAddZip(
+                    self::urlPostal,
+                    $_POST
+                ) . '</p>';
         }
-        elseif (isset($_POST['wpGeonamesPostalClear']))
+        elseif ( isset( $_POST['wpGeonamesPostalClear'] ) )
         {
             $zip = '<p style="font-weight:700;color:#D54E21;">' . $this->clearPostCodes() . '</p>';
         }
@@ -1294,7 +1596,7 @@ class Core
         <div>
             <a style="float:right;margin:20px;" href="http://www.geonames.org/"><img
                         src="<?php
-                        echo plugins_url('wp-geonames/images/geonames.png'); ?>" alt="GeoNames"
+                        echo plugins_url( 'wp-geonames/images/geonames.png' ); ?>" alt="GeoNames"
                         title="GeoNames"/></a>
         </div>
         <h2>WP GeoNames&nbsp;<span style='font-size:80%;'>v<?php
@@ -1308,18 +1610,18 @@ class Core
         </p>
         <div id="wpGeonamesAddStatus"><img alt="loading" id="wpGeonameAddImg"
                                            src="<?php
-                                           echo plugins_url('wp-geonames/images/loading.gif'); ?>"
+                                           echo plugins_url( 'wp-geonames/images/loading.gif' ); ?>"
                                            style="display:none;"/></div>
         <div style="clear:both;"></div>
         <hr/>
         <h2><?php
-            _e('Countries', 'wpGeonames'); ?></h2>
+            _e( 'Countries', 'wpGeonames' ); ?></h2>
         <?php
 
         $cc = '';
-        if ($wpGeoList['countries'])
+        if ( $wpGeoList['countries'] )
         {
-            foreach ($wpGeoList['countries'] as $country => $count)
+            foreach ( $wpGeoList['countries'] as $country => $count )
             {
                 $cc .= $country . ' (<span style="color:#D54E21;">' . $count . '</span>)&nbsp;&nbsp;';
             }
@@ -1338,7 +1640,7 @@ class Core
                 'wpGeonames'
             ) . ' : <span style="font-weight:700;font-size:11px;">' . $cc . '</span></p>';
 
-        unset ($country, $count, $cc);
+        unset ( $country, $count, $cc );
         ?>
 
         <form method="post" id="wpGeonames_options1" name="wpGeonames_options1"
@@ -1348,11 +1650,11 @@ class Core
                 <tr style="vertical-align: top;">
                     <th scope="row"><label
                                 for="wpGeonamesAdd"><?php
-                            _e('Add data to WordPress', 'wpGeonames'); ?></label>
+                            _e( 'Add data to WordPress', 'wpGeonames' ); ?></label>
                     </th>
                     <td>
                         <?php
-                        if (!empty($wpGeoList['filenames']['countries']) || !empty($geoManual))
+                        if ( ! empty( $wpGeoList['filenames']['countries'] ) || ! empty( $geoManual ) )
                         { ?>
                             <select name="wpGeonamesAdd" id="wpGeonamesAdd" multiple="multiple">
                                 <?php
@@ -1368,12 +1670,12 @@ class Core
                                     'shapes_simplified_low.json.zip',
                                 ];
 
-                                if (empty($geoManual))
+                                if ( empty( $geoManual ) )
                                 {
 
-                                    foreach ($wpGeoList['filenames']['countries'] as $country => $info)
+                                    foreach ( $wpGeoList['filenames']['countries'] as $country => $info )
                                     {
-                                        if (!isset($ignoreFiles[$country]))
+                                        if ( ! isset( $ignoreFiles[ $country ] ) )
                                         {
                                             echo '<option value="' . $country . '">' . $country . " ({$info['size']} - {$info['date']})" . '</option>';
                                         }
@@ -1398,165 +1700,165 @@ class Core
                     </td>
                     <td><a href="https://en.wikipedia.org/wiki/ISO_3166-1"
                            target="_blank"><?php
-                            _e('Official Country List', 'wpGeonames'); ?></a></td>
+                            _e( 'Official Country List', 'wpGeonames' ); ?></a></td>
                     <td>
                     </td>
                 </tr>
                 <tr style="vertical-align: top;">
                     <th scope="row"><label><?php
-                            _e('Choose columns to insert', 'wpGeonames'); ?></label></th>
+                            _e( 'Choose columns to insert', 'wpGeonames' ); ?></label></th>
                     <td style="width:250px;">
                         <label>
                             <input type="checkbox" name="wpGeo0" value="1" checked disabled/>
                             <span style="color:#bb2;">
                                 <?php
-                                _e('ID', 'wpGeonames'); ?></span></label><br>
+                                _e( 'ID', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="feature_class" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Feature Class', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Feature Class', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="feature_code" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Feature Code', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Feature Code', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="wpGeo1" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Name', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Name', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="ascii_name" value="1"/>
                             <?php
-                            _e('Ascii Name', 'wpGeonames'); ?></label><br>
+                            _e( 'Ascii Name', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="alternate_names" value="1"/>
                             <?php
-                            _e('Alternate Names', 'wpGeonames'); ?></label><br>
+                            _e( 'Alternate Names', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="country_code" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Country Code', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Country Code', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="cc2" value="1" checked/>
                             <?php
-                            _e('Country Code2', 'wpGeonames'); ?></label><br>
+                            _e( 'Country Code2', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="admin1_code" value="1" checked/>
                             <?php
-                            _e('Admin1 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin1 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="admin2_code" value="1" checked/>
                             <?php
-                            _e('Admin2 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin2 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="admin3_code" value="1"/>
                             <?php
-                            _e('Admin3 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin3 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="admin4_code" value="1"/>
                             <?php
-                            _e('Admin4 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin4 Code', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="population" value="1"/>
                             <?php
-                            _e('Population', 'wpGeonames'); ?></label><br>
+                            _e( 'Population', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="elevation" value="1"/>
                             <?php
-                            _e('Elevation', 'wpGeonames'); ?></label><br>
+                            _e( 'Elevation', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="dem" value="1"/>
                             <?php
-                            _e('Digital Elevation Model', 'wpGeonames'); ?></label><br>
+                            _e( 'Digital Elevation Model', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="latitude" value="1" checked/>
                             <?php
-                            _e('Latitude', 'wpGeonames'); ?></label><br>
+                            _e( 'Latitude', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="longitude" value="1" checked/>
                             <?php
-                            _e('Longitude', 'wpGeonames'); ?></label><br>
+                            _e( 'Longitude', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="timezone" value="1"/>
                             <?php
-                            _e('Timezone', 'wpGeonames'); ?></label><br>
+                            _e( 'Timezone', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="modification_date" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Modification Date', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Modification Date', 'wpGeonames' ); ?></span></label><br>
                     </td>
                 </tr>
                 <tr style="vertical-align: top;">
                     <th scope="row"><label><?php
-                            _e('Choose type of data to insert', 'wpGeonames'); ?></label>
+                            _e( 'Choose type of data to insert', 'wpGeonames' ); ?></label>
                     </th>
                     <td style="width:250px;">
                         <label>
                             <input type="checkbox" name="wpGeoA" value="1" checked/>
                             <?php
-                            _e('A : country, state, region', 'wpGeonames'); ?></label><br>
+                            _e( 'A : country, state, region', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoH" value="1"/>
                             <?php
-                            _e('H : stream, lake', 'wpGeonames'); ?></label><br>
+                            _e( 'H : stream, lake', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoL" value="1"/>
                             <?php
-                            _e('L : parks,area', 'wpGeonames'); ?></label><br>
+                            _e( 'L : parks,area', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoR" value="1"/>
                             <?php
-                            _e('R : road, railroad', 'wpGeonames'); ?></label><br>
+                            _e( 'R : road, railroad', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="wpGeoP" value="1" checked/>
                             <?php
-                            _e('P : city, village', 'wpGeonames'); ?></label><br>
+                            _e( 'P : city, village', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoCity" value="1" checked/>
                             <?php
-                            _e('P* : just city', 'wpGeonames'); ?></label><br>
+                            _e( 'P* : just city', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoS" value="1"/>
                             <?php
-                            _e('S : spot, building, farm', 'wpGeonames'); ?></label><br>
+                            _e( 'S : spot, building, farm', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="wpGeoT" value="1"/>
                             <?php
-                            _e('T : mountain,hill,rock', 'wpGeonames'); ?></label><br>
+                            _e( 'T : mountain,hill,rock', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoU" value="1"/>
                             <?php
-                            _e('U : undersea', 'wpGeonames'); ?></label><br>
+                            _e( 'U : undersea', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoV" value="1"/>
                             <?php
-                            _e('V : forest,heath', 'wpGeonames'); ?></label><br>
+                            _e( 'V : forest,heath', 'wpGeonames' ); ?></label><br>
                     </td>
                 </tr>
                 <tr style="vertical-align: top;">
                     <th scope="row"><label><?php
-                            _e('Other options', 'wpGeonames'); ?></label></th>
+                            _e( 'Other options', 'wpGeonames' ); ?></label></th>
                     <td style="width:250px;">
                         <label>
                             <input type="checkbox" name="wpGeoForce" value="1"/>
                             <?php
-                            _e('Force reload from geonames.org', 'wpGeonames'); ?></label><br>
+                            _e( 'Force reload from geonames.org', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoDeleteFiles" value="1"/>
                             <?php
-                            _e('Keep files', 'wpGeonames'); ?></label><br>
+                            _e( 'Keep files', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                     </td>
@@ -1564,41 +1866,41 @@ class Core
                     </td>
                 </tr>
                 <?php
-                if (!empty($wpGeoList['filenames']['countries']) || !empty($geoManual))
+                if ( ! empty( $wpGeoList['filenames']['countries'] ) || ! empty( $geoManual ) )
                 { ?>
                     <tr style="vertical-align: top;">
                         <td>
                             <div class="button-primary" style="width: 150px;" onclick="wpGeonames_addCountries(0);">
                                 <?php
-                                _e('Add', 'wpGeonames') ?></div>
+                                _e( 'Add', 'wpGeonames' ) ?></div>
                             <br>
                             <?php
-                            _e('Skip existing', 'wpGeonames') ?>
+                            _e( 'Skip existing', 'wpGeonames' ) ?>
                         </td>
                         <td>
                             <div class="button-primary" style="width: 150px;" onclick="wpGeonames_addCountries(1);">
                                 <?php
-                                _e('Add and Update', 'wpGeonames') ?></div>
+                                _e( 'Add and Update', 'wpGeonames' ) ?></div>
                             <br>
                             <?php
-                            _e('Only replace selected fields, keep others', 'wpGeonames') ?>
+                            _e( 'Only replace selected fields, keep others', 'wpGeonames' ) ?>
                         </td>
                         <td>
                             <div class="button-primary" style="width: 150px;" onclick="wpGeonames_addCountries(2);">
                                 <?php
-                                _e('Add and Replace', 'wpGeonames') ?></div>
+                                _e( 'Add and Replace', 'wpGeonames' ) ?></div>
                             <br>
                             <?php
-                            _e('Replace all fields (clearing existing ones)', 'wpGeonames') ?>
+                            _e( 'Replace all fields (clearing existing ones)', 'wpGeonames' ) ?>
                         </td>
                         <td>
                             <div class="button-primary" style="width: 150px;"
                                  onclick="wpGeonames_addCountries(-1);">
                                 <?php
-                                _e('Update', 'wpGeonames') ?></div>
+                                _e( 'Update', 'wpGeonames' ) ?></div>
                             <br>
                             <?php
-                            _e('Only update selected fields of existing records', 'wpGeonames') ?>
+                            _e( 'Only update selected fields of existing records', 'wpGeonames' ) ?>
                         </td>
                     </tr>
                     <?php
@@ -1613,25 +1915,25 @@ class Core
             <p class="submit">
                 <input type="submit" class="button-primary"
                        value="<?php
-                       _e('Clear this table (TRUNCATE)', 'wpGeonames') ?>"/>
+                       _e( 'Clear this table (TRUNCATE)', 'wpGeonames' ) ?>"/>
             </p>
         </form>
         <hr/>
         <div id="wpGeonamesPostalAddStatus"><img alt="add" id="wpGeonamePostalAddImg"
                                                  src="<?php
-                                                 echo plugins_url('wp-geonames/images/loading.gif'); ?>"
+                                                 echo plugins_url( 'wp-geonames/images/loading.gif' ); ?>"
                                                  style="display:none;"/></div>
         <h2><?php
-            _e('Postal codes', 'wpGeonames'); ?></h2>
+            _e( 'Postal codes', 'wpGeonames' ); ?></h2>
         <?php
         $cc = '';
-        if ($wpGeoList)
+        if ( $wpGeoList )
         {
-            foreach ($wpGeoList as $country => $count)
+            foreach ( $wpGeoList as $country => $count )
             {
-                if (strlen($country) === 3)
+                if ( strlen( $country ) === 3 )
                 {
-                    $cc .= substr($country, 1) . ' (<span style="color:#D54E21;">' . $count . '</span>)&nbsp;&nbsp;';
+                    $cc .= substr( $country, 1 ) . ' (<span style="color:#D54E21;">' . $count . '</span>)&nbsp;&nbsp;';
                 }
             }
         }
@@ -1639,7 +1941,7 @@ class Core
                 'Number of data in this database',
                 'wpGeonames'
             ) . ' : <span style="font-weight:700;color:#D54E21;">'
-            . $wpdb->get_var("SELECT COUNT(*) FROM " . $wpdb->base_prefix . "geonamesPostal")
+            . $wpdb->get_var( "SELECT COUNT(*) FROM " . $wpdb->base_prefix . "geonamesPostal" )
             . '</span><a style="margin-left:10px;" href="options-general.php?page=wpGeonames-options&checkData=1"><img alt="reload" src="' . plugins_url(
                 'wp-geonames/images/reload.png'
             ) . '" style="vertical-align:middle;" /></a></p>';
@@ -1656,17 +1958,17 @@ class Core
                 <tr style="vertical-align: top;">
                     <th scope="row"><label
                                 for="wpGeonamesPostalAdd"><?php
-                            _e('Add data to WordPress', 'wpGeonames'); ?></label>
+                            _e( 'Add data to WordPress', 'wpGeonames' ); ?></label>
                     </th>
                     <td>
                         <?php
-                        if (!empty($wpGeoList['filenames']['postal']))
+                        if ( ! empty( $wpGeoList['filenames']['postal'] ) )
                         { ?>
                             <select name="wpGeonamesPostalAdd" id="wpGeonamesPostalAdd" multiple="multiple">
                                 <?php
-                                foreach ($wpGeoList['filenames']['postal'] as $country)
+                                foreach ( $wpGeoList['filenames']['postal'] as $country )
                                 {
-                                    if ((strlen($country) === 6) && (substr($country, 2) === '.zip'))
+                                    if ( ( strlen( $country ) === 6 ) && ( substr( $country, 2 ) === '.zip' ) )
                                     {
                                         echo '<option value="' . $country . '">' . $country . '</option>';
                                     }
@@ -1687,68 +1989,68 @@ class Core
                 </tr>
                 <tr style="vertical-align: top;">
                     <th scope="row"><label><?php
-                            _e('Choose columns to insert', 'wpGeonames'); ?></label></th>
+                            _e( 'Choose columns to insert', 'wpGeonames' ); ?></label></th>
                     <td style="width:250px;">
                         <label>
                             <input type="checkbox" name="wpGeoPostal0" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Country Code', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Country Code', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal1" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Postal Code', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Postal Code', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal2" value="1" checked disabled/>
                             <span style="color:#bb2;">
                             <?php
-                            _e('Name', 'wpGeonames'); ?></span></label><br>
+                            _e( 'Name', 'wpGeonames' ); ?></span></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal3" value="1"/>
                             <?php
-                            _e('Admin1 Name', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin1 Name', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="wpGeoPostal4" value="1"/>
                             <?php
-                            _e('Admin1 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin1 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal5" value="1"/>
                             <?php
-                            _e('Admin2 Name', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin2 Name', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal6" value="1"/>
                             <?php
-                            _e('Admin2 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin2 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal7" value="1"/>
                             <?php
-                            _e('Admin3 Name', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin3 Name', 'wpGeonames' ); ?></label><br>
                     </td>
                     <td>
                         <label>
                             <input type="checkbox" name="wpGeoPostal8" value="1"/>
                             <?php
-                            _e('Admin3 Code', 'wpGeonames'); ?></label><br>
+                            _e( 'Admin3 Code', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal9" value="1"/>
                             <?php
-                            _e('Latitude', 'wpGeonames'); ?></label><br>
+                            _e( 'Latitude', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal10" value="1"/>
                             <?php
-                            _e('Longitude', 'wpGeonames'); ?></label><br>
+                            _e( 'Longitude', 'wpGeonames' ); ?></label><br>
                         <label>
                             <input type="checkbox" name="wpGeoPostal11" value="1"/>
                             <?php
-                            _e('Accuracy', 'wpGeonames'); ?></label><br>
+                            _e( 'Accuracy', 'wpGeonames' ); ?></label><br>
                     </td>
                 </tr>
             </table>
             <div class="button-primary" onclick="wpGeonames_addPostal();"><?php
-                _e('Add', 'wpGeonames') ?></div>
+                _e( 'Add', 'wpGeonames' ) ?></div>
         </form>
         <form method="post" name="wpGeonames_options4"
               action="options-general.php?page=wpGeonames-options&geoToka=<?php
@@ -1757,12 +2059,12 @@ class Core
             <p class="submit">
                 <input type="submit" class="button-primary"
                        value="<?php
-                       _e('Clear this table (TRUNCATE)', 'wpGeonames') ?>"/>
+                       _e( 'Clear this table (TRUNCATE)', 'wpGeonames' ) ?>"/>
             </p>
         </form>
         <hr/>
         <?php
-        _e('To know how to use the data, look at the readme.txt file.', 'wpGeonames'); ?>
+        _e( 'To know how to use the data, look at the readme.txt file.', 'wpGeonames' ); ?>
 
         <script type="text/javascript"
                 src="<?php
@@ -1770,12 +2072,12 @@ class Core
         <script type="text/javascript">
             jQuery(document).ready(function () {
                 jQuery('#wpGeonamesAdd').SumoSelect({
-                    placeholder: '<?php _e('Country list', 'wpGeonames'); ?>',
-                    captionFormat: '{0} <?php _e('Selected', 'wpGeonames'); ?>'
+                    placeholder: '<?php _e( 'Country list', 'wpGeonames' ); ?>',
+                    captionFormat: '{0} <?php _e( 'Selected', 'wpGeonames' ); ?>'
                 });
                 jQuery('#wpGeonamesPostalAdd').SumoSelect({
-                    placeholder: '<?php _e('Postal list', 'wpGeonames'); ?>',
-                    captionFormat: '{0} <?php _e('Selected', 'wpGeonames'); ?>'
+                    placeholder: '<?php _e( 'Postal list', 'wpGeonames' ); ?>',
+                    captionFormat: '{0} <?php _e( 'Selected', 'wpGeonames' ); ?>'
                 });
             });
 
@@ -1802,7 +2104,7 @@ class Core
             }
 
             function wpGeonames_addCountry(mode, i, a, b) {
-                jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                jQuery.post('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
                     'action': 'wpGeonamesAddCountry',
                     'mode': mode,
                     'frm': a,
@@ -1837,7 +2139,7 @@ class Core
             }
 
             function wpGeonames_addPost(i, a, b) {
-                jQuery.post('<?php echo admin_url('admin-ajax.php'); ?>', {
+                jQuery.post('<?php echo admin_url( 'admin-ajax.php' ); ?>', {
                     'action': 'wpGeonamesAddPostal',
                     'frm': a,
                     'file': b[i],
@@ -1858,7 +2160,7 @@ class Core
 
         ?>
         <h2><?php
-            _e('Location Taxonomy Form', 'wpGeonames'); ?></h2>
+            _e( 'Location Taxonomy Form', 'wpGeonames' ); ?></h2>
         <p><?php
             _e(
                 'You can create a simple location taxonomy Form with the shortcode <b>[wp-geonames]</b>. The options are as follows :',
@@ -1866,29 +2168,32 @@ class Core
             ); ?></p>
         <ul style="margin-left:30px;list-style:disc;">
             <li><?php
-                _e('Name and ID of the select Country field (default=geoCountry) : id1=country', 'wpGeonames'); ?></li>
+                _e(
+                    'Name and ID of the select Country field (default=geoCountry) : id1=country',
+                    'wpGeonames'
+                ); ?></li>
             <li><?php
-                _e('Name and ID of the select Region field (default=geoRegion) : id2=state', 'wpGeonames'); ?></li>
+                _e( 'Name and ID of the select Region field (default=geoRegion) : id2=state', 'wpGeonames' ); ?></li>
             <li><?php
-                _e('Name and ID of the input City field (default=geoCity) : id3=city', 'wpGeonames'); ?></li>
+                _e( 'Name and ID of the input City field (default=geoCity) : id3=city', 'wpGeonames' ); ?></li>
             <li><?php
-                _e('Name of the JSON output var (default=geoRow) : out=citydata', 'wpGeonames'); ?></li>
+                _e( 'Name of the JSON output var (default=geoRow) : out=citydata', 'wpGeonames' ); ?></li>
             <li><?php
-                _e('Max number of proposal city (default=10) : nbcity=5', 'wpGeonames'); ?></li>
+                _e( 'Max number of proposal city (default=10) : nbcity=5', 'wpGeonames' ); ?></li>
             <li><?php
-                _e('Display the OpenStreetMap (default=0) : map=1', 'wpGeonames'); ?></li>
+                _e( 'Display the OpenStreetMap (default=0) : map=1', 'wpGeonames' ); ?></li>
             <li><?php
-                _e('OpenStreetMap initial zoom (default=9) : zoom=10', 'wpGeonames'); ?></li>
+                _e( 'OpenStreetMap initial zoom (default=9) : zoom=10', 'wpGeonames' ); ?></li>
         </ul>
         <p><?php
-            _e('Example : <b>[wp-geonames zoom=12 map=1 id1=ctr id2=reg id3=cit]</b>.', 'wpGeonames'); ?></p>
+            _e( 'Example : <b>[wp-geonames zoom=12 map=1 id1=ctr id2=reg id3=cit]</b>.', 'wpGeonames' ); ?></p>
         <p><?php
             _e(
                 'You can also adapt the form to your style by changing the <u>templates/wp-geonames_location_taxonomy.php</u> file and moving it to your theme.',
                 'wpGeonames'
             ); ?></p>
         <p>Enjoy ! <?php
-            echo convert_smilies(';-)'); ?></p>
+            echo convert_smilies( ';-)' ); ?></p>
         <?php
     }
 
@@ -1898,18 +2203,18 @@ class Core
 
         // AJAX Templates
         global $wpdb;
-        $Piso = preg_replace("/[^a-zA-Z0-9_,-]/", "", $_POST['country']);
-        $Preg = sanitize_text_field($_POST['region']);
-        $Pcit = sanitize_text_field($_POST['city']);
-        $Pnb  = (!empty($_POST['nbcity'])
-            ? (int)$_POST['nbcity']
-            : 10);
+        $Piso = preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_POST['country'] );
+        $Preg = sanitize_text_field( $_POST['region'] );
+        $Pcit = sanitize_text_field( $_POST['city'] );
+        $Pnb  = ( ! empty( $_POST['nbcity'] )
+            ? (int) $_POST['nbcity']
+            : 10 );
         //
         $result = [];
-        if ($Piso)
+        if ( $Piso )
         {
             $a = "admin1_code";
-            if ($this->regionCode2($Piso))
+            if ( $this->regionCode2( $Piso ) )
             {
                 $a = "admin2_code";
             }
@@ -1929,7 +2234,7 @@ class Core
 			LIMIT " . $Pnb
             );
         }
-        echo json_encode($result);
+        echo json_encode( $result );
     }
 
 
@@ -1938,14 +2243,14 @@ class Core
 
         // AJAX Templates
         global $wpdb;
-        $Piso = preg_replace("/[^a-zA-Z0-9_,-]/", "", $_POST['country']);
+        $Piso = preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_POST['country'] );
         //
         $result = [];
-        if ($Piso)
+        if ( $Piso )
         {
             $a = "admin1_code";
             $b = "ADM1";
-            if ($this->regionCode2($Piso))
+            if ( $this->regionCode2( $Piso ) )
             {
                 $a = "admin2_code";
                 $b = "ADM2";
@@ -1965,20 +2270,20 @@ class Core
 			"
             );
             $c = [];
-            foreach ($q as $r)
+            foreach ( $q as $r )
             {
-                if ($r->regionid === '00')
+                if ( $r->regionid === '00' )
                 {
                     $r->regionid = $r->country_code;
                 }
-                if (!isset($c[$r->name]))
+                if ( ! isset( $c[ $r->name ] ) )
                 {
-                    $result[]    = $r;
-                    $c[$r->name] = 1;
+                    $result[]      = $r;
+                    $c[ $r->name ] = 1;
                 }
             }
         }
-        echo json_encode($result);
+        echo json_encode( $result );
     }
 
 
@@ -1987,17 +2292,17 @@ class Core
 
         // AJAX Admin
         // input : $_POST iso, region, city
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return;
         }
 
         global $wpdb;
 
-        $Piso        = preg_replace("/[^a-zA-Z0-9_,-]/", "", $_POST['iso']);
-        $Pregion     = sanitize_text_field($_POST['region']);
-        $Pcity       = sanitize_text_field($_POST['city']);
-        $adminColumn = $this->regionCode2($Piso)
+        $Piso        = preg_replace( "/[^a-zA-Z0-9_,-]/", "", $_POST['iso'] );
+        $Pregion     = sanitize_text_field( $_POST['region'] );
+        $Pcity       = sanitize_text_field( $_POST['city'] );
+        $adminColumn = $this->regionCode2( $Piso )
             ? "admin2_code"
             : "admin1_code";
 
@@ -2020,7 +2325,7 @@ class Core
 		LIMIT 10;
 SQL
         );
-        echo json_encode($result);
+        echo json_encode( $result );
     }
 
 
@@ -2031,24 +2336,24 @@ SQL
     {
 
         // AJAX Admin
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return;
         }
 
-        $postMode = strip_tags($_POST['mode']);
-        $postFile = sanitize_text_field($_POST['file']);
-        $postForm = strip_tags($_POST['frm']);
-        $postUrl  = strip_tags(stripslashes(filter_var($_POST['url'], FILTER_SANITIZE_URL)));
+        $postMode = strip_tags( $_POST['mode'] );
+        $postFile = sanitize_text_field( $_POST['file'] );
+        $postForm = strip_tags( $_POST['frm'] );
+        $postUrl  = strip_tags( stripslashes( filter_var( $_POST['url'], FILTER_SANITIZE_URL ) ) );
 
-        $array    = explode(',', $postForm);
-        $postForm = array_fill_keys(array_filter($array), 1);
+        $array    = explode( ',', $postForm );
+        $postForm = array_fill_keys( array_filter( $array ), 1 );
 
         $postForm['wpGeonamesAdd'] = $postFile;
 
-        $this->addLocationsFromForm($postMode, $postUrl, $postForm);
+        $this->addLocationsFromForm( $postMode, $postUrl, $postForm );
 
-        echo ' <span style = "color:green;font-weight:700;margin:0 4px;">' . substr($postFile, 0, -4) . '</span>';
+        echo ' <span style = "color:green;font-weight:700;margin:0 4px;">' . substr( $postFile, 0, - 4 ) . '</span>';
     }
 
 
@@ -2059,26 +2364,26 @@ SQL
     {
 
         // AJAX Admin
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return;
         }
-        $Pfil = sanitize_text_field($_POST['file']);
-        $Pfrm = strip_tags($_POST['frm']);
-        $Purl = strip_tags(stripslashes(filter_var($_POST['url'], FILTER_SANITIZE_URL)));
+        $Pfil = sanitize_text_field( $_POST['file'] );
+        $Pfrm = strip_tags( $_POST['frm'] );
+        $Purl = strip_tags( stripslashes( filter_var( $_POST['url'], FILTER_SANITIZE_URL ) ) );
         //
-        $a = explode(',', $Pfrm);
+        $a = explode( ',', $Pfrm );
         $b = [];
-        foreach ($a as $r)
+        foreach ( $a as $r )
         {
-            if ($r)
+            if ( $r )
             {
-                $b[$r] = 1;
+                $b[ $r ] = 1;
             }
         }
         $b['wpGeonamesPostalAdd'] = $Pfil;
-        $this->postalAddZip($Purl, $b);
-        echo '<span style = "color:green;font-weight:700;margin:0 4px;">' . substr($Pfil, 0, -4) . '</span>';
+        $this->postalAddZip( $Purl, $b );
+        echo '<span style = "color:green;font-weight:700;margin:0 4px;">' . substr( $Pfil, 0, - 4 ) . '</span>';
     }
 
 
@@ -2088,26 +2393,26 @@ SQL
      * @return mixed
      * @throws ErrorException
      */
-    public function cacheSearchResult(ApiQueryStatus $apiResult)
+    public function cacheSearchResult( ApiQueryStatus $apiResult )
     {
 
         $searchTerm  = $apiResult->query->getSearchTerm();
         $country     = $apiResult->query->getSingleCountry();
-        $search_type = ApiQuery::translateSearchType($apiResult->type);
+        $search_type = ApiQuery::translateSearchType( $apiResult->type );
 
-        if (empty($search_type))
+        if ( empty( $search_type ) )
         {
-            throw new ErrorException('Search type not supported');
+            throw new ErrorException( 'Search type not supported' );
         }
 
-        if (false === self::$wpdb->insert(
+        if ( false === self::$wpdb->insert(
                 self::$instance->tblCacheQueries,
                 [
-                    'search_term'    => mb_strtolower($searchTerm),
+                    'search_term'    => mb_strtolower( $searchTerm ),
                     'search_type'    => $search_type,
                     'search_country' => $country,
-                    'search_params'  => serialize($apiResult->query->cleanArray($apiResult->params, true)),
-                    'result_count'   => count($apiResult->result),
+                    'search_params'  => serialize( $apiResult->query->cleanArray( $apiResult->params, true ) ),
+                    'result_count'   => count( $apiResult->result ),
                     'result_total'   => $apiResult->total,
                 ],
                 [
@@ -2118,49 +2423,49 @@ SQL
                     '%d', // result_count
                     '%d', // result_total
                 ]
-            ))
+            ) )
         {
-            throw new ErrorException(self::$wpdb->last_error);
+            throw new ErrorException( self::$wpdb->last_error );
         }
-        $cachedQuery = (object)['query_id' => self::$wpdb->insert_id];
+        $cachedQuery = (object) [ 'query_id' => self::$wpdb->insert_id ];
 
-        $recordsToCache = array_diff_key($apiResult->result, $apiResult->results);
+        $recordsToCache = array_diff_key( $apiResult->result, $apiResult->results );
 
         $admin = [];
 
         array_walk(
             $recordsToCache,
-            static function (Location $location) use
+            static function ( Location $location ) use
             (
                 &
                 $admin
             )
             {
 
-                $admin[$location->getCountryId()] = true;
+                $admin[ $location->getCountryId() ] = true;
 
-                for ($i = 1; $i <= 4; $i++)
+                for ( $i = 1; $i <= 4; $i ++ )
                 {
                     $getter = "getAdminId$i";
                     $x      = $location->$getter();
 
-                    if ($x === null)
+                    if ( $x === null )
                     {
                         return;
                     }
 
-                    $admin[$x] = true;
+                    $admin[ $x ] = true;
                 }
             }
         );
 
-        $admin = array_filter($admin);
+        $admin = array_filter( $admin );
 
-        if (!empty($admin))
+        if ( ! empty( $admin ) )
         {
 
             $tbl      = $this->getTblCacheLocations();
-            $sqlWhere = sprintf('geoname_id IN (%s)', implode(',', array_keys($admin)));
+            $sqlWhere = sprintf( 'geoname_id IN (%s)', implode( ',', array_keys( $admin ) ) );
             $sql      = <<<SQL
     SELECT
         geoname_id
@@ -2171,36 +2476,36 @@ SQL
     ;
 SQL;
 
-            $existing = static::$wpdb->get_col($sql);
-            $existing = array_flip($existing);
-            $admin    = array_diff_key($admin, $existing);
+            $existing = static::$wpdb->get_col( $sql );
+            $existing = array_flip( $existing );
+            $admin    = array_diff_key( $admin, $existing );
             $g        = Core::getGeoNameClient();
 
-            foreach ($admin as $geonameId => &$item)
+            foreach ( $admin as $geonameId => &$item )
             {
                 $params = [
                     'geonameId' => $geonameId,
                     'style'     => 'full',
                 ];
 
-                $item = $g->get($params);
+                $item = $g->get( $params );
             }
 
-            $recordsToCache += Location::parseArray($admin, 'geonameId', '_');
+            $recordsToCache += Location::parseArray( $admin, 'geonameId', '_' );
         }
 
-        unset($admin, $existing, $item, $geonameId, $params, $sqlWhere);
+        unset( $admin, $existing, $item, $geonameId, $params, $sqlWhere );
 
         array_walk(
             $recordsToCache,
-            static function (Location $location)
+            static function ( Location $location )
             {
 
                 $location->save();
             }
         );
 
-        unset ($recordsToCache);
+        unset ( $recordsToCache );
 
         $i = 0;
         array_walk(
@@ -2217,12 +2522,12 @@ SQL;
             )
             {
 
-                if (false === Core::$wpdb->insert(
+                if ( false === Core::$wpdb->insert(
                         self::$instance->tblCacheResults,
                         [
                             'query_id'     => $cachedQuery->query_id,
                             'geoname_id'   => $location->geonameId,
-                            'order'        => ++$i,
+                            'order'        => ++ $i,
                             'score'        => $location->getScore(),
                             'country_code' => $location->getCountry()->iso2,
                         ],
@@ -2233,9 +2538,9 @@ SQL;
                             '%f', // score
                             '%s', // country_code
                         ]
-                    ))
+                    ) )
                 {
-                    throw new ErrorException(Core::$wpdb->last_error);
+                    throw new ErrorException( Core::$wpdb->last_error );
                 }
             }
         );
@@ -2244,55 +2549,53 @@ SQL;
     }
 
 
-    public
-    function checkArray(
+    public function checkArray(
         $name,
         $key,
         $value = null
     ): bool {
 
         $keyExisted = false;
-        $getter     = 'get' . ucfirst($name);
+        $getter     = 'get' . ucfirst( $name );
         $array      = $this->$getter();
 
-        switch (true)
+        switch ( true )
         {
 
             // if it's a numeric-indexed array, flip it
-        case key($array) === 0:
-            $array = array_fill_keys($array, null);
+        case key( $array ) === 0:
+            $array = array_fill_keys( $array, null );
             break;
 
             // if the key does not yet exist, add it
-        case !($keyExisted = array_key_exists($key, $array)):
+        case ! ( $keyExisted = array_key_exists( $key, $array ) ):
             // if the current value is null, replace it
-        case ($old = $array [$key]
-                ?: null) === null:
+        case ( $old = $array [ $key ]
+                ?: null ) === null:
             break;
 
             // skip if old value is new value
         case $value && $old === $value:
             // skip it if no new value
-        case empty($value) :
+        case empty( $value ) :
             return true;
         }
 
-        $array[$key] = $value
+        $array[ $key ] = $value
             ?: $key;
 
-        self::saveArray($name, $array, !$keyExisted);
+        self::saveArray( $name, $array, ! $keyExisted );
 
         return true;
     }
 
 
-    public
-    function checkCountry(
+    public function checkCountry(
         $country_code,
         $country_name = null
     ): bool {
 
-        return $this->checkArray('countryCodes', $country_code, $country_name);
+        return $this->checkArray( 'countryCodes', $country_code, $country_name );
     }
 
 
@@ -2303,18 +2606,17 @@ SQL;
      * @return array|null
      * @throws \ErrorException
      */
-    public
-    function checkSearchParams(
+    public function checkSearchParams(
         ?array $params,
         ApiQueryStatus $apiResult
     ): ?array {
 
-        if ($params === null)
+        if ( $params === null )
         {
             return null;
         }
 
-        if ($apiResult->query->getStartRow() + $apiResult->query->getMaxRows() <= $apiResult->processRecords)
+        if ( $apiResult->query->getStartRow() + $apiResult->query->getMaxRows() <= $apiResult->processRecords )
         {
             return null;
         }
@@ -2323,7 +2625,7 @@ SQL;
 
         $singleCountry = $apiResult->query->getSingleCountry();
         $searchCountry = $singleCountry
-            ? self::$wpdb->prepare('OR search_country = %s', $singleCountry)
+            ? self::$wpdb->prepare( 'OR search_country = %s', $singleCountry )
             : '';
 
         $sql = <<<SQL
@@ -2342,54 +2644,54 @@ SQL;
 
         $sql = self::$wpdb->prepare(
             $sql,
-            mb_strtolower($apiResult->query->getSearchTerm()),
-            ApiQuery::translateSearchType($apiResult->type)
+            mb_strtolower( $apiResult->query->getSearchTerm() ),
+            ApiQuery::translateSearchType( $apiResult->type )
         );
 
-        $myParams        = $apiResult->query->cleanArray($params, true);
-        $serializedQuery = serialize($myParams);
+        $myParams        = $apiResult->query->cleanArray( $params, true );
+        $serializedQuery = serialize( $myParams );
         $cachedQuery     = null;
-        $cachedQueries   = self::$wpdb->get_results($sql);
+        $cachedQueries   = self::$wpdb->get_results( $sql );
 
         $searchCountry = $apiResult->query->getCountryAsArray();
 
         /** @noinspection AlterInForeachInspection */
-        foreach ($cachedQueries as $i => &$cachedQuery)
+        foreach ( $cachedQueries as $i => &$cachedQuery )
         {
 
             // check if exact same query
-            if ($cachedQuery->search_params === $serializedQuery)
+            if ( $cachedQuery->search_params === $serializedQuery )
             {
                 break;
             }
 
             // bail if we search all countries, but current query uses a specific country
-            if (empty($searchCountry) && $cachedQuery->search_country)
+            if ( empty( $searchCountry ) && $cachedQuery->search_country )
             {
                 $cachedQuery = null;
                 continue;
             }
 
             /** @noinspection UnserializeExploitsInspection */
-            $cachedQuery->search_params = new ApiQuery(unserialize($cachedQuery->search_params, []));
+            $cachedQuery->search_params = new ApiQuery( unserialize( $cachedQuery->search_params, [] ) );
             $cachedCountry              = $cachedQuery->search_params->getCountryAsArray();
 
             // use cached query if countries match
-            if ($searchCountry === $cachedCountry)
+            if ( $searchCountry === $cachedCountry )
             {
                 break;
             }
 
             // bail if we search all countries, but current query uses specific countries
-            if (empty($searchCountry) && !empty($cachedCountry))
+            if ( empty( $searchCountry ) && ! empty( $cachedCountry ) )
             {
                 $cachedQuery = null;
                 continue;
             }
 
             // ignore incomplete caches
-            if ($cachedQuery->result_count ?? 0 === $cachedQuery->search_params->getMaxStartRow()
-                || $cachedQuery->result_count < $cachedQuery->result_total ?? 0
+            if ( $cachedQuery->result_count ?? 0 === $cachedQuery->search_params->getMaxStartRow()
+                                               || $cachedQuery->result_count < $cachedQuery->result_total ?? 0
             )
             {
                 $cachedQuery = null;
@@ -2397,11 +2699,11 @@ SQL;
             }
 
             // bail early, if not all the countries are in the cache
-            if (!empty($cachedCountry) && $searchCountry !== array_intersect($searchCountry, $cachedCountry))
+            if ( ! empty( $cachedCountry ) && $searchCountry !== array_intersect( $searchCountry, $cachedCountry ) )
             {
 
                 // only disregard if not one single country is matching
-                if (count(array_intersect($searchCountry, $cachedCountry)) === 0)
+                if ( count( array_intersect( $searchCountry, $cachedCountry ) ) === 0 )
                 {
                     $cachedQuery = null;
                 }
@@ -2413,45 +2715,45 @@ SQL;
             break;
         }
 
-        if ($cachedQuery === null)
+        if ( $cachedQuery === null )
         {
 
-            $cachedQueries = array_filter($cachedQueries);
+            $cachedQueries = array_filter( $cachedQueries );
 
-            if (empty($cachedQueries))
+            if ( empty( $cachedQueries ) )
             {
                 return $params;
             }
 
             $x = $searchCountry;
 
-            foreach ($cachedQueries as $cachedQuery)
+            foreach ( $cachedQueries as $cachedQuery )
             {
-                $x = array_diff($x, $cachedQuery->search_params->getCountryAsArray());
+                $x = array_diff( $x, $cachedQuery->search_params->getCountryAsArray() );
 
-                if (empty($x))
+                if ( empty( $x ) )
                 {
                     break;
                 }
             }
 
-            if (!empty($x))
+            if ( ! empty( $x ) )
             {
                 return $params;
             }
 
-            unset($x);
+            unset( $x );
             $cachedQuery = null;
         }
         else
         {
-            $cachedQueries = [$cachedQuery];
+            $cachedQueries = [ $cachedQuery ];
         }
 
         // count the sum of records of all queries
         $cached = array_sum(
             array_map(
-                static function ($cachedQuery)
+                static function ( $cachedQuery )
                 {
 
                     return $cachedQuery->result_count;
@@ -2461,19 +2763,19 @@ SQL;
         );
 
         // ignore cache and current searchType if no records
-        if ($cached === 0)
+        if ( $cached === 0 )
         {
             return null;
         }
 
-        if ($cachedQuery === null)
+        if ( $cachedQuery === null )
         {
 
-            $inCountryCode = "'" . implode("','", $searchCountry) . "'";
+            $inCountryCode = "'" . implode( "','", $searchCountry ) . "'";
             $inQueryId     = implode(
                 ",",
                 array_map(
-                    static function ($cachedQuery)
+                    static function ( $cachedQuery )
                     {
 
                         return $cachedQuery->query_id;
@@ -2497,11 +2799,11 @@ ORDER BY
 ;
 SQL;
 
-            $countryRecordCount = self::$wpdb->get_results($sql);
+            $countryRecordCount = self::$wpdb->get_results( $sql );
 
             $cached = array_sum(
                 array_map(
-                    static function ($c)
+                    static function ( $c )
                     {
 
                         return $c->count;
@@ -2513,7 +2815,7 @@ SQL;
 
         $start = $apiResult->query->getStartRow();
 
-        if ($start > $cached)
+        if ( $start > $cached )
         {
             $apiResult->processRecords += $cached;
 
@@ -2521,14 +2823,14 @@ SQL;
         }
 
         $start -= $apiResult->processRecords;
-        $limit = $apiResult->query->getMaxRows() - count($apiResult->result);
+        $limit = $apiResult->query->getMaxRows() - count( $apiResult->result );
 
         $get = [
             'searchCountry' => $searchCountry,
             'queries'       => $cachedQueries,
         ];
 
-        $result = self::getCachedQuery($get, $start, $limit);
+        $result = self::getCachedQuery( $get, $start, $limit );
 
         /** @noinspection AdditionOperationOnArraysInspection */
         $apiResult->result += $result;
@@ -2537,24 +2839,23 @@ SQL;
     }
 
 
-    public
-    function checkSearchParamsMinRequirements(
+    public function checkSearchParamsMinRequirements(
         ?array $params,
         ApiQueryStatus $apiResult
     ): ?array {
 
-        if ($params === null)
+        if ( $params === null )
         {
             return null;
         }
 
         $searchType = $apiResult->type;
         $searchTerm = $apiResult->query->getSearchTerm();
-        $len        = strlen($searchTerm);
+        $len        = strlen( $searchTerm );
 
         $minAllCountries = $minMultipleCountries = $minSingleCountry = 1;
 
-        switch ($searchType)
+        switch ( $searchType )
         {
 
         case ApiQuery::SEARCH_TYPE_Q:
@@ -2581,26 +2882,26 @@ SQL;
             break;
         }
 
-        if ($len < $minAllCountries)
+        if ( $len < $minAllCountries )
         {
             return null;
         }
 
         $country = $params['country'] ?? null;
 
-        if (empty($country))
+        if ( empty( $country ) )
         {
             return $len >= $minAllCountries
                 ? $params
                 : null;
         }
 
-        if (is_array($country) && count($country) === 1)
+        if ( is_array( $country ) && count( $country ) === 1 )
         {
-            $country = reset($country);
+            $country = reset( $country );
         }
 
-        if (is_string($country))
+        if ( is_string( $country ) )
         {
             return $len >= $minSingleCountry
                 ? $params
@@ -2613,42 +2914,39 @@ SQL;
     }
 
 
-    public
-    function checkTimeZone(
+    public function checkTimeZone(
         $time_zone_id,
         $country_code
     ): bool {
 
-        return $this->checkArray('timeZones', $time_zone_id, $country_code);
+        return $this->checkArray( 'timeZones', $time_zone_id, $country_code );
     }
 
 
-    public
-    function check_options(
+    public function check_options(
         $options
     ) {
 
-        if (!$this->verifyAdmin())
+        if ( ! $this->verifyAdmin() )
         {
             return $options;
         }
 
-        if (empty($options)
-            || empty($options['filenames']['countries'])
-            || empty($options['filenames']['postal'])
-            || time() - ($options['filenames']['lastUpdate']
-                ?: 0) > 60 * 60 * 24
+        if ( empty( $options )
+            || empty( $options['filenames']['countries'] )
+            || empty( $options['filenames']['postal'] )
+            || time() - ( $options['filenames']['lastUpdate']
+                ?: 0 ) > 60 * 60 * 24
         )
         {
-            return $this->update_options(true);
+            return $this->update_options( true );
         }
 
         return $options;
     }
 
 
-    public
-    function clear(
+    public function clear(
         $table
     ) {
 
@@ -2656,18 +2954,18 @@ SQL;
 
         $this->verifyAdmin();
 
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return false;
         }
 
-        $q = $wpdb->query("TRUNCATE TABLE " . $wpdb->base_prefix . $table);
+        $q = $wpdb->query( "TRUNCATE TABLE " . $wpdb->base_prefix . $table );
 
-        if ($table === self::tblLocations)
+        if ( $table === self::tblLocations )
         {
             // ******* Patch V1.4 - Add INDEX **************
-            $a = $wpdb->get_results("SHOW INDEX FROM " . $this->tblLocations . " WHERE Column_name = 'cc2'");
-            if (empty($a))
+            $a = $wpdb->get_results( "SHOW INDEX FROM " . $this->tblLocations . " WHERE Column_name = 'cc2'" );
+            if ( empty( $a ) )
             {
                 $wpdb->query(
                     "ALTER TABLE " . $this->tblLocations . " ADD INDEX `index1` ( `feature_class`,`feature_code`( 3 ),`country_code`,`cc2`( 2 ),`name`( 3 ))"
@@ -2676,46 +2974,42 @@ SQL;
             // *********************************************
         }
 
-        $this->update_options(true);
+        $this->update_options( true );
 
-        if ($q)
+        if ( $q )
         {
-            return __('Done, table is empty.', 'wpGeonames');
+            return __( 'Done, table is empty.', 'wpGeonames' );
         }
 
-        return __('Failed !', 'wpGeonames');
+        return __( 'Failed !', 'wpGeonames' );
     }
 
 
-    public
-    function clearCountries()
+    public function clearCountries()
     {
 
-        return $this->clear(self::tblCountries);
+        return $this->clear( self::tblCountries );
     }
 
 
-    public
-    function clearLocations()
+    public function clearLocations()
     {
 
-        return $this->clear(self::tblLocations);
+        return $this->clear( self::tblLocations );
     }
 
 
-    public
-    function clearPostCodes()
+    public function clearPostCodes()
     {
 
-        return $this->clear(self::tblPostCodes);
+        return $this->clear( self::tblPostCodes );
     }
 
 
-    public
-    function clearTimeZones()
+    public function clearTimeZones()
     {
 
-        return $this->clear(self::tblTimeZones);
+        return $this->clear( self::tblTimeZones );
     }
 
 
@@ -2730,23 +3024,22 @@ SQL;
      *
      * @noinspection MultiAssignmentUsageInspection
      */
-    public
-    function downloadZip(
+    public function downloadZip(
         $name,
         $url,
         $filename = null,
         $force = false
     ) {
 
-        $zipFile = !empty($filename)
-            ? strip_tags(stripslashes(filter_var($filename, FILTER_SANITIZE_URL)))
+        $zipFile = ! empty( $filename )
+            ? strip_tags( stripslashes( filter_var( $filename, FILTER_SANITIZE_URL ) ) )
             : null;
-        if (!preg_match(
+        if ( ! preg_match(
             '@(?:^|[/\\\\])([^/\\\\]+?)(\.[^./\\\\]*)?$@',
             $zipFile
                 ?: $url,
             $matches
-        ))
+        ) )
         {
             return false;
         }
@@ -2756,45 +3049,45 @@ SQL;
         $zipFile = "$base$ext";
         $txtFile = "$base.txt";
 
-        if (!empty($filename))
+        if ( ! empty( $filename ) )
         {
             $url .= $zipFile;
         }
 
-        set_time_limit(300); // default is 30
+        set_time_limit( 300 ); // default is 30
 
         $upl = wp_upload_dir();
 
-        if ($zipFile === 'geoManual')
+        if ( $zipFile === 'geoManual' )
         {
             global $geoManual;
-            $upl = $upl['basedir'] . rtrim($geoManual, DIRECTORY_SEPARATOR . '/');
+            $upl = $upl['basedir'] . rtrim( $geoManual, DIRECTORY_SEPARATOR . '/' );
         }
         else
         {
             $upl = $upl['basedir'] . "/wp-geonames/$name";
         }
 
-        if (!is_dir($upl) && (!mkdir($upl, 0775, true) || !is_dir($upl)))
+        if ( ! is_dir( $upl ) && ( ! mkdir( $upl, 0775, true ) || ! is_dir( $upl ) ) )
         {
-            _e('Could not create download directory.', 'wpGeonames');
+            _e( 'Could not create download directory.', 'wpGeonames' );
         }
 
-        if ($force || !is_file("$upl/$txtFile"))
+        if ( $force || ! is_file( "$upl/$txtFile" ) )
         {
-            if (!mkdir($upl, 0775, true) && !is_dir($upl))
+            if ( ! mkdir( $upl, 0775, true ) && ! is_dir( $upl ) )
             {
-                throw new RuntimeException(sprintf('Directory "%s" was not created', $upl));
+                throw new RuntimeException( sprintf( 'Directory "%s" was not created', $upl ) );
             }
 
             // 1. Get ZIP from URL - Copy to uploads/wp-geonames/$name/ folder
-            if (!copy($url, "$upl/$zipFile"))
+            if ( ! copy( $url, "$upl/$zipFile" ) )
             {
                 //$errors = error_get_last();
-                throw new ErrorException(__('Failure in the download of the zip.', 'wpGeonames'));
+                throw new ErrorException( __( 'Failure in the download of the zip.', 'wpGeonames' ) );
             }
 
-            switch ($ext)
+            switch ( $ext )
             {
             case '.txt':
                 break;
@@ -2802,20 +3095,20 @@ SQL;
             case '.zip':
                 // 2. Extract ZIP
                 $zip = new ZipArchive();
-                if ($zip->open("$upl/$zipFile") === true)
+                if ( $zip->open( "$upl/$zipFile" ) === true )
                 {
-                    $zip->extractTo($upl);
+                    $zip->extractTo( $upl );
                     $zip->close();
-                    @unlink("$upl/$zipFile");
+                    @unlink( "$upl/$zipFile" );
                 }
                 else
                 {
-                    throw new ErrorException(__('Failure in the extraction of the zip.', 'wpGeonames'));
+                    throw new ErrorException( __( 'Failure in the extraction of the zip.', 'wpGeonames' ) );
                 }
                 break;
 
             default:
-                throw new ErrorException(__('Unknown file type'));
+                throw new ErrorException( __( 'Unknown file type' ) );
             }
         }
 
@@ -2824,14 +3117,13 @@ SQL;
     }
 
 
-    public
-    function enqueue_leaflet(): void
+    public function enqueue_leaflet(): void
     {
 
-        wp_register_style('leaflet', plugins_url('wp-geonames/leaflet/leaflet.css'));
-        wp_enqueue_style('leaflet');
-        wp_register_script('leaflet', plugins_url('wp-geonames/leaflet/leaflet.js'), [], false, false);
-        wp_enqueue_script('leaflet');
+        wp_register_style( 'leaflet', plugins_url( 'wp-geonames/leaflet/leaflet.css' ) );
+        wp_enqueue_style( 'leaflet' );
+        wp_register_script( 'leaflet', plugins_url( 'wp-geonames/leaflet/leaflet.js' ), [], false, false );
+        wp_enqueue_script( 'leaflet' );
     }
 
 
@@ -2846,8 +3138,7 @@ SQL;
      * @return bool
      * @throws \ErrorException
      */
-    public
-    function loadFileIntoDb(
+    public function loadFileIntoDb(
         $source,
         $table,
         $fields,
@@ -2858,11 +3149,11 @@ SQL;
 
         $wpdb = self::$wpdb;
         /** @noinspection FopenBinaryUnsafeUsageInspection */
-        $handle = @fopen($source, 'r');
+        $handle = @fopen( $source, 'r' );
 
-        if (!$handle)
+        if ( ! $handle )
         {
-            _e('Error reading file.', 'wpGeonames');
+            _e( 'Error reading file.', 'wpGeonames' );
 
             return false;
         }
@@ -2874,40 +3165,39 @@ SQL;
                     static function (
                         $field,
                         $fieldName
-                    )
-                    {
+                    ) {
 
                         return $field->regex
-                            ? ($field->save
+                            ? ( $field->save
                                 ? "(?<$fieldName>{$field->regex})"
                                 : $field->regex
                             )
                             : null;
                     },
                     $fields,
-                    array_keys($fields)
+                    array_keys( $fields )
                 )
             )
         );
         $regex  = "${regexDelimiter}^$regex${regexDelimiter}x";
         $fields = array_filter(
             $fields,
-            static function ($field)
+            static function ( $field )
             {
 
                 return $field->save;
             }
         );
 
-        while (($line = fgets($handle, 8192)) !== false)
+        while ( ( $line = fgets( $handle, 8192 ) ) !== false )
         {
 
-            if (!preg_match($regex, $line, $matches))
+            if ( ! preg_match( $regex, $line, $matches ) )
             {
                 continue;
             }
 
-            if ($callback && !$callback($matches, $fields))
+            if ( $callback && ! $callback( $matches, $fields ) )
             {
                 continue;
             }
@@ -2931,17 +3221,17 @@ SQL;
                 {
 
                     $fieldValues[] = "$fieldName = "
-                        . ($matches[$fieldName] === ''
+                        . ( $matches[ $fieldName ] === ''
                             ? 'NULL'
-                            : $wpdb->prepare("%{$field->format}", $matches[$fieldName]));
+                            : $wpdb->prepare( "%{$field->format}", $matches[ $fieldName ] ) );
                 }
             );
 
-            $sqlValues = implode(', ', $fieldValues);
+            $sqlValues = implode( ', ', $fieldValues );
 
-            switch ($mode)
+            switch ( $mode )
             {
-            case -1:
+            case - 1:
                 $sql = "UPDATE LOW_PRIORITY $table SET $sqlValues WHERE geoname_id = {$matches['geoname_id']};";
                 break;
 
@@ -2961,30 +3251,29 @@ SQL;
                 $sql = '';
             }
 
-            unset($matches, $fieldValues, $sqlValues);
+            unset( $matches, $fieldValues, $sqlValues );
 
-            if ($sql && $wpdb->query($sql) === false)
+            if ( $sql && $wpdb->query( $sql ) === false )
             {
 
                 throw new ErrorException(
-                    __("Error while updating data", 'wpGeonames') . "\n$wpdb->last_error\n$sql"
+                    __( "Error while updating data", 'wpGeonames' ) . "\n$wpdb->last_error\n$sql"
                 );
             }
-            unset($sql);
+            unset( $sql );
         }
 
-        fclose($handle);
+        fclose( $handle );
 
         return true;
     }
 
 
-    public
-    function postalAddDb(
+    public function postalAddDb(
         $g
     ): void {
 
-        if (!current_user_can("administrator"))
+        if ( ! current_user_can( "administrator" ) )
         {
             die;
         }
@@ -3003,7 +3292,7 @@ SQL;
 		latitude,
 		longitude,
 		accuracy)
-		VALUES" . substr($g, 0, -1)
+		VALUES" . substr( $g, 0, - 1 )
         );
     }
 
@@ -3015,147 +3304,143 @@ SQL;
      * @return false|string|void
      * @throws \ErrorException
      */
-    public
-    function postalAddZip(
+    public function postalAddZip(
         $url,
         $f
     ) {
 
         $this->verifyAdmin();
 
-        if ($this->verifyToka())
+        if ( $this->verifyToka() )
         {
             return false;
         }
 
-        $PwpGeonamesPostalAdd = (!empty($f['wpGeonamesPostalAdd'])
-            ? strip_tags(stripslashes(filter_var($f['wpGeonamesPostalAdd'], FILTER_SANITIZE_URL)))
-            : '');
+        $PwpGeonamesPostalAdd = ( ! empty( $f['wpGeonamesPostalAdd'] )
+            ? strip_tags( stripslashes( filter_var( $f['wpGeonamesPostalAdd'], FILTER_SANITIZE_URL ) ) )
+            : '' );
 
-        set_time_limit(300); // default is 30
+        set_time_limit( 300 ); // default is 30
 
         $upl = wp_upload_dir();
         $upl = $upl['basedir'] . '/wp-geonames/zip/';
 
-        if (!is_dir($upl) && !mkdir($upl, 0775, true) && !is_dir($upl))
+        if ( ! is_dir( $upl ) && ! mkdir( $upl, 0775, true ) && ! is_dir( $upl ) )
         {
-            throw new RuntimeException(sprintf('Directory "%s" was not created', $upl));
+            throw new RuntimeException( sprintf( 'Directory "%s" was not created', $upl ) );
         }
 
         // 1. Get ZIP from URL - Copy to uploads/wp-geonames/zip/ folder
-        if (!copy($url . $PwpGeonamesPostalAdd, $upl . $PwpGeonamesPostalAdd))
+        if ( ! copy( $url . $PwpGeonamesPostalAdd, $upl . $PwpGeonamesPostalAdd ) )
         {
-            throw new ErrorException(__('Failure in the download of the zip.', 'wpGeonames'));
+            throw new ErrorException( __( 'Failure in the download of the zip.', 'wpGeonames' ) );
         }
 
         // 2. Extract ZIP in uploads/zip/
         $zip = new ZipArchive();
-        if ($zip->open($upl . $PwpGeonamesPostalAdd) === true)
+        if ( $zip->open( $upl . $PwpGeonamesPostalAdd ) === true )
         {
-            $zip->extractTo($upl);
+            $zip->extractTo( $upl );
             $zip->close();
-            @unlink($upl . $PwpGeonamesPostalAdd);
+            @unlink( $upl . $PwpGeonamesPostalAdd );
         }
         else
         {
-            throw new ErrorException(__('Failure in the extraction of the zip.', 'wpGeonames'));
+            throw new ErrorException( __( 'Failure in the extraction of the zip.', 'wpGeonames' ) );
         }
 
         // 3. Read file and put data in array
         /** @noinspection FopenBinaryUnsafeUsageInspection */
-        $handle = @fopen($upl . substr($PwpGeonamesPostalAdd, 0, -4) . '.txt', 'r');
+        $handle = @fopen( $upl . substr( $PwpGeonamesPostalAdd, 0, - 4 ) . '.txt', 'r' );
         //
         $g = '';
         $c = 0;
-        if ($handle)
+        if ( $handle )
         {
-            while (($v = fgets($handle, 8192)) !== false)
+            while ( ( $v = fgets( $handle, 8192 ) ) !== false )
             {
-                $v = str_replace('"', ' ', $v);
-                $e = explode("\t", $v);
-                if (!empty($e[0]) && isset($e[11]))
+                $v = str_replace( '"', ' ', $v );
+                $e = explode( "\t", $v );
+                if ( ! empty( $e[0] ) && isset( $e[11] ) )
                 {
-                    ++$c;
+                    ++ $c;
                     $g .= '( "' . $e[0] .
                         '","' . $e[1] .
                         '","' . $e[2] .
-                        '","' . (isset($f['wpGeoPostal3'])
+                        '","' . ( isset( $f['wpGeoPostal3'] )
                             ? $e[3]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal4'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal4'] )
                             ? $e[4]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal5'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal5'] )
                             ? $e[5]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal6'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal6'] )
                             ? $e[6]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal7'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal7'] )
                             ? $e[7]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal8'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal8'] )
                             ? $e[8]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal9'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal9'] )
                             ? $e[9]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal10'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal10'] )
                             ? $e[10]
-                            : '') .
-                        '","' . (isset($f['wpGeoPostal11'])
+                            : '' ) .
+                        '","' . ( isset( $f['wpGeoPostal11'] )
                             ? $e[11]
-                            : '') .
+                            : '' ) .
                         '"),';
                 }
-                if ($c > 5000)
+                if ( $c > 5000 )
                 {
-                    $this->postalAddDb($g);
+                    $this->postalAddDb( $g );
                     $c = 0;
                     $g = '';
                 }
             }
-            $this->postalAddDb($g);
-            fclose($handle);
+            $this->postalAddDb( $g );
+            fclose( $handle );
         }
-        @unlink($upl . substr($PwpGeonamesPostalAdd, 0, -4) . ' . txt');
+        @unlink( $upl . substr( $PwpGeonamesPostalAdd, 0, - 4 ) . ' . txt' );
         $this->update_options();
 
-        return __('Done, data are in base . ', 'wpGeonames');
+        return __( 'Done, data are in base . ', 'wpGeonames' );
     }
 
 
-    public
-    function regionCode2(
+    public function regionCode2(
         $iso = 'ZZZ'
     ): bool {
 
         $a = ',BE,';
 
-        return strpos($a, $iso) !== false;
+        return strpos( $a, $iso ) !== false;
     }
 
 
-    public
-    function settings_link(
+    public function settings_link(
         $links
     ) {
 
-        if (!$this->verifyAdmin(false))
+        if ( ! $this->verifyAdmin( false ) )
         {
             return $links;
         }
 
         $links[] = '<a href = "options-general.php?page=wpGeonames-options">'
-            . __('Settings', 'wpGeonames')
+            . __( 'Settings', 'wpGeonames' )
             . ' </a> ';
 
         return $links;
     }
 
 
-    public
-    function shortcode(
+    public function shortcode(
         $a
     ): string {
 
@@ -3173,7 +3458,7 @@ SQL;
             ],
             $a
         );
-        if ($shortcode['map'])
+        if ( $shortcode['map'] )
         {
             $this->enqueue_leaflet();
         }
@@ -3181,7 +3466,7 @@ SQL;
         $geoData                  = [];
         $geoData['selectCountry'] = '';
         $country                  = $this->get_country();
-        foreach ($country as $r)
+        foreach ( $country as $r )
         {
             $geoData['selectCountry'] .= '<option value = "' . $r->country_code . '">' . $r->name . '</option>';
         }
@@ -3190,11 +3475,11 @@ SQL;
         $geoData['onKeyCity']       = 'onClick = "wpGeonameCityMap(v.name,v.latitude,v.longitude);"';
 
         // ****** TEMPLATE ********
-        if (has_filter('wpGeonames_location_taxonomy_tpl'))
+        if ( has_filter( 'wpGeonames_location_taxonomy_tpl' ) )
         {
-            $inc = apply_filters('wpGeonames_location_taxonomy_tpl', 0);
+            $inc = apply_filters( 'wpGeonames_location_taxonomy_tpl', 0 );
         }
-        elseif (file_exists(get_stylesheet_directory() . '/templates/wp-geonames_location_taxonomy.php'))
+        elseif ( file_exists( get_stylesheet_directory() . '/templates/wp-geonames_location_taxonomy.php' ) )
         {
             $inc = get_stylesheet_directory() . '/templates/wp-geonames_location_taxonomy.php';
         }
@@ -3208,49 +3493,46 @@ SQL;
          *
          * @noinspection PhpIncludeInspection
          */
-        include($inc);
+        include( $inc );
         $out .= ob_get_clean();
 
         // ************************
-        unset($geoData);
+        unset( $geoData );
 
         return $out;
     }
 
 
-    public
-    function sortCountry(
+    public function sortCountry(
         $a,
         $b
     ) {
 
-        return strcmp($a->name, $b->name);
+        return strcmp( $a->name, $b->name );
     }
 
 
-    public
-    function sortCountry2(
+    public function sortCountry2(
         $a,
         $b
     ) {
 
-        if ($a->country_code === $b->country_code)
+        if ( $a->country_code === $b->country_code )
         {
-            return strcmp($a->name, $b->name);
+            return strcmp( $a->name, $b->name );
         }
 
-        return strcmp($a->country_code, $b->country_code);
+        return strcmp( $a->country_code, $b->country_code );
     }
 
 
-    public
-    function update_options(
+    public function update_options(
         $force = false
     ) {
 
         static $isUpdating = false;
 
-        if ($isUpdating)
+        if ( $isUpdating )
         {
             return null;
         }
@@ -3259,7 +3541,7 @@ SQL;
 
         $wpdb = self::$wpdb;
 
-        if ($force)
+        if ( $force )
         {
 
             $options = [];
@@ -3272,31 +3554,32 @@ SQL;
             )
             {
 
-                if (function_exists('curl_version'))
+                if ( function_exists( 'curl_version' ) )
                 {
-                    $h = curl_init($url);
-                    curl_setopt($h, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($h, CURLOPT_CONNECTTIMEOUT, 5);
-                    $page = curl_exec($h);
-                    curl_close($h);
+                    $h = curl_init( $url );
+                    curl_setopt( $h, CURLOPT_RETURNTRANSFER, true );
+                    curl_setopt( $h, CURLOPT_CONNECTTIMEOUT, 5 );
+                    $page = curl_exec( $h );
+                    curl_close( $h );
                 }
                 else
                 {
-                    $page = @file_get_contents($url);
+                    $page = @file_get_contents( $url );
                 }
 
-                $options['filenames'][$name] = [];
+                $options['filenames'][ $name ] = [];
 
-                if ($page && preg_match_all(
+                if ( $page
+                    && preg_match_all(
                         "@\shref=\"(?<url>[-.\w]+.zip)\">[^<]+</a>\s+(?<date>[-\d]*?)\s(?:[\d:]+)\s+(?<size>[\w.]+)\s+$@im",
                         $page,
                         $matches,
                         PREG_SET_ORDER
-                    ))
+                    ) )
                 {
                     array_walk(
                         $matches,
-                        static function ($match) use
+                        static function ( $match ) use
                         (
                             $name,
                             &
@@ -3304,31 +3587,31 @@ SQL;
                         )
                         {
 
-                            unset($match[0], $match[1], $match[2]);
-                            $options['filenames'][$name][$match['url']] = $match;
+                            unset( $match[0], $match[1], $match[2] );
+                            $options['filenames'][ $name ][ $match['url'] ] = $match;
                         }
                     );
                 }
 
-                unset($matches, $name, $url);
+                unset( $matches, $name, $url );
             }
 
             $options['filenames']['lastUpdate'] = time();
         }
         else // only keep the 'filenames', if exist
         {
-            $options = get_option('wpGeonames_dataList');
+            $options = get_option( 'wpGeonames_dataList' );
         }
 
         $options['countries'] = [];
         $count                = self::$wpdb->get_results(
             "SELECT COUNT(*) c, country_code FROM {$this->tblLocations} GROUP BY country_code"
         );  // benchmark allCountries : 7.633 sec
-        foreach ($count as $r)
+        foreach ( $count as $r )
         {
-            if ($r->country_code)
+            if ( $r->country_code )
             {
-                $options['countries'][$r->country_code] = $r->c;
+                $options['countries'][ $r->country_code ] = $r->c;
             }
         }
 
@@ -3336,41 +3619,40 @@ SQL;
         $postal            = self::$wpdb->get_results(
             "SELECT COUNT(*) c, country_code FROM {$wpdb->base_prefix}geonamesPostal GROUP BY country_code"
         );
-        foreach ($postal as $r)
+        foreach ( $postal as $r )
         {
-            if ($r->country_code)
+            if ( $r->country_code )
             {
-                $options['postal'][$r->country_code] = $r->c;
+                $options['postal'][ $r->country_code ] = $r->c;
             }
         }
 
         $old = self::$wpdb->get_var(
             "SELECT MAX(modification_date) FROM {$this->tblLocations} LIMIT 1"
         ); // benchmark allCountries : 5.172 sec
-        if ($old)
+        if ( $old )
         {
             $options['date'] = $old;
         }
 
         $isUpdating = true; // avoid infinite loop by get_option()-call in update_option()
-        update_option('wpGeonames_dataList', $options, false);
+        update_option( 'wpGeonames_dataList', $options, false );
         $isUpdating = false;
 
         return $options;
     }
 
 
-    public
-    function verifyAdmin(
+    public function verifyAdmin(
         bool $die = true
     ): bool {
 
-        if (current_user_can("administrator"))
+        if ( current_user_can( "administrator" ) )
         {
             return true;
         }
 
-        if ($die === false)
+        if ( $die === false )
         {
             return false;
         }
@@ -3379,29 +3661,26 @@ SQL;
     }
 
 
-    public
-    function verifyToka(): bool
+    public function verifyToka(): bool
     {
 
         return (
-            empty($_REQUEST['geoToka'])
-            || !wp_verify_nonce($_REQUEST['geoToka'], 'geoToka')
+            empty( $_REQUEST['geoToka'] )
+            || ! wp_verify_nonce( $_REQUEST['geoToka'], 'geoToka' )
         );
     }
 
 
-    public
-    static function Factory(
+    public static function Factory(
         $file = null
     ): Core {
 
         return self::$instance
-            ?: self::$instance = new self($file);
+            ?: self::$instance = new self( $file );
     }
 
 
-    protected
-    static function createWhereFilterIn(
+    protected static function createWhereFilterIn(
         $field,
         $values,
         $relation = 'AND',
@@ -3410,17 +3689,17 @@ SQL;
 
         $base = "\t$relation $field %s\n";
 
-        if ($values === null)
+        if ( $values === null )
         {
-            return sprintf($base, "IS NULL");
+            return sprintf( $base, "IS NULL" );
         }
 
-        return empty($values)
+        return empty( $values )
             ? ''
             : sprintf(
                 $base,
                 "IN ($delim"
-                . implode("$delim, $delim", $values)
+                . implode( "$delim, $delim", $values )
                 . "$delim)"
             );
     }
@@ -3441,7 +3720,7 @@ SQL;
     static function getCachedQuery(
         $query,
         $offset = 0,
-        $limit = -1,
+        $limit = - 1,
         $output = Location::class,
         $key = 'geoname_id',
         $prefix = '_'
@@ -3449,19 +3728,19 @@ SQL;
 
         $self = self::$instance;
 
-        if (is_array($query))
+        if ( is_array( $query ) )
         {
 
             $inCountryCode = $query['searchCountry']
-                ? " AND r.country_code IN ('" . implode("','", $query['searchCountry']) . "')"
+                ? " AND r.country_code IN ('" . implode( "','", $query['searchCountry'] ) . "')"
                 : '';
             $inQueryId     = " AND r.query_id IN (" . implode(
                     ",",
                     array_map(
-                        static function ($query)
+                        static function ( $query )
                         {
 
-                            return is_object($query)
+                            return is_object( $query )
                                 ? $query->query_id
                                 : $query;
                         },
@@ -3473,7 +3752,7 @@ SQL;
         {
             $inCountryCode = '';
             $inQueryId     = ' AND r.query_id = ' . (
-                is_object($query)
+                is_object( $query )
                     ? $query->query_id
                     : $query
                 );
@@ -3481,16 +3760,16 @@ SQL;
 
         $sqlLimit = '';
 
-        if ($offset >= 0 && $limit < 0)
+        if ( $offset >= 0 && $limit < 0 )
         {
             $limit = 18446744073709551615;
         }
 
-        if ($limit >= 0)
+        if ( $limit >= 0 )
         {
             $sqlLimit = "LIMIT $limit\n";
 
-            if ($offset > 0)
+            if ( $offset > 0 )
             {
                 $sqlLimit .= "OFFSET $offset\n";
             }
@@ -3515,22 +3794,21 @@ $sqlLimit
 ;
 SQL;
 
-        $result = self::$wpdb->get_results($sql);
+        $result = self::$wpdb->get_results( $sql );
 
-        return WpDb::formatOutput($result, $output, $key, $prefix);
+        return WpDb::formatOutput( $result, $output, $key, $prefix );
     }
 
 
     /**
      * @return array
      */
-    public
-    static function &getCountryCodes(): ?array
+    public static function &getCountryCodes(): ?array
     {
 
-        if (self::$countryCodes === null)
+        if ( self::$countryCodes === null )
         {
-            self::loadArray('countryCodes');
+            self::loadArray( 'countryCodes' );
         }
 
         return self::$countryCodes;
@@ -3545,50 +3823,49 @@ SQL;
         array &$countryCodes
     ): void {
 
-        self::$countryCodes = self::saveArray('countryCodes', $countryCodes);
+        self::$countryCodes = self::saveArray( 'countryCodes', $countryCodes );
     }
 
 
     /**
      * @return object
      */
-    public
-    static function getEnums()
+    public static function getEnums()
     {
 
         $self = self::Factory();
 
         return self::$enums
-            ?: self::$enums = (object)[
+            ?: self::$enums = (object) [
                 'featureClasses' => new HashTable\Definition(
                     'featureClasses',
                     $self->getPluginDir() . '/includes/feature_classes.php',
                     [
-                        new HashTable\Field($self->tblLocations, 'feature_class'),
+                        new HashTable\Field( $self->tblLocations, 'feature_class' ),
                     ]
                 ),
                 'featureCodes'   => new HashTable\Definition(
                     'featureCodes',
                     $self->getPluginDir() . '/includes/feature_codes.php',
                     [
-                        new HashTable\Field($self->tblLocations, 'feature_code'),
+                        new HashTable\Field( $self->tblLocations, 'feature_code' ),
                     ]
                 ),
                 'countryCodes'   => new HashTable\Definition(
                     'countryCodes',
                     $self->getPluginDir() . '/includes/country_codes.php',
                     [
-                        new HashTable\Field($self->tblLocations, 'country_code'),
-                        new HashTable\Field($self->tblTimeZones, 'country_code'),
-                        new HashTable\Field($self->tblCacheQueries, 'query_country'),
+                        new HashTable\Field( $self->tblLocations, 'country_code' ),
+                        new HashTable\Field( $self->tblTimeZones, 'country_code' ),
+                        new HashTable\Field( $self->tblCacheQueries, 'query_country' ),
                     ]
                 ),
                 'timeZones'      => new HashTable\Definition(
                     'timeZones',
                     $self->getPluginDir() . '/includes/time_zones.php',
                     [
-                        new HashTable\Field($self->tblLocations, 'timezone'),
-                        new HashTable\Field($self->tblCacheQueries, 'timezone'),
+                        new HashTable\Field( $self->tblLocations, 'timezone' ),
+                        new HashTable\Field( $self->tblCacheQueries, 'timezone' ),
                     ]
                 ),
             ];
@@ -3598,13 +3875,12 @@ SQL;
     /**
      * @return array
      */
-    public
-    static function &getFeatureClasses(): ?array
+    public static function &getFeatureClasses(): ?array
     {
 
-        if (self::$featureClasses === null)
+        if ( self::$featureClasses === null )
         {
-            self::loadArray('featureClasses');
+            self::loadArray( 'featureClasses' );
         }
 
         return self::$featureClasses;
@@ -3614,25 +3890,23 @@ SQL;
     /**
      * @param  string[]  $featureClasses
      */
-    public
-    static function setFeatureClasses(
+    public static function setFeatureClasses(
         array &$featureClasses
     ): void {
 
-        self::$featureClasses = self::saveArray('featureClasses', $featureClasses);
+        self::$featureClasses = self::saveArray( 'featureClasses', $featureClasses );
     }
 
 
     /**
      * @return array
      */
-    public
-    static function &getFeatureCodes(): ?array
+    public static function &getFeatureCodes(): ?array
     {
 
-        if (self::$featureCodes === null)
+        if ( self::$featureCodes === null )
         {
-            self::loadArray('featureCodes');
+            self::loadArray( 'featureCodes' );
         }
 
         return self::$featureCodes;
@@ -3642,25 +3916,23 @@ SQL;
     /**
      * @param  array  $featureCodes
      */
-    public
-    static function setFeatureCodes(
+    public static function setFeatureCodes(
         array &$featureCodes
     ): void {
 
-        self::$featureCodes = self::saveArray('featureCodes', $featureCodes);
+        self::$featureCodes = self::saveArray( 'featureCodes', $featureCodes );
     }
 
 
     /**
      * @return mixed
      */
-    public
-    static function getGeoNameClient()
+    public static function getGeoNameClient()
     {
 
         return self::$geoNameClient
             ?: self::$geoNameClient = new GeoNamesClient(
-                get_option('wpGeonames_username')
+                get_option( 'wpGeonames_username' )
                     ?: 'thebrightpath'
             );
     }
@@ -3684,15 +3956,14 @@ SQL;
      *
      * @throws \ErrorException
      */
-    public
-    static function &getLiveSearch(
+    public static function &getLiveSearch(
         $query,
         $output = OBJECT
     ): array {
 
         //self::$instance->creation_table();
 
-        if (!$query instanceof ApiQuery)
+        if ( ! $query instanceof ApiQuery )
         {
 
             $query = new ApiQuery(
@@ -3703,7 +3974,7 @@ SQL;
             );
         }
 
-        $apiResult = $query->query($output);
+        $apiResult = $query->query( $output );
 
         return $apiResult;
     }
@@ -3720,8 +3991,7 @@ SQL;
      *
      * @return array|object|null Database query results
      */
-    public
-    static function getLocations(
+    public static function getLocations(
         $args = [],
         $output = Location::class
     ) {
@@ -3747,10 +4017,10 @@ SQL;
             ]
         );
 
-        if ($args['location__in'])
+        if ( $args['location__in'] )
         {
 
-            $where .= self::createWhereFilterIn('geoname_id', $args['location__in'], 'AND', '');
+            $where .= self::createWhereFilterIn( 'geoname_id', $args['location__in'], 'AND', '' );
         }
         else
         {
@@ -3767,31 +4037,31 @@ SQL;
                 ] as $field
             )
             {
-                $where .= self::createWhereFilterIn($field, $args[$field]);
+                $where .= self::createWhereFilterIn( $field, $args[ $field ] );
             }
         }
 
         // Paging.
-        if (empty($args['no_paging']))
+        if ( empty( $args['no_paging'] ) )
         {
             $page = absint(
                 $args['paged']
                     ?: 1
             );
-            if (!$page)
+            if ( ! $page )
             {
                 $page = 1;
             }
 
             // If 'offset' is provided, it takes precedence over 'paged'.
-            if (isset($args['offset']) && is_numeric($args['offset']))
+            if ( isset( $args['offset'] ) && is_numeric( $args['offset'] ) )
             {
-                $args['offset'] = absint($args['offset']);
+                $args['offset'] = absint( $args['offset'] );
                 $limitStart     = $args['offset'] . ', ';
             }
             else
             {
-                $limitStart = absint(($page - 1) * $args['page_size']) . ', ';
+                $limitStart = absint( ( $page - 1 ) * $args['page_size'] ) . ', ';
             }
             $limits = 'LIMIT ' . $limitStart . $args['page_size'];
         }
@@ -3810,22 +4080,21 @@ SQL;
 
         //echo '<pre>'; print_r( $sql ); echo '</pre>';
 
-        $result = self::$wpdb->get_results($sql);
+        $result = self::$wpdb->get_results( $sql );
 
-        return WpDb::formatOutput($result, $output, 'geonameId', '_');
+        return WpDb::formatOutput( $result, $output, 'geonameId', '_' );
     }
 
 
     /**
      * @return array
      */
-    public
-    static function &getTimeZones(): array
+    public static function &getTimeZones(): array
     {
 
-        if (self::$timeZones === null)
+        if ( self::$timeZones === null )
         {
-            self::loadArray('timeZones');
+            self::loadArray( 'timeZones' );
         }
 
         return self::$timeZones;
@@ -3835,22 +4104,20 @@ SQL;
     /**
      * @param  array  $timeZones
      */
-    public
-    static function setTimeZones(
+    public static function setTimeZones(
         array &$timeZones
     ): void {
 
-        self::$timeZones = self::saveArray('timeZones', $timeZones);
+        self::$timeZones = self::saveArray( 'timeZones', $timeZones );
     }
 
 
-    public
-    static function &loadArray(
+    public static function &loadArray(
         $name
     ) {
 
         /** @noinspection PhpIncludeInspection */
-        self::$$name = require(self::getEnums()->$name->file);
+        self::$$name = require( self::getEnums()->$name->file );
 
         return self::$$name;
     }
@@ -3863,26 +4130,25 @@ SQL;
      *
      * @return array
      */
-    public
-    static function &saveArray(
+    public static function &saveArray(
         string $name,
         array &$array,
         $updateDb = true
     ): array {
 
-        if (empty($array))
+        if ( empty( $array ) )
         {
             return $array;
         }
 
-        if (!is_array($array))
+        if ( ! is_array( $array ) )
         {
             return $array;
         }
 
-        ksort($array);
+        ksort( $array );
 
-        $dump = var_export($array, true);
+        $dump = var_export( $array, true );
 
         file_put_contents(
             self::getEnums()->$name->file,
@@ -3895,12 +4161,12 @@ return $dump;
 EOF
         );
 
-        if ($updateDb)
+        if ( $updateDb )
         {
 
-            $keys = "'" . implode("', '", array_keys($array)) . "'";
+            $keys = "'" . implode( "', '", array_keys( $array ) ) . "'";
 
-            foreach (self::getEnums()->$name->fields as $field)
+            foreach ( self::getEnums()->$name->fields as $field )
             {
                 $sql = <<<SQL
 ALTER TABLE `{$field->table}`
@@ -3910,7 +4176,7 @@ DEFAULT NULL;
 
 SQL;
 
-                self::$wpdb->query($sql) || die($sql);
+                self::$wpdb->query( $sql ) || die( $sql );
             }
         }
 

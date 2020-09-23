@@ -33,11 +33,13 @@ class Country
 {
     use FlexibleObjectTrait;
 
-    // protected properties
+// protected properties
+
     /** @var \WPGeonames\Entities\Country[] */
     protected static $countries = [];
+
     protected static $aliases
-                                = [
+        = [
             'geoname_id'           => 'geonameId',
             'country'              => 'name',
             '$currency_code'       => 'currencyCode',
@@ -45,46 +47,64 @@ class Country
             'currency_name'        => 'currencyName',
             'postal_code_format'   => 'postalCodeFormat',
             'postal_code_regex'    => 'postalCodeRegex',
-            'fips' => 'equivalentFipsCode',
+            'fips'                 => 'equivalentFipsCode',
             'equivalent_fips_code' => 'equivalentFipsCode',
         ];
 
     /** @var string */
     protected $iso2;
+
     /** @var string */
     protected $iso3;
+
     /** @var int */
     protected $isoN;
+
     /** @var string|null */
     protected $fips;
+
     /** @var string */
     protected $country;
+
     /** @var string */
     protected $capital;
+
     /** @var int|null (in sq km) */
     protected $area;
+
     /** @var int|null */
     protected $population;
+
     /** @var string|null enum('af','an','as','eu','na','oc','sa') */
     protected $continent;
+
     /** @var string|null */
     protected $tld;
+
     /** @var string|null */
     protected $currencyCode;
+
     /** @var string|null */
     protected $currencyName;
+
     /** @var string|null */
     protected $phone;
+
     /** @var string|null */
     protected $postalCodeFormat;
+
     /** @var string|null */
     protected $postalCodeRegex;
+
     /** @var string|null */
     protected $languages;
+
     /** @var int */
     protected $geonameId;
+
     /** @var string|null */
     protected $neighbours;
+
     /** @var int|null */
     protected $equivalentFipsCode;
 
@@ -104,7 +124,7 @@ class Country
      *
      * @return Country
      */
-    public function setArea(int $area): Country
+    public function setArea( int $area ): Country
     {
 
         $this->area = $area;
@@ -128,7 +148,7 @@ class Country
      *
      * @return Country
      */
-    public function setCapital(string $capital): Country
+    public function setCapital( string $capital ): Country
     {
 
         $this->capital = $capital;
@@ -152,7 +172,7 @@ class Country
      *
      * @return Country
      */
-    public function setContinent(string $continent): Country
+    public function setContinent( string $continent ): Country
     {
 
         $this->continent = $continent;
@@ -176,7 +196,7 @@ class Country
      *
      * @return Country
      */
-    public function setCurrencyCode(string $currencyCode): Country
+    public function setCurrencyCode( string $currencyCode ): Country
     {
 
         $this->currencyCode = $currencyCode;
@@ -200,7 +220,7 @@ class Country
      *
      * @return Country
      */
-    public function setCurrencyName(string $currencyName): Country
+    public function setCurrencyName( string $currencyName ): Country
     {
 
         $this->currencyName = $currencyName;
@@ -224,7 +244,7 @@ class Country
      *
      * @return Country
      */
-    public function setEquivalentFipsCode(string $equivalentFipsCode): Country
+    public function setEquivalentFipsCode( string $equivalentFipsCode ): Country
     {
 
         $this->equivalentFipsCode = $equivalentFipsCode;
@@ -248,7 +268,7 @@ class Country
      *
      * @return Country
      */
-    public function setGeonameId(int $geonameId): Country
+    public function setGeonameId( int $geonameId ): Country
     {
 
         $this->geonameId = $geonameId;
@@ -272,7 +292,7 @@ class Country
      *
      * @return Country
      */
-    public function setIso2(string $iso2): Country
+    public function setIso2( string $iso2 ): Country
     {
 
         $this->iso2 = $iso2;
@@ -296,7 +316,7 @@ class Country
      *
      * @return Country
      */
-    public function setIso3(string $iso3): Country
+    public function setIso3( string $iso3 ): Country
     {
 
         $this->iso3 = $iso3;
@@ -320,7 +340,7 @@ class Country
      *
      * @return Country
      */
-    public function setIsoN(int $isoN): Country
+    public function setIsoN( int $isoN ): Country
     {
 
         $this->isoN = $isoN;
@@ -344,7 +364,7 @@ class Country
      *
      * @return Country
      */
-    public function setLanguages(string $languages): Country
+    public function setLanguages( string $languages ): Country
     {
 
         $this->languages = $languages;
@@ -378,7 +398,7 @@ class Country
      *
      * @return Country
      */
-    public function setNeighbours(string $neighbours): Country
+    public function setNeighbours( string $neighbours ): Country
     {
 
         $this->neighbours = $neighbours;
@@ -402,7 +422,7 @@ class Country
      *
      * @return Country
      */
-    public function setPhone(string $phone): Country
+    public function setPhone( string $phone ): Country
     {
 
         $this->phone = $phone;
@@ -426,7 +446,7 @@ class Country
      *
      * @return Country
      */
-    public function setPopulation(int $population): Country
+    public function setPopulation( int $population ): Country
     {
 
         $this->population = $population;
@@ -450,7 +470,7 @@ class Country
      *
      * @return Country
      */
-    public function setPostalCodeFormat(string $postalCodeFormat): Country
+    public function setPostalCodeFormat( string $postalCodeFormat ): Country
     {
 
         $this->postalCodeFormat = $postalCodeFormat;
@@ -474,7 +494,7 @@ class Country
      *
      * @return Country
      */
-    public function setPostalCodeRegex(string $postalCodeRegex): Country
+    public function setPostalCodeRegex( string $postalCodeRegex ): Country
     {
 
         $this->postalCodeRegex = $postalCodeRegex;
@@ -498,7 +518,7 @@ class Country
      *
      * @return Country
      */
-    public function setTld(string $tld): Country
+    public function setTld( string $tld ): Country
     {
 
         $this->tld = $tld;
@@ -512,7 +532,7 @@ class Country
      *
      * @return Country
      */
-    public function setName(string $name): Country
+    public function setName( string $name ): Country
     {
 
         $this->name = $name;
@@ -521,26 +541,26 @@ class Country
     }
 
 
-    public static function load(string $country): self
+    public static function load( string $country ): self
     {
 
-        if (is_numeric($country))
+        if ( is_numeric( $country ) )
         {
-            if (array_key_exists("_$country", static::$countries))
+            if ( array_key_exists( "_$country", static::$countries ) )
             {
                 return static::$countries["_$country"];
             }
 
-            $sqlWhere = Core::$wpdb->prepare("geoname_id = %d", $country);
+            $sqlWhere = Core::$wpdb->prepare( "geoname_id = %d", $country );
         }
         else
         {
-            if (array_key_exists($country, static::$countries))
+            if ( array_key_exists( $country, static::$countries ) )
             {
-                return static::$countries[$country];
+                return static::$countries[ $country ];
             }
 
-            $sqlWhere = Core::$wpdb->prepare("iso2 = %s", $country);
+            $sqlWhere = Core::$wpdb->prepare( "iso2 = %s", $country );
         }
 
         $table = Core::Factory()
@@ -557,17 +577,17 @@ class Country
 SQL;
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $country = Core::$wpdb->get_row($sql);
+        $country = Core::$wpdb->get_row( $sql );
 
-        if (Core::$wpdb->last_error_no)
+        if ( Core::$wpdb->last_error_no )
         {
-            throw new \ErrorException(Core::$wpdb->last_error, Core::$wpdb->last_error_no);
+            throw new \ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */
-        $country = new static($country);
+        $country = new static( $country );
 
-        static::$countries[$country->iso2]         = $country;
+        static::$countries[ $country->iso2 ]       = $country;
         static::$countries["_$country->geonameId"] = $country;
 
         return $country;

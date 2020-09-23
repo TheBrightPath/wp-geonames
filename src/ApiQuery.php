@@ -22,6 +22,7 @@ use WPGeonames\Traits\FlexibleObjectTrait;
 class ApiQuery
     implements FlexibleObject
 {
+
     use FlexibleObjectTrait
     {
         __construct as protected ___construct;
@@ -29,7 +30,7 @@ class ApiQuery
         toArray as protected ___toArray;
     }
 
-    // constants
+// constants
     public const MAX_ROWS                  = 1000;
     public const MAX_START_ROW_FREE        = 5000;
     public const MAX_START_ROW_PREMIUM     = 25000;
@@ -69,7 +70,7 @@ class ApiQuery
     public const SEARCH_TYPE_Q             = 2 ** 1;
     public const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
 
-    //  public properties
+//  public properties
     static $aliases
         = [
             'feature_class'                     => 'featureClass',
@@ -84,7 +85,7 @@ class ApiQuery
             ApiQuery::SEARCH_NAME_START_OF_NAME => 'nameStartsWith',
         ];
 
-    // protected properties
+// protected properties
     /**
      * @var string
      */
@@ -244,7 +245,7 @@ class ApiQuery
         $defaults = self::QUERY_DEFAULTS
     ) {
 
-        $this->___construct($values, wp_parse_args($defaults, self::QUERY_DEFAULTS));
+        $this->___construct( $values, wp_parse_args( $defaults, self::QUERY_DEFAULTS ) );
 
     }
 
@@ -264,7 +265,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode1(string $adminCode1): ApiQuery
+    public function setAdminCode1( string $adminCode1 ): ApiQuery
     {
 
         $this->adminCode1 = $adminCode1;
@@ -328,7 +329,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCharset(string $charset): ApiQuery
+    public function setCharset( string $charset ): ApiQuery
     {
 
         $this->charset = $charset;
@@ -352,7 +353,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCities(string $cities): ApiQuery
+    public function setCities( string $cities ): ApiQuery
     {
 
         $this->cities = $cities;
@@ -376,7 +377,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setContinentCode($continentCode): ApiQuery
+    public function setContinentCode( $continentCode ): ApiQuery
     {
 
         $this->continentCode = $continentCode;
@@ -400,7 +401,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCountry($country): ApiQuery
+    public function setCountry( $country ): ApiQuery
     {
 
         $this->country = $country;
@@ -412,8 +413,8 @@ class ApiQuery
     public function getCountryAsArray(): array
     {
 
-        $countries = array_filter(acf_get_array($this->country, ','));
-        sort($countries);
+        $countries = array_filter( acf_get_array( $this->country, ',' ) );
+        sort( $countries );
 
         return $countries;
     }
@@ -434,7 +435,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setCountryBias(string $countryBias): ApiQuery
+    public function setCountryBias( string $countryBias ): ApiQuery
     {
 
         $this->countryBias = $countryBias;
@@ -458,7 +459,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setEast(float $east): ApiQuery
+    public function setEast( float $east ): ApiQuery
     {
 
         $this->east = $east;
@@ -482,7 +483,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setFeatureClass($featureClass): ApiQuery
+    public function setFeatureClass( $featureClass ): ApiQuery
     {
 
         $this->featureClass = $featureClass;
@@ -506,7 +507,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setFeatureCode($featureCode): ApiQuery
+    public function setFeatureCode( $featureCode ): ApiQuery
     {
 
         $this->featureCode = $featureCode;
@@ -530,7 +531,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setFuzzy(float $fuzzy): ApiQuery
+    public function setFuzzy( float $fuzzy ): ApiQuery
     {
 
         $this->fuzzy = $fuzzy;
@@ -554,7 +555,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setLang(string $lang): ApiQuery
+    public function setLang( string $lang ): ApiQuery
     {
 
         $this->lang = $lang;
@@ -578,7 +579,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setMaxRows(int $maxRows): ApiQuery
+    public function setMaxRows( int $maxRows ): ApiQuery
     {
 
         $this->maxRows = $maxRows;
@@ -602,7 +603,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setMaxStartRow(int $maxStartRow): ApiQuery
+    public function setMaxStartRow( int $maxStartRow ): ApiQuery
     {
 
         $this->maxStartRow = $maxStartRow;
@@ -636,10 +637,10 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setOperator(string $operator): ApiQuery
+    public function setOperator( string $operator ): ApiQuery
     {
 
-        $this->operator = strtoupper($operator);
+        $this->operator = strtoupper( $operator );
 
         return $this;
     }
@@ -660,7 +661,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setOrderby(string $orderby): ApiQuery
+    public function setOrderby( string $orderby ): ApiQuery
     {
 
         $this->orderby = $orderby;
@@ -684,7 +685,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSearchTerm(string $searchTerm): ApiQuery
+    public function setSearchTerm( string $searchTerm ): ApiQuery
     {
 
         $this->searchTerm = $searchTerm;
@@ -708,7 +709,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSearchType(int $searchType): ApiQuery
+    public function setSearchType( int $searchType ): ApiQuery
     {
 
         $this->searchType = $searchType;
@@ -732,7 +733,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSearchlang(string $searchlang): ApiQuery
+    public function setSearchlang( string $searchlang ): ApiQuery
     {
 
         $this->searchlang = $searchlang;
@@ -744,21 +745,21 @@ class ApiQuery
     public function getSingleCountry(): ?string
     {
 
-        $country = is_array($this->country)
-            ? array_filter($this->country)
+        $country = is_array( $this->country )
+            ? array_filter( $this->country )
             : $this->country;
 
-        if (empty($country))
+        if ( empty( $country ) )
         {
             return null;
         }
 
-        if (is_array($country) && count($country) === 1)
+        if ( is_array( $country ) && count( $country ) === 1 )
         {
-            return reset($country);
+            return reset( $country );
         }
 
-        if (is_string($country))
+        if ( is_string( $country ) )
         {
             return $country
                 ?: null;
@@ -794,10 +795,10 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setStartRow(int $startRow): ApiQuery
+    public function setStartRow( int $startRow ): ApiQuery
     {
 
-        if ($this->page === null)
+        if ( $this->page === null )
         {
             $this->startRow = $startRow;
         }
@@ -821,7 +822,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setStyle(string $style): ApiQuery
+    public function setStyle( string $style ): ApiQuery
     {
 
         $this->style = $style;
@@ -845,7 +846,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setTag(string $tag): ApiQuery
+    public function setTag( string $tag ): ApiQuery
     {
 
         $this->tag = $tag;
@@ -869,7 +870,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setType(string $type): ApiQuery
+    public function setType( string $type ): ApiQuery
     {
 
         $this->type = $type;
@@ -903,7 +904,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setInclBbox(bool $inclBbox): ApiQuery
+    public function setInclBbox( bool $inclBbox ): ApiQuery
     {
 
         $this->inclBbox = $inclBbox;
@@ -927,7 +928,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setIsNameRequired(bool $isNameRequired): ApiQuery
+    public function setIsNameRequired( bool $isNameRequired ): ApiQuery
     {
 
         $this->isNameRequired = $isNameRequired;
@@ -941,7 +942,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode2(string $adminCode2): ApiQuery
+    public function setAdminCode2( string $adminCode2 ): ApiQuery
     {
 
         $this->adminCode2 = $adminCode2;
@@ -955,7 +956,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode3(string $adminCode3): ApiQuery
+    public function setAdminCode3( string $adminCode3 ): ApiQuery
     {
 
         $this->adminCode3 = $adminCode3;
@@ -969,7 +970,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode4(string $adminCode4): ApiQuery
+    public function setAdminCode4( string $adminCode4 ): ApiQuery
     {
 
         $this->adminCode4 = $adminCode4;
@@ -983,7 +984,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setAdminCode5(string $adminCode5): ApiQuery
+    public function setAdminCode5( string $adminCode5 ): ApiQuery
     {
 
         $this->adminCode5 = $adminCode5;
@@ -997,7 +998,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setName(string $name): ApiQuery
+    public function setName( string $name ): ApiQuery
     {
 
         $this->searchTerm = $name;
@@ -1012,7 +1013,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNameEquals(string $name_equals): ApiQuery
+    public function setNameEquals( string $name_equals ): ApiQuery
     {
 
         $this->searchTerm = $name_equals;
@@ -1027,7 +1028,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNameStartsWith(string $name_startsWith): ApiQuery
+    public function setNameStartsWith( string $name_startsWith ): ApiQuery
     {
 
         $this->searchTerm = $name_startsWith;
@@ -1042,7 +1043,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setNorth(float $north): ApiQuery
+    public function setNorth( float $north ): ApiQuery
     {
 
         $this->north = $north;
@@ -1051,32 +1052,32 @@ class ApiQuery
     }
 
 
-    public function setPaged($page)
+    public function setPaged( $page )
     {
 
         // reset page status
         $this->page = null;
 
-        if ($page === null || !is_numeric($page))
+        if ( $page === null || ! is_numeric( $page ) )
         {
             // ignore invalid values
             return $this;
         }
 
-        $page = (int)$page;
+        $page = (int) $page;
 
-        if ($page <= 0)
+        if ( $page <= 0 )
         {
             // return as much as we can
-            return $this->setStartRow(0)
-                        ->setMaxRows(self::MAX_ROWS)
+            return $this->setStartRow( 0 )
+                        ->setMaxRows( self::MAX_ROWS )
                 ;
         }
 
         // calculate the first to-be-returned row
-        $start = ($page - 1) * $this->getMaxRows();
+        $start = ( $page - 1 ) * $this->getMaxRows();
 
-        $this->setStartRow($start);
+        $this->setStartRow( $start );
 
         // remember the page, also to avoid overwriting the $startRow
         $this->page = $page;
@@ -1090,7 +1091,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setQ(string $q): ApiQuery
+    public function setQ( string $q ): ApiQuery
     {
 
         $this->searchTerm = $q;
@@ -1105,7 +1106,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setSouth(float $south): ApiQuery
+    public function setSouth( float $south ): ApiQuery
     {
 
         $this->south = $south;
@@ -1119,7 +1120,7 @@ class ApiQuery
      *
      * @return ApiQuery
      */
-    public function setWest(float $west): ApiQuery
+    public function setWest( float $west ): ApiQuery
     {
 
         $this->west = $west;
@@ -1143,11 +1144,11 @@ class ApiQuery
         $array = $this->___cleanArray(
             wp_parse_args(
                 $array ?? $this->toArray(),
-                ['operator' => 'AND']
+                [ 'operator' => 'AND' ]
             )
         );
 
-        switch ($array['operator'])
+        switch ( $array['operator'] )
         {
         case 'OR':
             break;
@@ -1160,15 +1161,15 @@ class ApiQuery
                 self::SEARCH_NAME_Q,
             ];
 
-            while ($searchKey = array_shift($searchKeys))
+            while ( $searchKey = array_shift( $searchKeys ) )
             {
 
-                if (array_key_exists($searchKey, $array))
+                if ( array_key_exists( $searchKey, $array ) )
                 {
 
-                    foreach ($searchKeys as $search_key)
+                    foreach ( $searchKeys as $search_key )
                     {
-                        unset ($array[$search_key]);
+                        unset ( $array[ $search_key ] );
                     }
 
                     break;
@@ -1177,18 +1178,18 @@ class ApiQuery
 
             }
 
-            unset ($searchKeys);
+            unset ( $searchKeys );
 
             break;
 
         default:
-            throw new ErrorException(__('Unknown query operator: ') . $array['operator']);
+            throw new ErrorException( __( 'Unknown query operator: ' ) . $array['operator'] );
         }
 
-        if ($unset !== null)
+        if ( $unset !== null )
         {
 
-            if (!is_array($unset))
+            if ( ! is_array( $unset ) )
             {
                 $unset = [
                     'maxRows',
@@ -1206,11 +1207,10 @@ class ApiQuery
                 ];
             }
 
-            foreach ($unset as $param)
+            foreach ( $unset as $param )
             {
 
-                unset($array[$param]);
-
+                unset( $array[ $param ] );
             }
 
         }
@@ -1220,7 +1220,7 @@ class ApiQuery
     }
 
 
-    public function query($output = Location::class)
+    public function query( $output = Location::class )
     {
 
         $searchTypes = [
@@ -1233,22 +1233,22 @@ class ApiQuery
         $g           = Core::getGeoNameClient();
         $apiResult   = null;
 
-        rsort($searchTypes, SORT_NUMERIC);
+        rsort( $searchTypes, SORT_NUMERIC );
 
-        foreach ($searchTypes as $searchType)
+        foreach ( $searchTypes as $searchType )
         {
 
-            if (($this->searchType & $searchType) === 0)
+            if ( ( $this->searchType & $searchType ) === 0 )
             {
                 continue;
             }
 
-            if (($params = $this->toArray($searchType)) === false)
+            if ( ( $params = $this->toArray( $searchType ) ) === false )
             {
                 continue;
             }
 
-            $search_type = key($params);
+            $search_type = key( $params );
 
             $apiResult = new ApiQueryStatus(
                 $searchType,
@@ -1260,16 +1260,16 @@ class ApiQuery
                     : null
             );
 
-            $params = apply_filters("geonames/api/params/type=$searchType", $params, $apiResult);
-            $params = apply_filters("geonames/api/params/name=$search_type", $params, $apiResult);
-            $params = apply_filters("geonames/api/params", $params, $apiResult);
+            $params = apply_filters( "geonames/api/params/type=$searchType", $params, $apiResult );
+            $params = apply_filters( "geonames/api/params/name=$search_type", $params, $apiResult );
+            $params = apply_filters( "geonames/api/params", $params, $apiResult );
 
-            if ($params === null || $params['startRow'] >= $this->maxStartRow)
+            if ( $params === null || $params['startRow'] >= $this->maxStartRow )
             {
-                $apiResult = apply_filters("geonames/cache/result", $apiResult);
-                $apiResult = apply_filters("geonames/cache/result/type=$searchType", $apiResult);
+                $apiResult = apply_filters( "geonames/cache/result", $apiResult );
+                $apiResult = apply_filters( "geonames/cache/result/type=$searchType", $apiResult );
 
-                if (!empty($apiResult->result))
+                if ( ! empty( $apiResult->result ) )
                 {
                     $results += $apiResult->result;
                 }
@@ -1285,23 +1285,23 @@ class ApiQuery
             do
             {
 
-                $result             = $g->search($params);
-                $count              = count($result);
+                $result             = $g->search( $params );
+                $count              = count( $result );
                 $apiResult->total   = $g->getLastTotalResultsCount();
-                $apiResult->result  += WpDb::formatOutput($result, $output, 'geonameId', '_');
+                $apiResult->result  += WpDb::formatOutput( $result, $output, 'geonameId', '_' );
                 $params['startRow'] += $count;
 
-                unset ($result);
+                unset ( $result );
 
             }
-            while ($count === $params['maxRows'] && $params['startRow'] < $this->maxStartRow);
+            while ( $count === $params['maxRows'] && $params['startRow'] < $this->maxStartRow );
 
-            unset ($count);
+            unset ( $count );
 
-            $apiResult = apply_filters("geonames/api/result", $apiResult);
-            $apiResult = apply_filters("geonames/api/result/type=$searchType", $apiResult);
+            $apiResult = apply_filters( "geonames/api/result", $apiResult );
+            $apiResult = apply_filters( "geonames/api/result/type=$searchType", $apiResult );
 
-            if (!empty($apiResult->result))
+            if ( ! empty( $apiResult->result ) )
             {
                 $results += $apiResult->result;
             }
@@ -1318,23 +1318,23 @@ class ApiQuery
      *
      * @return array|false|string[]
      */
-    public function toArray($searchType = null): array
+    public function toArray( $searchType = null ): array
     {
 
         $params = $this->___toArray();
 
-        if ($searchType === null)
+        if ( $searchType === null )
         {
             return $params;
         }
 
         $searchParameter = null;
 
-        unset($params['searchType']);
-        unset($params['searchTerm']);
-        unset($params['ignoreNonExistingPropertyOnSet']);
+        unset( $params['searchType'] );
+        unset( $params['searchTerm'] );
+        unset( $params['ignoreNonExistingPropertyOnSet'] );
 
-        switch ($searchType)
+        switch ( $searchType )
         {
 
         case self::SEARCH_TYPE_Q:
@@ -1343,12 +1343,12 @@ class ApiQuery
 
         case self::SEARCH_TYPE_START_OF_NAME:
             $searchParameter = self::SEARCH_NAME_START_OF_NAME;
-            unset($params['fuzzy']);
+            unset( $params['fuzzy'] );
             break;
 
             /** @noinspection PhpMissingBreakStatementInspection */
         case self::SEARCH_TYPE_NAME:
-            unset($params['fuzzy']);
+            unset( $params['fuzzy'] );
             // continue with next
 
         case self::SEARCH_TYPE_FUZZY_NAME:
@@ -1357,17 +1357,17 @@ class ApiQuery
 
         case self::SEARCH_TYPE_EXACT_NAME:
             $searchParameter = self::SEARCH_NAME_EXACT_NAME;
-            unset($params['fuzzy']);
+            unset( $params['fuzzy'] );
             break;
 
         }
 
-        if ($searchParameter === null)
+        if ( $searchParameter === null )
         {
             return false;
         }
 
-        return [$searchParameter => $this->searchTerm] + $params;
+        return [ $searchParameter => $this->searchTerm ] + $params;
 
     }
 
@@ -1382,22 +1382,22 @@ class ApiQuery
     }
 
 
-    public static function translateSearchType($searchType)
+    public static function translateSearchType( $searchType )
     {
 
-        if ($searchType === null)
+        if ( $searchType === null )
         {
             return null;
         }
 
-        if (is_string($searchType))
+        if ( is_string( $searchType ) )
         {
-            return array_flip(self::SEARCH_TYPES)[$searchType] ?? null;
+            return array_flip( self::SEARCH_TYPES )[ $searchType ] ?? null;
         }
 
-        if (is_numeric($searchType))
+        if ( is_numeric( $searchType ) )
         {
-            return self::SEARCH_TYPES[$searchType] ?? null;
+            return self::SEARCH_TYPES[ $searchType ] ?? null;
         }
 
         return false;

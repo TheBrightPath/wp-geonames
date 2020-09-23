@@ -39,9 +39,10 @@ class Location
     extends FlexibleDbObject
 {
 
-    // protected properties
+// protected properties
+
     protected static $aliases
-                               = [
+        = [
             'geoname_id'      => 'geonameId',
             'toponymName'     => 'name',
             'ascii_name'      => 'asciiName',
@@ -64,33 +65,82 @@ class Location
             'lng'             => 'longitude',
             'lat'             => 'latitude',
         ];
-    protected        $geonameId;
-    protected        $name;
-    protected        $asciiName;
-    protected        $featureClass;
-    protected        $featureCode;
-    protected        $country;
-    protected        $adminCode1;
-    protected        $adminId1;
-    protected        $adminCode2;
-    protected        $adminId2;
-    protected        $adminCode3;
-    protected        $adminId3;
-    protected        $adminCode4;
-    protected        $adminId4;
-    protected        $longitude;
-    protected        $latitude;
-    protected        $alternateNames;
-    protected        $countryId;
-    protected        $population;
-    protected        $bbox;
-    protected        $elevation;
-    protected        $timezone;
-    protected        $children = [];
+
+    /** @var int */
+    protected $geonameId;
+
+    /** @var string */
+    protected $name;
+
+    /** @var string */
+    protected $asciiName;
+
+    /** @var string */
+    protected $featureClass;
+
+    /** @var string */
+    protected $featureCode;
+
+    /** @var \WPGeonames\Entities\Country */
+    protected $country;
+
+    /** @var string */
+    protected $adminCode1;
+
+    /** @var int */
+    protected $adminId1;
+
+    /** @var string */
+    protected $adminCode2;
+
+    /** @var int */
+    protected $adminId2;
+
+    /** @var string */
+    protected $adminCode3;
+
+    /** @var int */
+    protected $adminId3;
+
+    /** @var string */
+    protected $adminCode4;
+
+    /** @var int */
+    protected $adminId4;
+
+    /** @var float */
+    protected $longitude;
+
+    /** @var float */
+    protected $latitude;
+
+    /** @var string[] */
+    protected $alternateNames;
+
+    /** @var int */
+    protected $countryId;
+
+    /** @var int */
+    protected $population;
+
+    /** @var \WPGeonames\Entities\BBox */
+    protected $bbox;
+
+    /** @var int */
+    protected $elevation;
+
+    /** @var \WPGeonames\Entities\Timezone */
+    protected $timezone;
+
+    /** @var \WPGeonames\Entities\Location|null */
+    protected $children = [];
+
     /** @var string */
     protected $continentCode;
+
     /** @var float|null */
     protected $score;
+
     /** @var string */
     protected static $timezoneClass = Timezone::class;
 
@@ -101,26 +151,24 @@ class Location
         $locale = null
     ) {
 
-        if ($locale === false)
+        if ( $locale === false )
         {
-            return $dateTime->format($format);
+            return $dateTime->format( $format );
         }
 
-        if (class_exists("IntlDateFormatter"))
+        if ( class_exists( "IntlDateFormatter" ) )
         {
             /**
              * @see https://unicode-org.github.io/icu/userguide/format_parse/datetime/
              */
-            return IntlDateFormatter::formatObject($dateTime, $format, $locale ?? setlocale(LC_TIME, 0));
+            return IntlDateFormatter::formatObject( $dateTime, $format, $locale ?? setlocale( LC_TIME, 0 ) );
         }
-        else
-        {
-            $oldLocale = setlocale(LC_TIME, $locale ?? 0);
-            $result    = utf8_encode(strftime($format, $dateTime->getTimestamp()));
-            setlocale(LC_TIME, $oldLocale);
 
-            return $result;
-        }
+        $oldLocale = setlocale( LC_TIME, $locale ?? 0 );
+        $result    = utf8_encode( strftime( $format, $dateTime->getTimestamp() ) );
+        setlocale( LC_TIME, $oldLocale );
+
+        return $result;
 
     }
 
@@ -136,18 +184,18 @@ class Location
         $format
     ) {
 
-        if (is_numeric($x))
+        if ( is_numeric( $x ) )
         {
             $x = "adminCode$x";
         }
 
-        if ($this->$x === null)
+        if ( $this->$x === null )
         {
             return null;
         }
 
         return $format
-            ? ($this->$x)[$format]
+            ? ( $this->$x )[ $format ]
             : $this->$x;
     }
 
@@ -157,10 +205,10 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode1($format = 'ISO3166_2')
+    public function getAdminCode1( $format = 'ISO3166_2' )
     {
 
-        return $this->getAdminCode(1, $format);
+        return $this->getAdminCode( 1, $format );
     }
 
 
@@ -169,10 +217,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode1($adminCode): Location
+    public function setAdminCode1( $adminCode ): Location
     {
 
-        return $this->setAdminCode(1, $adminCode);
+        return $this->setAdminCode( 1, $adminCode );
     }
 
 
@@ -181,10 +229,10 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode2($format = 'ISO3166_2')
+    public function getAdminCode2( $format = 'ISO3166_2' )
     {
 
-        return $this->getAdminCode(2, $format);
+        return $this->getAdminCode( 2, $format );
     }
 
 
@@ -193,10 +241,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode2($adminCode): Location
+    public function setAdminCode2( $adminCode ): Location
     {
 
-        return $this->setAdminCode(2, $adminCode);
+        return $this->setAdminCode( 2, $adminCode );
     }
 
 
@@ -205,10 +253,10 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode3($format = 'ISO3166_2')
+    public function getAdminCode3( $format = 'ISO3166_2' )
     {
 
-        return $this->getAdminCode(3, $format);
+        return $this->getAdminCode( 3, $format );
     }
 
 
@@ -217,10 +265,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode3($adminCode): Location
+    public function setAdminCode3( $adminCode ): Location
     {
 
-        return $this->setAdminCode(3, $adminCode);
+        return $this->setAdminCode( 3, $adminCode );
     }
 
 
@@ -229,10 +277,10 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode4($format = 'ISO3166_2')
+    public function getAdminCode4( $format = 'ISO3166_2' )
     {
 
-        return $this->getAdminCode(4, $format);
+        return $this->getAdminCode( 4, $format );
     }
 
 
@@ -241,10 +289,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode4($adminCode): Location
+    public function setAdminCode4( $adminCode ): Location
     {
 
-        return $this->setAdminCode(4, $adminCode);
+        return $this->setAdminCode( 4, $adminCode );
     }
 
 
@@ -263,7 +311,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId1(?int $adminId1): Location
+    public function setAdminId1( ?int $adminId1 ): Location
     {
 
         $this->adminId1 = $adminId1;
@@ -287,7 +335,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId2(?int $adminId2): Location
+    public function setAdminId2( ?int $adminId2 ): Location
     {
 
         $this->adminId2 = $adminId2;
@@ -311,7 +359,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId3(?int $adminId3): Location
+    public function setAdminId3( ?int $adminId3 ): Location
     {
 
         $this->adminId3 = $adminId3;
@@ -335,7 +383,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId4(?int $adminId4): Location
+    public function setAdminId4( ?int $adminId4 ): Location
     {
 
         $this->adminId4 = $adminId4;
@@ -347,20 +395,20 @@ class Location
     /**
      * @return mixed
      */
-    public function getAlternateNames($lang = null)
+    public function getAlternateNames( $lang = null )
     {
 
-        if ($lang === null)
+        if ( $lang === null )
         {
             return $this->alternateNames;
         }
 
-        if (strtolower($lang) === 'json')
+        if ( strtolower( $lang ) === 'json' )
         {
-            return \GuzzleHttp\json_encode($this->alternateNames);
+            return \GuzzleHttp\json_encode( $this->alternateNames );
         }
 
-        return $this->alternateNames[$lang] ?? null;
+        return $this->alternateNames[ $lang ] ?? null;
     }
 
 
@@ -369,34 +417,34 @@ class Location
      *
      * @return Location
      */
-    public function setAlternateNames($alternateNames): Location
+    public function setAlternateNames( $alternateNames ): Location
     {
 
-        if (is_string($alternateNames))
+        if ( is_string( $alternateNames ) )
         {
-            $alternateNames = \GuzzleHttp\json_decode($alternateNames);
+            $alternateNames = \GuzzleHttp\json_decode( $alternateNames );
         }
 
-        if (is_array($alternateNames))
+        if ( is_array( $alternateNames ) )
         {
 
-            if (key($alternateNames) === 0)
+            if ( key( $alternateNames ) === 0 )
             {
                 $new = [];
 
-                foreach ($alternateNames as $alternateName)
+                foreach ( $alternateNames as $alternateName )
                 {
-                    if (isset($alternateName->lang))
+                    if ( isset( $alternateName->lang ) )
                     {
-                        $new[$alternateName->lang] = $alternateName->name;
+                        $new[ $alternateName->lang ] = $alternateName->name;
                     }
                 }
 
                 $alternateNames = $new;
-                unset($new);
+                unset( $new );
             }
 
-            $alternateNames = (object)$alternateNames;
+            $alternateNames = (object) $alternateNames;
         }
 
         $this->alternateNames = $alternateNames;
@@ -420,7 +468,7 @@ class Location
      *
      * @return Location
      */
-    public function setAsciiName(string $asciiName): Location
+    public function setAsciiName( string $asciiName ): Location
     {
 
         $this->asciiName = $asciiName;
@@ -432,25 +480,25 @@ class Location
     /**
      * @return mixed
      */
-    public function getBbox($property = null)
+    public function getBbox( $property = null )
     {
 
-        if ($this->bbox === null)
+        if ( $this->bbox === null )
         {
             return null;
         }
 
-        if (!$this->bbox instanceof BBox)
+        if ( ! $this->bbox instanceof BBox )
         {
-            $this->bbox = new BBox($this->bbox);
+            $this->bbox = new BBox( $this->bbox );
         }
 
-        if ($property === null)
+        if ( $property === null )
         {
             return $this->bbox;
         }
 
-        if (strtolower($property) === 'json')
+        if ( strtolower( $property ) === 'json' )
         {
             return $this->bbox->__toString();
         }
@@ -464,7 +512,7 @@ class Location
      *
      * @return Location
      */
-    public function setBbox($bbox)
+    public function setBbox( $bbox )
     {
 
         $this->bbox = $bbox;
@@ -481,35 +529,35 @@ class Location
         ?bool $returnAsLocations = true
     ) {
 
-        static $hierarchies = ['adm', 'tourism', 'geography', 'dependency'];
+        static $hierarchies = [ 'adm', 'tourism', 'geography', 'dependency' ];
 
-        if ($hierarchy === null && $returnAsLocations === null)
+        if ( $hierarchy === null && $returnAsLocations === null )
         {
             return $this->children;
         }
 
-        if ($hierarchy === 'json')
+        if ( $hierarchy === 'json' )
         {
-            return empty($this->children)
+            return empty( $this->children )
                 ? null
-                : \GuzzleHttp\json_encode($this->getChildren(false, false));
+                : \GuzzleHttp\json_encode( $this->getChildren( false, false ) );
         }
 
-        if (!array_key_exists($hierarchy, $hierarchies))
+        if ( ! array_key_exists( $hierarchy, $hierarchies ) )
         {
             return null;
         }
 
         $keys = $hierarchy
-            ? [$hierarchy]
+            ? [ $hierarchy ]
             : $hierarchies;
 
         $result = [];
         $save   = false;
 
-        foreach ($keys as $key)
+        foreach ( $keys as $key )
         {
-            if ($hierarchy !== false && !array_key_exists($hierarchy, $this->children))
+            if ( $hierarchy !== false && ! array_key_exists( $hierarchy, $this->children ) )
             {
                 $g      = Core::getGeoNameClient();
                 $params = [
@@ -518,19 +566,19 @@ class Location
                     'maxRows'   => 1000,
                 ];
 
-                if ($hierarchy !== 'adm')
+                if ( $hierarchy !== 'adm' )
                 {
                     $params['hierarchy'] = $hierarchy;
                 }
 
-                $this->children[$key] = $g->children($params);
+                $this->children[ $key ] = $g->children( $params );
 
                 array_walk(
-                    $this->children[$key],
-                    static function (&$child)
+                    $this->children[ $key ],
+                    static function ( &$child )
                     {
 
-                        $child = new Location($child);
+                        $child = new Location( $child );
                         $child->save();
                     }
                 );
@@ -538,36 +586,36 @@ class Location
                 $save = true;
             }
 
-            foreach ($this->children[$key] as $value)
+            foreach ( $this->children[ $key ] as $value )
             {
-                switch (true)
+                switch ( true )
                 {
                 case $returnAsLocations === true:
-                    $result[$key][] = $value instanceof Location
+                    $result[ $key ][] = $value instanceof Location
                         ? $value
-                        : new Location($value);
+                        : new Location( $value );
                     break;
 
                 case $returnAsLocations === false:
-                    $result[$key][] = $value instanceof Location
+                    $result[ $key ][] = $value instanceof Location
                         ? $value->getGeonameId()
                         : $value;
                     break;
 
                 case $returnAsLocations === null:
-                    $result[$key][] = $value;
+                    $result[ $key ][] = $value;
                 }
             }
         }
 
-        if ($save)
+        if ( $save )
         {
             $this->save();
         }
 
         return $hierarchy === null
             ? $result
-            : $result[$hierarchy];
+            : $result[ $hierarchy ];
     }
 
 
@@ -576,7 +624,7 @@ class Location
      *
      * @return Location
      */
-    public function setChildren($children)
+    public function setChildren( $children )
     {
 
         $this->children = $children;
@@ -600,7 +648,7 @@ class Location
      *
      * @return Location
      */
-    public function setContinentCode(string $continentCode): Location
+    public function setContinentCode( string $continentCode ): Location
     {
 
         $this->continentCode = $continentCode;
@@ -615,12 +663,12 @@ class Location
     public function getCountry(): ?Country
     {
 
-        if ($this->country instanceof Country || $this->country === null)
+        if ( $this->country instanceof Country || $this->country === null )
         {
             return $this->country;
         }
 
-        $this->country = Country::load($this->country);
+        $this->country = Country::load( $this->country );
 
         return $this->country;
     }
@@ -629,10 +677,10 @@ class Location
     /**
      * @return string
      */
-    public function getCountryCode($format = 'iso2'): string
+    public function getCountryCode( $format = 'iso2' ): string
     {
 
-        if (is_string($this->country) && $format === 'iso2' && strlen($this->country) === 2)
+        if ( is_string( $this->country ) && $format === 'iso2' && strlen( $this->country ) === 2 )
         {
             return $this->country;
         }
@@ -647,7 +695,7 @@ class Location
     public function getCountryId(): int
     {
 
-        if (is_int($this->country))
+        if ( is_int( $this->country ) )
         {
             return $this->country;
         }
@@ -661,7 +709,7 @@ class Location
      *
      * @return Location
      */
-    public function setCountryId($countryId): Location
+    public function setCountryId( $countryId ): Location
     {
 
         $this->country = $countryId;
@@ -685,7 +733,7 @@ class Location
      *
      * @return Location
      */
-    public function setElevation($elevation)
+    public function setElevation( $elevation )
     {
 
         $this->elevation = $elevation;
@@ -709,7 +757,7 @@ class Location
      *
      * @return Location
      */
-    public function setFeatureClass($featureClass): Location
+    public function setFeatureClass( $featureClass ): Location
     {
 
         $this->featureClass = $featureClass;
@@ -733,7 +781,7 @@ class Location
      *
      * @return Location
      */
-    public function setFeatureCode($featureCode): Location
+    public function setFeatureCode( $featureCode ): Location
     {
 
         $this->featureCode = $featureCode;
@@ -757,7 +805,7 @@ class Location
      *
      * @return Location
      */
-    public function setGeonameId($geonameId): Location
+    public function setGeonameId( $geonameId ): Location
     {
 
         $this->geonameId = $geonameId;
@@ -781,7 +829,7 @@ class Location
      *
      * @return Location
      */
-    public function setLatitude($latitude): Location
+    public function setLatitude( $latitude ): Location
     {
 
         $this->latitude = $latitude;
@@ -805,7 +853,7 @@ class Location
      *
      * @return Location
      */
-    public function setLongitude($longitude): Location
+    public function setLongitude( $longitude ): Location
     {
 
         $this->longitude = $longitude;
@@ -829,7 +877,7 @@ class Location
      *
      * @return Location
      */
-    public function setName($name): Location
+    public function setName( $name ): Location
     {
 
         $this->name = $name;
@@ -853,7 +901,7 @@ class Location
      *
      * @return Location
      */
-    public function setPopulation($population): Location
+    public function setPopulation( $population ): Location
     {
 
         $this->population = $population;
@@ -877,7 +925,7 @@ class Location
      *
      * @return Location
      */
-    public function setScore(?float $score): Location
+    public function setScore( ?float $score ): Location
     {
 
         $this->score = $score;
@@ -892,12 +940,12 @@ class Location
     public function getTimezone(): ?Timezone
     {
 
-        if ($this->timezone instanceof Timezone)
+        if ( $this->timezone instanceof Timezone )
         {
             return $this->timezone;
         }
 
-        return $this->timezone = new static::$timezoneClass($this->timezone);
+        return $this->timezone = new static::$timezoneClass( $this->timezone );
     }
 
 
@@ -906,17 +954,17 @@ class Location
      *
      * @return Location
      */
-    public function setTimezone($timezone)
+    public function setTimezone( $timezone )
     {
 
-        switch (true)
+        switch ( true )
         {
         case $timezone instanceof Timezone:
             break;
-        case is_array($timezone):
+        case is_array( $timezone ):
             $timezone = $timezone['timeZoneId'];
             break;
-        case is_object($timezone):
+        case is_object( $timezone ):
             $timezone = $timezone->timeZoneId;
             break;
         }
@@ -938,12 +986,12 @@ class Location
         $adminCode
     ): Location {
 
-        if (is_numeric($x))
+        if ( is_numeric( $x ) )
         {
             $x = "adminCode$x";
         }
 
-        if (!is_array($adminCode))
+        if ( ! is_array( $adminCode ) )
         {
             $adminCode = [
                 'ISO3166_2' => $adminCode,
@@ -956,7 +1004,7 @@ class Location
     }
 
 
-    public function setAstergdem($elevation): Location
+    public function setAstergdem( $elevation ): Location
     {
 
         $this->elevation = $elevation;
@@ -970,7 +1018,7 @@ class Location
      *
      * @return Location
      */
-    public function setCountryCode($countryCode): Location
+    public function setCountryCode( $countryCode ): Location
     {
 
         $this->country = $countryCode;
@@ -979,7 +1027,7 @@ class Location
     }
 
 
-    public function setSrtm3($elevation): Location
+    public function setSrtm3( $elevation ): Location
     {
 
         $this->elevation = $elevation;
@@ -988,14 +1036,14 @@ class Location
     }
 
 
-    public function cleanInput(&$values): FlexibleObject
+    public function cleanInput( &$values ): FlexibleObject
     {
 
-        parent::cleanInput($values);
+        parent::cleanInput( $values );
 
-        if (array_key_exists('toponymName', $values))
+        if ( array_key_exists( 'toponymName', $values ) )
         {
-            unset($values['name']);
+            unset( $values['name'] );
         }
 
         return $this;
@@ -1005,14 +1053,14 @@ class Location
     public function save()
     {
 
-        if (false === Core::$wpdb->replace(
+        if ( false === Core::$wpdb->replace(
                 Core::Factory()
                     ->getTblCacheLocations(),
                 [
                     'geoname_id'      => $this->geonameId,
                     'name'            => $this->name,
                     'ascii_name'      => $this->asciiName,
-                    'alternate_names' => $this->getAlternateNames('json'),
+                    'alternate_names' => $this->getAlternateNames( 'json' ),
                     'feature_class'   => $this->featureClass,
                     'feature_code'    => $this->featureCode,
                     'continent'       => $this->continent,
@@ -1031,8 +1079,8 @@ class Location
                     'admin4_code'     => $this->getAdminCode4(),
                     'admin4_id'       => $this->getAdminId4(),
                     'timezone'        => $this->getTimezone()->timeZoneId,
-                    'bbox'            => $this->getBbox('json'),
-                    'children'        => $this->getChildren('json'),
+                    'bbox'            => $this->getBbox( 'json' ),
+                    'children'        => $this->getChildren( 'json' ),
                 ],
                 [
                     '%d', // geoname_id
@@ -1060,43 +1108,42 @@ class Location
                     '%s', // bbox
                     '%s', // children
                 ]
-            ))
+            ) )
         {
-            throw new ErrorException(Core::$wpdb->last_error);
+            throw new ErrorException( Core::$wpdb->last_error );
         }
     }
 
 
-    public static function load($ids)
+    public static function load( $ids )
     {
 
-        $locations = static::loadRecords($ids);
+        $locations = static::loadRecords( $ids );
 
-        return is_array($ids)
+        return is_array( $ids )
             ? $locations
-            : reset($locations);
+            : reset( $locations );
     }
 
 
-    protected static function loadRecords($ids)
+    protected static function loadRecords( $ids )
     {
 
-        if (false === (is_array($ids)
+        if ( false === ( is_array( $ids )
                 ? array_reduce(
                     $ids,
                     static function (
                         $carry,
                         $item
-                    )
-                    {
+                    ) {
 
-                        return $carry && is_numeric($item);
+                        return $carry && is_numeric( $item );
                     },
                     true
                 )
-                : is_numeric($ids)))
+                : is_numeric( $ids ) ) )
         {
-            throw new \ErrorException('Supplied id(s) are not numeric');
+            throw new ErrorException( 'Supplied id(s) are not numeric' );
         }
 
         $tblCacheLocations = Core::Factory()
@@ -1104,8 +1151,8 @@ class Location
         ;
         $sqlWhere          = sprintf(
             "geoname_id %s",
-            is_array($ids)
-                ? sprintf('IN (%s)', implode(',', $ids))
+            is_array( $ids )
+                ? sprintf( 'IN (%s)', implode( ',', $ids ) )
                 : "= $ids"
         );
 
@@ -1119,14 +1166,14 @@ class Location
     ;
 SQL;
 
-        $locations = Core::$wpdb->get_results($sql);
+        $locations = Core::$wpdb->get_results( $sql );
 
-        if (Core::$wpdb->last_error_no)
+        if ( Core::$wpdb->last_error_no )
         {
-            throw new \ErrorException(Core::$wpdb->last_error);
+            throw new ErrorException( Core::$wpdb->last_error );
         }
 
-        return static::parseArray($locations);
+        return static::parseArray( $locations );
     }
 
 
@@ -1136,7 +1183,7 @@ SQL;
         $prefix = '_'
     ) {
 
-        return parent::parseArray($array, $key, $prefix);
+        return parent::parseArray( $array, $key, $prefix );
 
     }
 
