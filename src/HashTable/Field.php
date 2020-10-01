@@ -2,6 +2,8 @@
 
 namespace WPGeonames\HashTable;
 
+use WPGeonames\WpDb;
+
 class Field
 {
 //  public properties
@@ -20,7 +22,7 @@ class Field
         $field
     ) {
 
-        $this->table = $table;
+        $this->table = WpDb::replaceTablePrefix( $table);
         $this->field = $field;
     }
 

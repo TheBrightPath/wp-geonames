@@ -54,14 +54,12 @@ class Core
     public const geoVersion = "2.1.1";
 
     // tables constants
-    public const tblCountries        = self::tblPrefix . 'countries';
-    public const tblLocations        = self::tblPrefix . 'locations';
-    public const tblLocationsCache   = self::tblLocations . '_cache';
-    public const tblLocationsQueries = self::tblLocations . '_queries';
-    public const tblLocationsResults = self::tblLocations . '_results';
-    public const tblPostCodes        = self::tblPrefix . 'postal';
-    public const tblPrefix           = 'geonames_';
-
+    public const tblCountries        = 'wp_geonames_countries';
+    public const tblLocations        = 'wp_geonames_locations';
+    public const tblLocationsCache   = 'wp_geonames_locations_cache';
+    public const tblLocationsQueries = 'wp_geonames_locations_queries';
+    public const tblLocationsResults = 'wp_geonames_locations_results';
+    public const tblPostCodes        = 'wp_geonames_postal';
     // urls
     public const urlCountries   = self::urlLocations . 'countryInfo.txt';
     public const urlLocations   = 'http://download.geonames.org/export/dump/';
@@ -133,13 +131,7 @@ class Core
 
         self::$wpdb = new WpDb();
 
-        $this->plugin_file       = $file ?? self::$instance->getPluginFileFull();
-        $this->tblCountries      = self::$wpdb->base_prefix . self::tblCountries;
-        $this->tblLocations      = self::$wpdb->base_prefix . self::tblLocations;
-        $this->tblCacheLocations = self::$wpdb->base_prefix . self::tblLocationsCache;
-        $this->tblCacheQueries   = self::$wpdb->base_prefix . self::tblLocationsQueries;
-        $this->tblCacheResults   = self::$wpdb->base_prefix . self::tblLocationsResults;
-        $this->tblPostCodes      = self::$wpdb->base_prefix . self::tblPostCodes;
+        $this->plugin_file = $file ?? self::$instance->getPluginFileFull();
 
         /** @noinspection ClassConstantCanBeUsedInspection */
         register_activation_hook(
@@ -353,7 +345,7 @@ class Core
     public function getTblCacheLocations(): string
     {
 
-        return $this->tblCacheLocations;
+        return WpDb::replaceTablePrefix( static::tblLocationsCache );
     }
 
 
@@ -363,7 +355,7 @@ class Core
     public function getTblCacheQueries(): string
     {
 
-        return $this->tblCacheQueries;
+        return WpDb::replaceTablePrefix( static::tblLocationsQueries );
     }
 
 
@@ -373,7 +365,7 @@ class Core
     public function getTblCacheResults(): string
     {
 
-        return $this->tblCacheResults;
+        return WpDb::replaceTablePrefix( static::tblLocationsResults );
     }
 
 
@@ -383,7 +375,7 @@ class Core
     public function getTblCountries(): string
     {
 
-        return $this->tblCountries;
+        return WpDb::replaceTablePrefix( static::tblCountries );
     }
 
 
@@ -393,7 +385,7 @@ class Core
     public function getTblLocations(): string
     {
 
-        return $this->tblLocations;
+        return WpDb::replaceTablePrefix( static::tblLocations );
     }
 
 
@@ -403,7 +395,7 @@ class Core
     public function getTblPostCodes(): string
     {
 
-        return $this->tblPostCodes;
+        return WpDb::replaceTablePrefix( static::tblPostCodes );
     }
 
 
@@ -414,17 +406,20 @@ class Core
         global $wpdb;
         $out = "";
         $q   = $wpdb->get_results(
-            "SELECT
+            WpDb::replaceTablePrefix(
+                "
+        SELECT
 			country_code,
 			cc2,
 			name
 		FROM
-			" . $this->tblLocations . "
+			wp_geonames_locations
 		WHERE
 			feature_code='ADM1'
 			and (feature_class='A' or feature_code='PCLD')
 		ORDER BY cc2,country_code,name
 		"
+            )
         );
         foreach ( $q as $k => $v )
         {
@@ -468,13 +463,17 @@ class Core
         if ( ! $postal )
         {
             $q = $wpdb->get_results(
-                "SELECT DISTINCT country_code FROM " . $this->tblLocations . " ORDER BY country_code"
+                WpDb::replaceTablePrefix(
+                    "SELECT DISTINCT country_code FROM `wp_geonames_locations` ORDER BY country_code"
+                )
             );
         }
         else
         {
             $q = $wpdb->get_results(
-                "SELECT DISTINCT country_code FROM " . $this->tblPostCodes . " ORDER BY country_code"
+                WpDb::replaceTablePrefix(
+                    "SELECT DISTINCT country_code FROM `wp_geonames_postal` ORDER BY country_code"
+                )
             );
         }
         $result = [];
@@ -564,20 +563,23 @@ class Core
                 $b = "ADM2";
             }
             $q = $wpdb->get_results(
-                "SELECT
+                WpDb::replaceTablePrefix(
+                    <<<SQL
+            SELECT
 				geoname_id,
 				name,
 				country_code,
-				" . $a . "
+				$a
 			FROM
-				" . $this->tblLocations . "
+				`wp_geonames_locations`
 			WHERE
 				feature_class='A' and
-				((feature_code='" . $b . "' and (country_code='" . $iso . "' or cc2='" . $iso . "'))
+				((feature_code='$b' and (country_code='$iso' or cc2='$iso'))
 					or
-				(feature_code='PCLD' and cc2='" . $iso . "'))
+				(feature_code='PCLD' and cc2='$iso'))
 			ORDER BY name
-			"
+SQL
+                )
             );
             $c = [];
             foreach ( $q as $r )
@@ -724,7 +726,7 @@ class Core
 
         return $this->loadFileIntoDb(
             $source,
-            $this->tblCountries,
+            WpDb::replaceTablePrefix( static::tblCountries ),
             $fields,
             1,
             static function ( &$row )
@@ -905,7 +907,7 @@ class Core
         /** @noinspection NotOptimalIfConditionsInspection */
         if ( $this->loadFileIntoDb(
                 $source,
-                $this->tblLocations,
+                WpDb::replaceTablePrefix( static::tblLocations ),
                 $fields,
                 $mode,
                 static function ( $row ) use
@@ -1332,14 +1334,16 @@ class Core
             <?php if ( $Gcityid )
             {
                 $q = $wpdb->get_row(
-                    "SELECT
+                    WpDb::replaceTablePrefix(
+                        "SELECT
 				*
 			FROM
-				" . $this->tblLocations . "
+				`wp_geonames_locations`
 			WHERE
 				geoname_id='" . $Gcityid . "'
 			LIMIT 1
 			"
+                    )
                 );
                 $a = '';
                 foreach ( $q as $k => $v )
@@ -2134,19 +2138,24 @@ class Core
                 $a = "admin2_code";
             }
             $result = $wpdb->get_results(
-                "SELECT
+                WpDb::replaceTablePrefix(
+                    <<<SQL
+            SELECT
 				geoname_id,
 				name,
 				latitude,
 				longitude
 			FROM
-				" . $this->tblLocations . "
+				`wp_geonames_locations`
 			WHERE
 				feature_class='P'
-				and ((country_code='" . $Piso . "' and " . $a . "='" . $Preg . "') or country_code='" . $Preg . "')
-				and name LIKE '" . $Pcit . " % '
+				and ((country_code='$Piso' and $a ='$Preg') or country_code='$Preg')
+				and name LIKE '$Pcit % '
 			ORDER BY name
-			LIMIT " . $Pnb
+			LIMIT $Pnb
+;
+SQL
+                )
             );
         }
         echo json_encode( $result );
@@ -2171,18 +2180,21 @@ class Core
                 $b = "ADM2";
             }
             $q = $wpdb->get_results(
-                "SELECT
+                WpDb::replaceTablePrefix(
+                    <<<SQL
+            SELECT
 				geoname_id,
 				name,
-				" . $a . " AS regionid
+				$a AS regionid
 			FROM
-				" . $this->tblLocations . "
+				wp_geonames_locations
 			WHERE
-				feature_class='A' and feature_code='" . $b . "' and (country_code='" . $Piso . "' or cc2='" . $Piso . "')
+				feature_class='A' and feature_code='$b' and (country_code='$Piso' or cc2='$Piso')
 					or
-				feature_class='A' and feature_code='PCLD' and cc2='" . $Piso . "'
+				feature_class='A' and feature_code='PCLD' and cc2='$Piso'
 			ORDER BY name
-			"
+SQL
+                )
             );
             $c = [];
             foreach ( $q as $r )
@@ -2222,7 +2234,8 @@ class Core
             : "admin1_code";
 
         $result = $wpdb->get_results(
-            <<<SQL
+            WpDb::replaceTablePrefix(
+                <<<SQL
         SELECT
 			geoname_id,
 			name,
@@ -2230,7 +2243,7 @@ class Core
 			longitude,
 			feature_code
 		FROM
-			{$this->tblLocations}
+			`wp_geonames_locations`
 		WHERE
 			((country_code='$Piso' and $adminColumn='$Pregion')
 			or country_code='$Pregion')
@@ -2239,6 +2252,7 @@ class Core
 		ORDER BY name
 		LIMIT 10;
 SQL
+            )
         );
         echo json_encode( $result );
     }
@@ -2879,11 +2893,18 @@ SQL;
         if ( $table === self::tblLocations )
         {
             // ******* Patch V1.4 - Add INDEX **************
-            $a = $wpdb->get_results( "SHOW INDEX FROM " . $this->tblLocations . " WHERE Column_name = 'cc2'" );
+            $a = $wpdb->get_results(
+                WpDb::replaceTablePrefix(
+                    "SHOW INDEX FROM `wp_geonames_locations` WHERE Column_name = 'cc2'"
+                )
+            );
             if ( empty( $a ) )
             {
                 $wpdb->query(
-                    "ALTER TABLE " . $this->tblLocations . " ADD INDEX `index1` ( `feature_class`,`feature_code`( 3 ),`country_code`,`cc2`( 2 ),`name`( 3 ))"
+                    WpDb::replaceTablePrefix(
+                        "ALTER TABLE `wp_geonames_locations`
+                     ADD INDEX `index1` ( `feature_class`,`feature_code`( 3 ),`country_code`,`cc2`( 2 ),`name`( 3 ))"
+                    )
                 );
             }
             // *********************************************
@@ -3447,8 +3468,6 @@ SQL;
 
         $this->verifyAdmin();
 
-        $wpdb = self::$wpdb;
-
         if ( $force )
         {
 
@@ -3513,7 +3532,9 @@ SQL;
 
         $options['countries'] = [];
         $count                = self::$wpdb->get_results(
-            "SELECT COUNT(*) c, country_code FROM {$this->tblLocations} GROUP BY country_code"
+            WpDb::replaceTablePrefix(
+                'SELECT COUNT(*) c, country_code FROM `wp_geonames_locations` GROUP BY country_code'
+            )
         );  // benchmark allCountries : 7.633 sec
         foreach ( $count as $r )
         {
@@ -3525,7 +3546,9 @@ SQL;
 
         $options['postal'] = [];
         $postal            = self::$wpdb->get_results(
-            "SELECT COUNT(*) c, country_code FROM {$wpdb->base_prefix}geonamesPostal GROUP BY country_code"
+            WpDb::replaceTablePrefix(
+                'SELECT COUNT(*) c, country_code FROM `wp_geonames_postal` GROUP BY country_code'
+            )
         );
         foreach ( $postal as $r )
         {
@@ -3536,7 +3559,9 @@ SQL;
         }
 
         $old = self::$wpdb->get_var(
-            "SELECT MAX(modification_date) FROM {$this->tblLocations} LIMIT 1"
+            WpDb::replaceTablePrefix(
+                'SELECT MAX(modification_date) FROM `wp_geonames_locations` LIMIT 1'
+            )
         ); // benchmark allCountries : 5.172 sec
         if ( $old )
         {
@@ -3749,31 +3774,33 @@ SQL;
                     'featureClasses',
                     $self->getPluginDir() . '/includes/feature_classes.php',
                     [
-                        new HashTable\Field( $self->tblLocations, 'feature_class' ),
+                        new HashTable\Field( static::tblLocations, 'feature_class' ),
+                        new HashTable\Field( static::tblLocationsCache, 'feature_class' ),
                     ]
                 ),
                 'featureCodes'   => new HashTable\Definition(
                     'featureCodes',
                     $self->getPluginDir() . '/includes/feature_codes.php',
                     [
-                        new HashTable\Field( $self->tblLocations, 'feature_code' ),
+                        new HashTable\Field( static::tblLocations, 'feature_code' ),
+                        new HashTable\Field( static::tblLocationsCache, 'feature_code' ),
                     ]
                 ),
                 'countryCodes'   => new HashTable\Definition(
                     'countryCodes',
                     $self->getPluginDir() . '/includes/country_codes.php',
                     [
-                        new HashTable\Field( $self->tblLocations, 'country_code' ),
-                        new HashTable\Field( $self->tblTimeZones, 'country_code' ),
-                        new HashTable\Field( $self->tblCacheQueries, 'query_country' ),
+                        new HashTable\Field( static::tblCountries, 'iso2' ),
+                        new HashTable\Field( static::tblLocations, 'country_code' ),
+                        new HashTable\Field( static::tblLocationsCache, 'query_country' ),
                     ]
                 ),
                 'timeZones'      => new HashTable\Definition(
                     'timeZones',
                     $self->getPluginDir() . '/includes/time_zones.php',
                     [
-                        new HashTable\Field( $self->tblLocations, 'timezone' ),
-                        new HashTable\Field( $self->tblCacheQueries, 'timezone' ),
+                        new HashTable\Field( static::tblLocations, 'timezone' ),
+                        new HashTable\Field( static::tblLocationsCache, 'timezone' ),
                     ]
                 ),
             ];
@@ -3974,17 +4001,19 @@ SQL;
             $limits = 'LIMIT ' . $limitStart . $args['page_size'];
         }
 
-        $sql = <<<SQL
+        $sql = WpDb::replaceTablePrefix(
+            <<<SQL
 SELECT
        *
 FROM
-    {$self->tblCacheLocations}
+    `wp_geonames_locations_cache`
 WHERE
     1
 $where
 $limits
 ;
-SQL;
+SQL
+        );
 
         //echo '<pre>'; print_r( $sql ); echo '</pre>';
 
