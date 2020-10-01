@@ -137,6 +137,43 @@ class WpDb
     }
 
 
+    public function prepare(
+        $query,
+        ...$args
+    ) {
+
+        if ( is_null( $query ) )
+        {
+            return;
+        }
+
+        $checkScalar = static function (
+            &$arg,
+            $index,
+            $checkScalar = null
+        ) {
+
+            if ( is_array( $arg ) && $checkScalar !== null )
+            {
+                array_walk( $arg, $checkScalar );
+            }
+            elseif ( ! is_scalar( $arg ) && ! is_null( $arg ) )
+            {
+
+                $arg = (string) $arg;
+            }
+        };
+
+        array_walk(
+            $args,
+            $checkScalar,
+            $checkScalar
+        );
+
+        return parent::prepare( $query, ...$args );
+    }
+
+
     public function prepareAndReplaceTablePrefix(
         $query,
         ...$args
