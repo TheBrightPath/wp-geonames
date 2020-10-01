@@ -1298,7 +1298,7 @@ SQL
             {
                 echo $outPostal;
             } ?></div>
-        <!--suppress JSPotentiallyInvalidConstructorUsage, JSUnresolvedVariable -->
+        <!--suppress JSPotentiallyInvalidConstructorUsage, JSUnresolvedVariable, JSUnresolvedFunction -->
         <script>
             let wpgeoajx;
 
@@ -1998,6 +1998,7 @@ SQL
         <script type="text/javascript"
                 src="<?php
                 echo plugins_url(); ?>/wp-geonames/sumoselect/jquery.sumoselect.min.js"></script>
+        <!--suppress JSUnresolvedFunction, JSUnresolvedVariable -->
         <script type="text/javascript">
             jQuery(document).ready(function () {
                 jQuery('#wpGeonamesAdd').SumoSelect({
@@ -2214,10 +2215,13 @@ SQL
                 )
             );
         }
-        echo json_encode( $result );
+        echo json_encode( $result, JSON_THROW_ON_ERROR );
     }
 
 
+    /**
+     * @throws \JsonException
+     */
     public function ajax_geoDataRegion(): void
     {
 
@@ -2266,10 +2270,13 @@ SQL
                 }
             }
         }
-        echo json_encode( $result );
+        echo json_encode( $result, JSON_THROW_ON_ERROR );
     }
 
 
+    /**
+     * @throws \JsonException
+     */
     public function ajax_get_city_by_country_region(): void
     {
 
@@ -2310,7 +2317,7 @@ SQL
 SQL
             )
         );
-        echo json_encode( $result );
+        echo json_encode( $result, JSON_THROW_ON_ERROR );
     }
 
 
@@ -3987,7 +3994,6 @@ SQL;
         $output = Location::class
     ) {
 
-        $self   = self::$instance;
         $where  = '';
         $limits = '';
 
