@@ -1063,7 +1063,7 @@ class Query
 
         if ( is_array( $array ) )
         {
-            $property =& $array;
+            $property = $array;
         }
         else
         {
