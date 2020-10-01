@@ -61,7 +61,6 @@ class Core
     public const tblLocationsResults = self::tblLocations . '_results';
     public const tblPostCodes        = self::tblPrefix . 'postal';
     public const tblPrefix           = 'geonames_';
-    public const tblTimeZones        = self::tblPrefix . 'timezones';
 
     // urls
     public const urlCountries   = self::urlLocations . 'countryInfo.txt';
@@ -115,9 +114,6 @@ class Core
     /** @var string */
     protected $tblPostCodes;
 
-    /** @var string */
-    protected $tblTimeZones;
-
 // private properties
 
     /** @var Core */
@@ -144,7 +140,6 @@ class Core
         $this->tblCacheQueries   = self::$wpdb->base_prefix . self::tblLocationsQueries;
         $this->tblCacheResults   = self::$wpdb->base_prefix . self::tblLocationsResults;
         $this->tblPostCodes      = self::$wpdb->base_prefix . self::tblPostCodes;
-        $this->tblTimeZones      = self::$wpdb->base_prefix . self::tblTimeZones;
 
         /** @noinspection ClassConstantCanBeUsedInspection */
         register_activation_hook(
@@ -409,16 +404,6 @@ class Core
     {
 
         return $this->tblPostCodes;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getTblTimeZones(): string
-    {
-
-        return $this->tblTimeZones;
     }
 
 
@@ -1043,76 +1028,6 @@ class Core
         return $this->addLocations(
             1,
             self::urlNoCountries
-        );
-    }
-
-
-    /**
-     * @return bool
-     * @throws \ErrorException
-     */
-    public function addTimezones(): bool
-    {
-
-        $source = $this->downloadZip( 'general', self::urlTimeZones );
-
-        $regexTZ = '-?\d+\.\d{1,2}';
-
-        $fields = [
-            'country_code' => (object) [
-                'save'   => true,
-                'format' => 's',
-                'regex'  => '[[A-Z]{2}',
-            ],
-            'time_zone_id' => (object) [
-                'save'   => true,
-                'format' => 's',
-                'regex'  => '[-\w_/]+/(?<city>[-\w_]+)',
-            ],
-            'offsetJan'    => (object) [
-                'save'   => true,
-                'format' => 'd',
-                'regex'  => $regexTZ,
-            ],
-            'offsetJul'    => (object) [
-                'save'   => true,
-                'format' => 'd',
-                'regex'  => $regexTZ,
-            ],
-            'offsetRaw'    => (object) [
-                'save'   => true,
-                'format' => 'd',
-                'regex'  => $regexTZ,
-            ],
-            'city'         => (object) [
-                'save'   => true,
-                'format' => 's',
-                'regex'  => null,
-            ],
-            'caption'      => (object) [
-                'save'   => true,
-                'format' => 's',
-                'regex'  => null,
-            ],
-        ];
-
-        return $this->loadFileIntoDb(
-            $source,
-            $this->tblTimeZones,
-            $fields,
-            1,
-            static function ( &$row )
-            {
-
-                $row['city']    = str_replace( '_', ' ', $row['city'] );
-                $row['caption'] = str_replace( '_', ' ', $row['time_zone_id'] );
-
-                return self::$instance->checkTimeZone(
-                        $row['time_zone_id'],
-                        $row['country_code']
-                    )
-                    && self::$instance->checkCountry( $row['country_code'] );
-            }
         );
     }
 
@@ -3003,13 +2918,6 @@ SQL;
     {
 
         return $this->clear( self::tblPostCodes );
-    }
-
-
-    public function clearTimeZones()
-    {
-
-        return $this->clear( self::tblTimeZones );
     }
 
 

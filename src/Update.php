@@ -99,7 +99,6 @@ class Update
         // Data
         $this->core->addNoCountries();
         $this->core->addCountries();
-        $this->core->addTimezones();
 
         $sql = <<<SQL
 INSERT LOW_PRIORITY INTO
@@ -348,32 +347,6 @@ SQL;
     }
 
 
-    public function createTblTimeZones(): void
-    {
-
-        // time zones
-        $nom = $this->core->getTblTimeZones();
-
-        $sql = <<<SQL
-                CREATE TABLE $nom (
-                    country_code enum($this->country_codes) DEFAULT NULL,
-                    time_zone_id varchar(40) NOT NULL,
-                    city varchar(40) NOT NULL,
-                    caption varchar(40) NOT NULL,
-                    php varchar(40) NOT NULL,
-                    offsetJan decimal(3,1) COMMENT '(GMT offset 1. Jan 2020)',
-                    offsetJul decimal(3,1) COMMENT '(DST offset 1. Jul 2020)',
-                    offsetRaw decimal(3,1) COMMENT '(GMT offset independent of DST)',
-                PRIMARY KEY (`time_zone_id`),
-                KEY `idxCountry` (country_code, city)
-			    ) {$this->charset_collate};
-SQL;
-
-        $this->updateLog += dbDelta( $sql );
-
-    }
-
-
     /**
      * @throws \ErrorException
      */
@@ -388,7 +361,6 @@ SQL;
         $update = self::Factory();
 
         $update->createTblCountries();
-        $update->createTblTimeZones();
         $update->createTblLocations();
         $update->createTblCacheQueries();
         $update->createTblCacheResults();
