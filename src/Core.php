@@ -1102,6 +1102,13 @@ SQL
                        echo ' nav-tab-active';
                    } ?>"><?php
                     _e( 'Edit Data', 'wpGeonames' ); ?></a>
+                <a href="options-general.php?page=wpGeonames-options&geotab=scheme"
+                   class="nav-tab<?php
+                   if ( $geoTab === 'edit' )
+                   {
+                       echo ' nav-tab-active';
+                   } ?>"><?php
+                    _e( 'Table Scheme', 'wpGeonames' ); ?></a>
                 <a href="options-general.php?page=wpGeonames-options&geotab=help"
                    class="nav-tab<?php
                    if ( $geoTab === 'help' )
@@ -1120,6 +1127,9 @@ SQL
                 break;
             case 'edit':
                 $this->admin_edit();
+                break;
+            case 'scheme':
+                $this->admin_scheme();
                 break;
             case 'help':
                 $this->admin_help();
@@ -2117,6 +2127,52 @@ SQL
     }
 
 
+    public function admin_scheme(): void
+    {
+
+        $geoToka = wp_create_nonce( 'geoToka' );
+
+        printf( '<h2>%s</h2>', _e( 'Table Scheme', 'wpGeonames' ) );
+
+        if ( ! empty( $_GET['geoRun'] ) )
+        {
+
+            $result = Update::Activate();
+
+            echo '<div>' . "\n";
+            echo '<pre>' . "\n";
+            print_r( $result, false );
+            echo '</pre>' . "\n";
+            echo '</div>' . "\n";
+
+            echo '<script>window.location.replace("options-general.php?page=wpGeonames-options&geotab=scheme");</script>';
+        }
+
+        ?>
+        <form name="geoScheme" action="" method="GET">
+            <input type="hidden" name="page" value="wpGeonames-options"/>
+            <input type="hidden" name="geotab" value="scheme"/>
+            <input type="hidden" name="geoRun" value="1"/>
+            <input type="hidden" name="geoToka" value="<?php
+            echo $geoToka; ?>"/>
+
+
+            <div class="submit">
+                <input type="submit" class="button-primary"
+                       onClick="document.forms['geoScheme'].elements['geodata'].value='';document.forms['geoScheme'].elements['geoid'].value='';"
+                       value="<?php
+                       _e( 'Run Update', 'wpGeonames' ) ?>"/>
+            </div>
+
+        </form>
+
+        <?php
+    }
+
+
+    /**
+     * @throws \JsonException
+     */
     public function ajax_geoDataCity(): void
     {
 
