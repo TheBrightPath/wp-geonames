@@ -647,10 +647,10 @@ class Location
     /**
      * @param  string  $format
      *
-     * @return string
+     * @return string|null
      * @throws \ErrorException
      */
-    public function getCountryCode( $format = 'iso2' ): string
+    public function getCountryCode( $format = 'iso2' ): ?string
     {
 
         if ( is_string( $this->country ) && $format === 'iso2' && strlen( $this->country ) === 2 )
@@ -666,10 +666,10 @@ class Location
      * @return int
      * @throws \ErrorException
      */
-    public function getCountryId(): int
+    public function getCountryId(): ?int
     {
 
-        if ( is_int( $this->country ) )
+        if ( is_int( $this->country ) || $this->country === null )
         {
             return $this->country;
         }
@@ -679,11 +679,11 @@ class Location
 
 
     /**
-     * @param  null  $countryId
+     * @param  int|null  $countryId
      *
      * @return Location
      */
-    public function setCountryId( $countryId ): Location
+    public function setCountryId( ?int $countryId ): Location
     {
 
         $this->country = $countryId;
