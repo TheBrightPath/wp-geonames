@@ -121,12 +121,15 @@ class ApiQuery
             $params['startRow'] += count( $result );
             $status->total      = $status->total ?? $api->getLastTotalResultsCount();
 
-            /** @noinspection ForgottenDebugOutputInspection */
-            error_log(
-                sprintf( "%s %d\n", $api->getLastUrlUsed(), count( $result ) ),
-                3,
-                ABSPATH . '/wp-content/uploads/api_debug.log'
-            );
+            if ( method_exists( $api, 'getLastUrlUsed' ) )
+            {
+                /** @noinspection ForgottenDebugOutputInspection */
+                error_log(
+                    sprintf( "%s %d\n", $api->getLastUrlUsed(), count( $result ) ),
+                    3,
+                    ABSPATH . '/wp-content/uploads/api_debug.log'
+                );
+            }
 
             // convert result
             WpDb::formatOutput( $result, $output, 'geonameId', '_' );
