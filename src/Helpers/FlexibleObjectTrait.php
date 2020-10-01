@@ -48,14 +48,14 @@ trait FlexibleObjectTrait
      * @param             $value
      * @param  bool|null  $propertyMissing
      *
-     * @return $this
+     * @return \WPGeonames\Helpers\FlexibleObjectInterface|\WPGeonames\Helpers\FlexibleObjectTrait
      * @noinspection MagicMethodsValidityInspection
      */
     protected function ___set(
         &$property,
         &$value,
         ?bool &$propertyMissing = null
-    ): self {
+    ) {
 
         $setter = 'set' . ucfirst( static::$_aliases[ $property ] ?? $property );
 
