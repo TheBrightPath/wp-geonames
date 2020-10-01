@@ -292,6 +292,7 @@ class WpDb
                         &
                         $new_array,
                         $output,
+                        &
                         $keyName,
                         $prefix
                     )
@@ -319,6 +320,7 @@ class WpDb
 
                             default:
                                 $keyNames = (array) $keyName;
+                                $key      = null;
 
                                 foreach ( $keyNames as $keyName )
                                 {
@@ -360,7 +362,7 @@ class WpDb
 
             }
 
-            $result =& $new_array;
+            $result = $new_array;
             unset( $new_array );
             break;
 
@@ -379,7 +381,7 @@ class WpDb
                 )
                 {
 
-                    if ( get_class( $item ) !== $class )
+                    if ( ! $item instanceof $class )
                     {
                         $item = new $class( $item );
                     }
