@@ -6,8 +6,10 @@ use DateTimeInterface;
 use ErrorException;
 use IntlDateFormatter;
 use WPGeonames\Core;
-use WPGeonames\FlexibleDbObject;
-use WPGeonames\FlexibleObject;
+use WPGeonames\Helpers\FlexibleDbObjectInterface;
+use WPGeonames\Helpers\FlexibleDbObjectTrait;
+use WPGeonames\Helpers\FlexibleObjectInterface;
+use WPGeonames\Helpers\NullSafe;
 
 /**
  * Class Location
@@ -29,19 +31,27 @@ use WPGeonames\FlexibleObject;
  * @property int|null                                   $adminId4
  * @property float                                      $latitude
  * @property float                                      $longitude
- * @property string                                     $alternateNames
+ * @property string|array|null                          $alternateNames
  * @property int                                        $population
  * @property int                                        $elevation
  * @property \WPGeonames\Entities\Location[]|int[]|null $children
  * @property string                                     countryCode
+ * @property string                                     continent
  */
 class Location
-    extends FlexibleDbObject
+    implements
+    FlexibleDbObjectInterface
 {
+
+    use FlexibleDbObjectTrait
+    {
+        parseArray as protected ___parseArray;
+        cleanInput as protected ___cleanInput;
+    }
 
 // protected properties
 
-    protected static $aliases
+    protected static $_aliases
         = [
             'geoname_id'      => 'geonameId',
             'toponymName'     => 'name',
@@ -65,112 +75,58 @@ class Location
             'lng'             => 'longitude',
             'lat'             => 'latitude',
         ];
-
-    /** @var int */
-    protected $geonameId;
-
-    /** @var string */
-    protected $name;
-
-    /** @var string */
-    protected $asciiName;
-
-    /** @var string */
-    protected $featureClass;
-
-    /** @var string */
-    protected $featureCode;
-
-    /** @var \WPGeonames\Entities\Country */
-    protected $country;
-
-    /** @var string */
-    protected $adminCode1;
-
-    /** @var int */
-    protected $adminId1;
-
-    /** @var string */
-    protected $adminCode2;
-
-    /** @var int */
-    protected $adminId2;
-
-    /** @var string */
-    protected $adminCode3;
-
-    /** @var int */
-    protected $adminId3;
-
-    /** @var string */
-    protected $adminCode4;
-
-    /** @var int */
-    protected $adminId4;
-
-    /** @var float */
-    protected $longitude;
-
-    /** @var float */
-    protected $latitude;
-
-    /** @var string[] */
-    protected $alternateNames;
-
-    /** @var int */
-    protected $countryId;
-
-    /** @var int */
-    protected $population;
-
-    /** @var \WPGeonames\Entities\BBox */
-    protected $bbox;
-
-    /** @var int */
-    protected $elevation;
-
-    /** @var \WPGeonames\Entities\Timezone */
-    protected $timezone;
-
-    /** @var \WPGeonames\Entities\Location|null */
-    protected $children = [];
-
-    /** @var string */
-    protected $continentCode;
-
-    /** @var float|null */
-    protected $score;
-
     /** @var string */
     protected static $timezoneClass = Timezone::class;
-
-
-    public function format(
-        DateTimeInterface $dateTime,
-        string $format,
-        $locale = null
-    ) {
-
-        if ( $locale === false )
-        {
-            return $dateTime->format( $format );
-        }
-
-        if ( class_exists( "IntlDateFormatter" ) )
-        {
-            /**
-             * @see https://unicode-org.github.io/icu/userguide/format_parse/datetime/
-             */
-            return IntlDateFormatter::formatObject( $dateTime, $format, $locale ?? setlocale( LC_TIME, 0 ) );
-        }
-
-        $oldLocale = setlocale( LC_TIME, $locale ?? 0 );
-        $result    = utf8_encode( strftime( $format, $dateTime->getTimestamp() ) );
-        setlocale( LC_TIME, $oldLocale );
-
-        return $result;
-
-    }
+    /** @var int */
+    protected $geonameId;
+    /** @var string */
+    protected $name;
+    /** @var string */
+    protected $asciiName;
+    /** @var string */
+    protected $featureClass;
+    /** @var string */
+    protected $featureCode;
+    /** @var \WPGeonames\Entities\Country */
+    protected $country;
+    /** @var string */
+    protected $adminCode1;
+    /** @var int */
+    protected $adminId1;
+    /** @var string */
+    protected $adminCode2;
+    /** @var int */
+    protected $adminId2;
+    /** @var string */
+    protected $adminCode3;
+    /** @var int */
+    protected $adminId3;
+    /** @var string */
+    protected $adminCode4;
+    /** @var int */
+    protected $adminId4;
+    /** @var float */
+    protected $longitude;
+    /** @var float */
+    protected $latitude;
+    /** @var string[] */
+    protected $alternateNames;
+    /** @var int */
+    protected $countryId;
+    /** @var int */
+    protected $population;
+    /** @var \WPGeonames\Entities\BBox */
+    protected $bbox;
+    /** @var int */
+    protected $elevation;
+    /** @var \WPGeonames\Entities\Timezone */
+    protected $timezone;
+    /** @var \WPGeonames\Entities\Location|null */
+    protected $children = [];
+    /** @var string */
+    protected $continentCode;
+    /** @var float|null */
+    protected $score;
 
 
     /**
@@ -181,7 +137,7 @@ class Location
      */
     protected function getAdminCode(
         $x,
-        $format
+        string $format
     ) {
 
         if ( is_numeric( $x ) )
@@ -393,6 +349,8 @@ class Location
 
 
     /**
+     * @param  string|null  $lang
+     *
      * @return mixed
      */
     public function getAlternateNames( $lang = null )
@@ -478,6 +436,8 @@ class Location
 
 
     /**
+     * @param  string|null  $property
+     *
      * @return mixed
      */
     public function getBbox( $property = null )
@@ -512,7 +472,7 @@ class Location
      *
      * @return Location
      */
-    public function setBbox( $bbox )
+    public function setBbox( $bbox ): Location
     {
 
         $this->bbox = $bbox;
@@ -522,14 +482,23 @@ class Location
 
 
     /**
+     * @param  string     $hierarchy
+     * @param  bool|null  $returnAsLocations
+     *
      * @return int[]|\WPGeonames\Entities\Location[]|array|string|null
+     * @throws \ErrorException
      */
     public function getChildren(
         $hierarchy = 'adm',
         ?bool $returnAsLocations = true
     ) {
 
-        static $hierarchies = [ 'adm', 'tourism', 'geography', 'dependency' ];
+        static $hierarchies = [
+            'adm',
+            'tourism',
+            'geography',
+            'dependency',
+        ];
 
         if ( $hierarchy === null && $returnAsLocations === null )
         {
@@ -591,13 +560,13 @@ class Location
                 switch ( true )
                 {
                 case $returnAsLocations === true:
-                    $result[ $key ][] = $value instanceof Location
+                    $result[ $key ][] = $value instanceof static
                         ? $value
-                        : new Location( $value );
+                        : new static( $value );
                     break;
 
                 case $returnAsLocations === false:
-                    $result[ $key ][] = $value instanceof Location
+                    $result[ $key ][] = $value instanceof static
                         ? $value->getGeonameId()
                         : $value;
                     break;
@@ -624,7 +593,7 @@ class Location
      *
      * @return Location
      */
-    public function setChildren( $children )
+    public function setChildren( ?array $children ): Location
     {
 
         $this->children = $children;
@@ -659,6 +628,7 @@ class Location
 
     /**
      * @return Country|null
+     * @throws \ErrorException
      */
     public function getCountry(): ?Country
     {
@@ -675,7 +645,10 @@ class Location
 
 
     /**
+     * @param  string  $format
+     *
      * @return string
+     * @throws \ErrorException
      */
     public function getCountryCode( $format = 'iso2' ): string
     {
@@ -691,6 +664,7 @@ class Location
 
     /**
      * @return int
+     * @throws \ErrorException
      */
     public function getCountryId(): int
     {
@@ -733,7 +707,7 @@ class Location
      *
      * @return Location
      */
-    public function setElevation( $elevation )
+    public function setElevation( $elevation ): Location
     {
 
         $this->elevation = $elevation;
@@ -935,9 +909,9 @@ class Location
 
 
     /**
-     * @return \WPGeonames\Entities\Timezone|null
+     * @return \WPGeonames\Entities\Timezone|\WPGeonames\Helpers\NullSafe
      */
-    public function getTimezone(): ?Timezone
+    public function getTimezone()
     {
 
         if ( $this->timezone instanceof Timezone )
@@ -945,16 +919,21 @@ class Location
             return $this->timezone;
         }
 
+        if ( $this->timezone === null )
+        {
+            return new NullSafe();
+        }
+
         return $this->timezone = new static::$timezoneClass( $this->timezone );
     }
 
 
     /**
-     * @param  \WPGeonames\Entities\Timezone|string|null  $timezone
+     * @param  \WPGeonames\Entities\Timezone|string|string[]|null  $timezone
      *
      * @return Location
      */
-    public function setTimezone( $timezone )
+    public function setTimezone( $timezone ): Location
     {
 
         switch ( true )
@@ -1036,10 +1015,10 @@ class Location
     }
 
 
-    public function cleanInput( &$values ): FlexibleObject
+    public function cleanInput( &$values ): FlexibleObjectInterface
     {
 
-        parent::cleanInput( $values );
+        $this->___cleanInput( $values );
 
         if ( array_key_exists( 'toponymName', $values ) )
         {
@@ -1050,26 +1029,57 @@ class Location
     }
 
 
-    public function save()
+    public function format(
+        DateTimeInterface $dateTime,
+        string $format,
+        $locale = null
+    ) {
+
+        if ( $locale === false )
+        {
+            return $dateTime->format( $format );
+        }
+
+        if ( class_exists( "IntlDateFormatter" ) )
+        {
+            /**
+             * @see https://unicode-org.github.io/icu/userguide/format_parse/datetime/
+             */
+            return IntlDateFormatter::formatObject( $dateTime, $format, $locale ?? setlocale( LC_TIME, 0 ) );
+        }
+
+        $oldLocale = setlocale( LC_TIME, $locale ?? 0 );
+        $result    = utf8_encode( strftime( $format, $dateTime->getTimestamp() ) );
+        setlocale( LC_TIME, $oldLocale );
+
+        return $result;
+
+    }
+
+
+    /**
+     * @throws \ErrorException
+     */
+    public function save(): void
     {
 
         if ( false === Core::$wpdb->replace(
                 Core::Factory()
                     ->getTblCacheLocations(),
                 [
-                    'geoname_id'      => $this->geonameId,
-                    'name'            => $this->name,
-                    'ascii_name'      => $this->asciiName,
+                    'geoname_id'      => $this->getGeonameId(),
+                    'name'            => $this->getAsciiName(),
+                    'ascii_name'      => $this->getAsciiName(),
                     'alternate_names' => $this->getAlternateNames( 'json' ),
-                    'feature_class'   => $this->featureClass,
-                    'feature_code'    => $this->featureCode,
-                    'continent'       => $this->continent,
+                    'feature_class'   => $this->getFeatureClass(),
+                    'feature_code'    => $this->getFeatureCode(),
+                    'continent'       => $this->getContinentCode(),
                     'country_code'    => $this->getCountry()->iso2,
                     'country_id'      => $this->getCountry()->geonameId,
-                    'latitude'        => $this->latitude,
-                    'longitude'       => $this->longitude,
-                    'population'      => $this->population,
-                    'elevation'       => $this->elevation,
+                    'latitude'        => $this->getLatitude(),
+                    'longitude'       => $this->getLongitude(),
+                    'population'      => $this->getPopulation(),
+                    'elevation'       => $this->getElevation(),
                     'admin1_code'     => $this->getAdminCode1(),
                     'admin1_id'       => $this->getAdminId1(),
                     'admin2_code'     => $this->getAdminCode2(),
@@ -1083,30 +1093,54 @@ class Location
                     'children'        => $this->getChildren( 'json' ),
                 ],
                 [
-                    '%d', // geoname_id
-                    '%s', // name
-                    '%s', // ascii_name
-                    '%s', // alternate_names
-                    '%s', // feature_class
-                    '%s', // feature_code
-                    '%s', // continent
-                    '%s', // country_code
-                    '%d', // country_id
-                    '%f', // latitude
-                    '%f', // longitude
-                    '%d', // population
-                    '%d', // elevation
-                    '%s', // admin1_code
-                    '%d', // admin1_id
-                    '%s', // admin2_code
-                    '%d', // admin2_id
-                    '%s', // admin3_code
-                    '%d', // admin3_id
-                    '%s', // admin4_code
-                    '%d', // admin4_id
-                    '%s', // timezone
-                    '%s', // bbox
-                    '%s', // children
+                    '%d',
+                    // geoname_id
+                    '%s',
+                    // name
+                    '%s',
+                    // ascii_name
+                    '%s',
+                    // alternate_names
+                    '%s',
+                    // feature_class
+                    '%s',
+                    // feature_code
+                    '%s',
+                    // continent
+                    '%s',
+                    // country_code
+                    '%d',
+                    // country_id
+                    '%f',
+                    // latitude
+                    '%f',
+                    // longitude
+                    '%d',
+                    // population
+                    '%d',
+                    // elevation
+                    '%s',
+                    // admin1_code
+                    '%d',
+                    // admin1_id
+                    '%s',
+                    // admin2_code
+                    '%d',
+                    // admin2_id
+                    '%s',
+                    // admin3_code
+                    '%d',
+                    // admin3_id
+                    '%s',
+                    // admin4_code
+                    '%d',
+                    // admin4_id
+                    '%s',
+                    // timezone
+                    '%s',
+                    // bbox
+                    '%s',
+                    // children
                 ]
             ) )
         {
@@ -1115,18 +1149,13 @@ class Location
     }
 
 
-    public static function load( $ids )
-    {
-
-        $locations = static::loadRecords( $ids );
-
-        return is_array( $ids )
-            ? $locations
-            : reset( $locations );
-    }
-
-
-    protected static function loadRecords( $ids )
+    /**
+     * @param $ids
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
+    protected static function loadRecords( $ids ): ?array
     {
 
         if ( false === ( is_array( $ids )
@@ -1177,13 +1206,21 @@ SQL;
     }
 
 
+    /**
+     * @param          $array
+     * @param  string  $key
+     * @param  string  $prefix
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
     public static function parseArray(
         &$array,
         $key = 'geoname_id',
         $prefix = '_'
-    ) {
+    ): ?array {
 
-        return parent::parseArray( $array, $key, $prefix );
+        return static::___parseArray( $array, $key, $prefix );
 
     }
 

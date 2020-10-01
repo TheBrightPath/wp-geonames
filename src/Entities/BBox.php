@@ -2,11 +2,11 @@
 
 namespace WPGeonames\Entities;
 
-use WPGeonames\FlexibleObject;
-use WPGeonames\Traits\FlexibleObjectTrait;
+use WPGeonames\Helpers\FlexibleObjectInterface;
+use WPGeonames\Helpers\FlexibleObjectTrait;
 
 class BBox
-    implements FlexibleObject
+    implements FlexibleObjectInterface
 {
     use FlexibleObjectTrait;
 

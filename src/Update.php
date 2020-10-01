@@ -74,6 +74,8 @@ class Update
 
 
     /**
+     * @param  bool  $reset
+     *
      * @return array
      */
     public function getUpdateLog( bool $reset = true ): array
@@ -150,20 +152,58 @@ SQL;
         // locations cache queries
         $nom = $this->core->getTblCacheQueries();
 
-        $searchTypes = implode( "','", ApiQuery::SEARCH_TYPES );
+        $searchTypes = Query::SEARCH_TYPES;
+        sort( $searchTypes, SORT_FLAG_CASE | SORT_NATURAL );
+
+        $searchTypes = implode( "','", $searchTypes );
 
         $sql = <<<SQL
                 CREATE TABLE $nom  (
                     `query_id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
                     `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                    `query_updated` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                    `query_updated` timestamp NULL DEFAULT NULL,
+                    `query_queried` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    `query_count` smallint(6) NOT NULL DEFAULT 0,
                     `search_term` varchar(200) NOT NULL,
-                    `search_type` enum('$searchTypes') NOT NULL,
-                    `search_country` enum($this->country_codes) DEFAULT NULL,
-                    `search_params` varchar(500) NOT NULL,
+                    `search_countries` json DEFAULT NULL,
+                    `search_params` json DEFAULT NULL,
                     `result_count` smallint(6) NOT NULL,
                     `result_total` smallint(6) DEFAULT NULL, 
-                INDEX `idx_search` (`search_term`(10), `search_type`, `search_country`)
+                    `search_country_index` char(2) GENERATED ALWAYS AS (
+                        CASE
+                            WHEN search_countries IS NULL THEN NULL
+                            WHEN search_countries->'$[1]' IS NOT NULL THEN '[]'
+                            ELSE search_countries->>'$[0]'
+                        END
+                    ) VIRTUAL,
+                INDEX `idx_search` (`search_term`(10), `search_country_index`)
+			) {$this->charset_collate};
+SQL;
+
+        $this->updateLog += dbDelta( $sql );
+
+    }
+
+
+    public function createTblCacheSubQueries(): void
+    {
+
+        // locations cache queries
+        $nom = $this->core->getTblCacheSubQueries();
+
+        $searchTypes = implode( "','", Query::SEARCH_TYPES );
+
+        $sql = <<<SQL
+                CREATE TABLE $nom  (
+                    `query_id` int(11) NOT NULL,
+                    `search_type` enum('$searchTypes') NOT NULL,
+                    `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `query_updated` timestamp NULL DEFAULT NULL,
+                    `query_queried` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                    `query_count` smallint(6) NOT NULL DEFAULT 0,
+                    `result_count` smallint(6) NOT NULL,
+                    `result_total` smallint(6) DEFAULT NULL, 
+                    PRIMARY KEY (`query_id`, `search_type`)
 			) {$this->charset_collate};
 SQL;
 
@@ -178,16 +218,17 @@ SQL;
         // locations cache results
         $nom = $this->core->getTblCacheResults();
 
+        $searchTypes = implode( "','", Query::SEARCH_TYPES );
+
         $sql = <<<SQL
                 CREATE TABLE $nom (
                     `query_id` int(11) NOT NULL AUTO_INCREMENT,
+                    `search_type` enum('$searchTypes') NOT NULL,
                     `geoname_id` int(11) NOT NULL,
                     `order` smallint(3) unsigned NOT NULL,
                     `score` float DEFAULT NULL,
-                    `country_code` enum($this->country_codes) DEFAULT NULL,
-                    PRIMARY KEY (`query_id`, `geoname_id`),
-                UNIQUE `idx_result` (`query_id`, `order`),
-                INDEX `query_id_country_code_order` (`query_id`, `country_code`, `order`)
+                    PRIMARY KEY (`query_id`, `search_type`, `order`),
+                UNIQUE `idx_result` (`query_id`, `search_type`, `geoname_id`)
 			) {$this->charset_collate};
 SQL;
 
@@ -302,8 +343,8 @@ SQL;
                 PRIMARY KEY (`geoname_id`),
             KEY `index1` (`feature_class`,`feature_code`,`country_code`,`cc2`(2),`name`(3)),
             KEY `country_code_admin` (`country_code`,`admin1_code`,`admin2_code`,`admin3_code`,`admin4_code`,`name`(3)),
-            KEY `country_id` (`country_id`,`name`(4))
-            KEY `admin1_id` (`admin1_id`,`name`(4))
+            KEY `country_id` (`country_id`,`name`(4),`feature_class`,`feature_code`),
+            KEY `admin1_id` (`admin1_id`,`name`(4),`feature_class`,`feature_code`)
 			) {$this->charset_collate};
 SQL;
 
@@ -363,6 +404,7 @@ SQL;
         $update->createTblCountries();
         $update->createTblLocations();
         $update->createTblCacheQueries();
+        $update->createTblCacheSubQueries();
         $update->createTblCacheResults();
         $update->createTblPostCodes();
         $update->addData();

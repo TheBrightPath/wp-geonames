@@ -13,6 +13,8 @@ use GeoNames\Client as GeoNamesClient;
 use RuntimeException;
 use StdClass;
 use WPGeonames\Entities\Location;
+use WPGeonames\Query\ApiStatus;
+use WPGeonames\Query\Status;
 use ZipArchive;
 
 // exit if accessed directly
@@ -54,12 +56,14 @@ class Core
     public const geoVersion = "2.1.1";
 
     // tables constants
-    public const tblCountries        = 'wp_geonames_countries';
-    public const tblLocations        = 'wp_geonames_locations';
-    public const tblLocationsCache   = 'wp_geonames_locations_cache';
-    public const tblLocationsQueries = 'wp_geonames_locations_queries';
-    public const tblLocationsResults = 'wp_geonames_locations_results';
-    public const tblPostCodes        = 'wp_geonames_postal';
+    public const tblCountries           = 'wp_geonames_countries';
+    public const tblLocations           = 'wp_geonames_locations';
+    public const tblLocationsCache      = 'wp_geonames_locations_cache';
+    public const tblLocationsQueries    = 'wp_geonames_locations_queries';
+    public const tblLocationsResults    = 'wp_geonames_locations_results';
+    public const tblLocationsSubQueries = 'wp_geonames_locations_queries_sub';
+    public const tblPostCodes           = 'wp_geonames_postal';
+
     // urls
     public const urlCountries   = self::urlLocations . 'countryInfo.txt';
     public const urlLocations   = 'http://download.geonames.org/export/dump/';
@@ -197,24 +201,6 @@ class Core
                 'checkSearchParamsMinRequirements',
             ],
             5,
-            2
-        );
-        add_filter(
-            'geonames/api/cache/lookup',
-            [
-                $this,
-                'cacheLookupSearch',
-            ],
-            10,
-            2
-        );
-        add_filter(
-            'geonames/api/result',
-            [
-                $this,
-                'cacheSearchResult',
-            ],
-            10,
             2
         );
 
@@ -366,6 +352,16 @@ class Core
     {
 
         return WpDb::replaceTablePrefix( static::tblLocationsResults );
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getTblCacheSubQueries(): string
+    {
+
+        return WpDb::replaceTablePrefix( static::tblLocationsSubQueries );
     }
 
 
@@ -1298,7 +1294,7 @@ SQL
             {
                 echo $outPostal;
             } ?></div>
-        <!--suppress JSPotentiallyInvalidConstructorUsage, JSUnresolvedVariable, JSUnresolvedFunction -->
+        <!--suppress JSPotentiallyInvalidConstructorUsage, JSUnresolvedVariable, JSUnresolvedFunction, JSDeprecatedSymbols -->
         <script>
             let wpgeoajx;
 
@@ -1998,7 +1994,7 @@ SQL
         <script type="text/javascript"
                 src="<?php
                 echo plugins_url(); ?>/wp-geonames/sumoselect/jquery.sumoselect.min.js"></script>
-        <!--suppress JSUnresolvedFunction, JSUnresolvedVariable -->
+        <!--suppress JSUnresolvedFunction, JSUnresolvedVariable, JSDeprecatedSymbols -->
         <script type="text/javascript">
             jQuery(document).ready(function () {
                 jQuery('#wpGeonamesAdd').SumoSelect({
@@ -2128,6 +2124,9 @@ SQL
     }
 
 
+    /**
+     * @throws \ErrorException
+     */
     public function admin_scheme(): void
     {
 
@@ -2379,168 +2378,6 @@ SQL
     }
 
 
-    /**
-     * @param $apiResult
-     *
-     * @return mixed
-     * @throws ErrorException
-     */
-    public function cacheSearchResult( ApiQueryStatus $apiResult )
-    {
-
-        $searchTerm  = $apiResult->query->getSearchTerm();
-        $country     = $apiResult->query->getSingleCountry();
-        $search_type = ApiQuery::translateSearchType( $apiResult->type );
-
-        if ( empty( $search_type ) )
-        {
-            throw new ErrorException( 'Search type not supported' );
-        }
-
-        if ( false === self::$wpdb->insert(
-                self::$instance->tblCacheQueries,
-                [
-                    'search_term'    => mb_strtolower( $searchTerm ),
-                    'search_type'    => $search_type,
-                    'search_country' => $country,
-                    'search_params'  => serialize( $apiResult->query->cleanArray( $apiResult->params, true ) ),
-                    'result_count'   => count( $apiResult->result ),
-                    'result_total'   => $apiResult->total,
-                ],
-                [
-                    '%s', // search_term
-                    '%s', // search_type
-                    '%s', // search_country
-                    '%s', // search_params
-                    '%d', // result_count
-                    '%d', // result_total
-                ]
-            ) )
-        {
-            throw new ErrorException( self::$wpdb->last_error );
-        }
-        $cachedQuery = (object) [ 'query_id' => self::$wpdb->insert_id ];
-
-        $recordsToCache = array_diff_key( $apiResult->result, $apiResult->results );
-
-        $admin = [];
-
-        array_walk(
-            $recordsToCache,
-            static function ( Location $location ) use
-            (
-                &
-                $admin
-            )
-            {
-
-                $admin[ $location->getCountryId() ] = true;
-
-                for ( $i = 1; $i <= 4; $i ++ )
-                {
-                    $getter = "getAdminId$i";
-                    $x      = $location->$getter();
-
-                    if ( $x === null )
-                    {
-                        return;
-                    }
-
-                    $admin[ $x ] = true;
-                }
-            }
-        );
-
-        $admin = array_filter( $admin );
-
-        if ( ! empty( $admin ) )
-        {
-
-            $tbl      = $this->getTblCacheLocations();
-            $sqlWhere = sprintf( 'geoname_id IN (%s)', implode( ',', array_keys( $admin ) ) );
-            $sql      = <<<SQL
-    SELECT
-        geoname_id
-    FROM
-        $tbl
-    WHERE
-        $sqlWhere
-    ;
-SQL;
-
-            $existing = static::$wpdb->get_col( $sql );
-            $existing = array_flip( $existing );
-            $admin    = array_diff_key( $admin, $existing );
-            $g        = Core::getGeoNameClient();
-
-            foreach ( $admin as $geonameId => &$item )
-            {
-                $params = [
-                    'geonameId' => $geonameId,
-                    'style'     => 'full',
-                ];
-
-                $item = $g->get( $params );
-            }
-
-            $recordsToCache += Location::parseArray( $admin, 'geonameId', '_' );
-        }
-
-        unset( $admin, $existing, $item, $geonameId, $params, $sqlWhere );
-
-        array_walk(
-            $recordsToCache,
-            static function ( Location $location )
-            {
-
-                $location->save();
-            }
-        );
-
-        unset ( $recordsToCache );
-
-        $i = 0;
-        array_walk(
-            $apiResult->result,
-            static function (
-                Location $location
-            )
-            use
-            (
-                &
-                $cachedQuery,
-                &
-                $i
-            )
-            {
-
-                if ( false === Core::$wpdb->insert(
-                        self::$instance->tblCacheResults,
-                        [
-                            'query_id'     => $cachedQuery->query_id,
-                            'geoname_id'   => $location->geonameId,
-                            'order'        => ++ $i,
-                            'score'        => $location->getScore(),
-                            'country_code' => $location->getCountry()->iso2,
-                        ],
-                        [
-                            '%d', // query_id
-                            '%d', // geoname_id
-                            '%d', // order
-                            '%f', // score
-                            '%s', // country_code
-                        ]
-                    ) )
-                {
-                    throw new ErrorException( Core::$wpdb->last_error );
-                }
-            }
-        );
-
-        return $apiResult;
-    }
-
-
     public function checkArray(
         $name,
         $key,
@@ -2592,300 +2429,86 @@ SQL;
 
 
     /**
-     * @param  array|null                  $params
-     * @param  \WPGeonames\ApiQueryStatus  $apiResult
+     * @param  \WPGeonames\Query\ApiStatus  $apiResult
      *
-     * @return array|null
-     * @throws \ErrorException
+     * @return \WPGeonames\Query\ApiStatus
      */
-    public function checkSearchParams(
-        ?array $params,
-        ApiQueryStatus $apiResult
-    ): ?array {
-
-        if ( $params === null )
-        {
-            return null;
-        }
-
-        if ( $apiResult->query->getStartRow() + $apiResult->query->getMaxRows() <= $apiResult->processRecords )
-        {
-            return null;
-        }
-
-        $self = self::$instance;
-
-        $singleCountry = $apiResult->query->getSingleCountry();
-        $searchCountry = $singleCountry
-            ? self::$wpdb->prepare( 'OR search_country = %s', $singleCountry )
-            : '';
-
-        $sql = <<<SQL
-SELECT
-    *
-FROM
-    {$self->tblCacheQueries}
-WHERE
-       search_term = %s
-   AND search_type = %s
-   AND (search_country IS NULL $searchCountry)
-ORDER BY
-    search_country IS NULL
-;
-SQL;
-
-        $sql = self::$wpdb->prepare(
-            $sql,
-            mb_strtolower( $apiResult->query->getSearchTerm() ),
-            ApiQuery::translateSearchType( $apiResult->type )
-        );
-
-        $myParams        = $apiResult->query->cleanArray( $params, true );
-        $serializedQuery = serialize( $myParams );
-        $cachedQuery     = null;
-        $cachedQueries   = self::$wpdb->get_results( $sql );
-
-        $searchCountry = $apiResult->query->getCountryAsArray();
-
-        /** @noinspection AlterInForeachInspection */
-        foreach ( $cachedQueries as $i => &$cachedQuery )
-        {
-
-            // check if exact same query
-            if ( $cachedQuery->search_params === $serializedQuery )
-            {
-                break;
-            }
-
-            // bail if we search all countries, but current query uses a specific country
-            if ( empty( $searchCountry ) && $cachedQuery->search_country )
-            {
-                $cachedQuery = null;
-                continue;
-            }
-
-            /** @noinspection UnserializeExploitsInspection */
-            $cachedQuery->search_params = new ApiQuery( unserialize( $cachedQuery->search_params, [] ) );
-            $cachedCountry              = $cachedQuery->search_params->getCountryAsArray();
-
-            // use cached query if countries match
-            if ( $searchCountry === $cachedCountry )
-            {
-                break;
-            }
-
-            // bail if we search all countries, but current query uses specific countries
-            if ( empty( $searchCountry ) && ! empty( $cachedCountry ) )
-            {
-                $cachedQuery = null;
-                continue;
-            }
-
-            // ignore incomplete caches
-            if ( $cachedQuery->result_count ?? 0 === $cachedQuery->search_params->getMaxStartRow()
-                                               || $cachedQuery->result_count < $cachedQuery->result_total ?? 0
-            )
-            {
-                $cachedQuery = null;
-                continue;
-            }
-
-            // bail early, if not all the countries are in the cache
-            if ( ! empty( $cachedCountry ) && $searchCountry !== array_intersect( $searchCountry, $cachedCountry ) )
-            {
-
-                // only disregard if not one single country is matching
-                if ( count( array_intersect( $searchCountry, $cachedCountry ) ) === 0 )
-                {
-                    $cachedQuery = null;
-                }
-
-                continue;
-            }
-
-            // cache does include all the searched countries
-            break;
-        }
-
-        if ( $cachedQuery === null )
-        {
-
-            $cachedQueries = array_filter( $cachedQueries );
-
-            if ( empty( $cachedQueries ) )
-            {
-                return $params;
-            }
-
-            $x = $searchCountry;
-
-            foreach ( $cachedQueries as $cachedQuery )
-            {
-                $x = array_diff( $x, $cachedQuery->search_params->getCountryAsArray() );
-
-                if ( empty( $x ) )
-                {
-                    break;
-                }
-            }
-
-            if ( ! empty( $x ) )
-            {
-                return $params;
-            }
-
-            unset( $x );
-            $cachedQuery = null;
-        }
-        else
-        {
-            $cachedQueries = [ $cachedQuery ];
-        }
-
-        // count the sum of records of all queries
-        $cached = array_sum(
-            array_map(
-                static function ( $cachedQuery )
-                {
-
-                    return $cachedQuery->result_count;
-                },
-                $cachedQueries
-            )
-        );
-
-        // ignore cache and current searchType if no records
-        if ( $cached === 0 )
-        {
-            return null;
-        }
-
-        if ( $cachedQuery === null )
-        {
-
-            $inCountryCode = "'" . implode( "','", $searchCountry ) . "'";
-            $inQueryId     = implode(
-                ",",
-                array_map(
-                    static function ( $cachedQuery )
-                    {
-
-                        return $cachedQuery->query_id;
-                    },
-                    $cachedQueries
-                )
-            );
-
-            $sql = <<<SQL
-SELECT
-    country_code, count(DISTINCT geoname_id) as count
-FROM
-    {$self->tblCacheResults}
-WHERE
-       query_id IN ($inQueryId)
-   AND country_code IN ($inCountryCode)
-GROUP BY
-    country_code
-ORDER BY
-    country_code
-;
-SQL;
-
-            $countryRecordCount = self::$wpdb->get_results( $sql );
-
-            $cached = array_sum(
-                array_map(
-                    static function ( $c )
-                    {
-
-                        return $c->count;
-                    },
-                    $countryRecordCount
-                )
-            );
-        }
-
-        $start = $apiResult->query->getStartRow();
-
-        if ( $start > $cached )
-        {
-            $apiResult->processRecords += $cached;
-
-            return null;
-        }
-
-        $start -= $apiResult->processRecords;
-        $limit = $apiResult->query->getMaxRows() - count( $apiResult->result );
-
-        $get = [
-            'searchCountry' => $searchCountry,
-            'queries'       => $cachedQueries,
-        ];
-
-        $result = self::getCachedQuery( $get, $start, $limit );
-
-        /** @noinspection AdditionOperationOnArraysInspection */
-        $apiResult->result += $result;
-
-        return null;
-    }
-
-
     public function checkSearchParamsMinRequirements(
-        ?array $params,
-        ApiQueryStatus $apiResult
-    ): ?array {
+        ApiStatus $apiResult
+    ): ApiStatus {
 
-        if ( $params === null )
+        if ( $apiResult->parameters === null )
         {
-            return null;
+            return $apiResult;
         }
 
-        $searchType = $apiResult->type;
-        $searchTerm = $apiResult->query->getSearchTerm();
+        $max        = $apiResult->maxRecords;
+        $current    = count( $apiResult->globalResultSet );
+        $searchType = $apiResult->query->getSearchType();
+        $searchTerm = $apiResult->mainQuery->getSearchTerm();
         $len        = strlen( $searchTerm );
 
-        $minAllCountries = $minMultipleCountries = $minSingleCountry = 1;
+        // prevent zero-lenghts searches
+        if ( $len <= 0 )
+        {
+            $apiResult->parameters = null;
+
+            return $apiResult;
+        }
+
+        // permit search if still missing records
+        if ( $current < $max )
+        {
+            return $apiResult;
+        }
+
+        $minAllCountries = $minMultipleCountries = $minSingleCountry = 0;
 
         switch ( $searchType )
         {
 
-        case ApiQuery::SEARCH_TYPE_Q:
+        case Query::SEARCH_TYPE_Q:
             $minSingleCountry     = 3;
             $minMultipleCountries = 4;
             $minAllCountries      = 6;
             break;
 
-        case ApiQuery::SEARCH_TYPE_START_OF_NAME:
+        case Query::SEARCH_TYPE_START_OF_NAME:
             $minSingleCountry     = 3;
             $minMultipleCountries = 3;
             $minAllCountries      = 4;
             break;
 
-        case ApiQuery::SEARCH_TYPE_NAME:
-        case ApiQuery::SEARCH_TYPE_FUZZY_NAME:
+        case Query::SEARCH_TYPE_NAME:
+        case Query::SEARCH_TYPE_FUZZY_NAME:
             $minSingleCountry     = 2;
             $minMultipleCountries = 4;
             $minAllCountries      = 5;
             break;
 
-        case ApiQuery::SEARCH_TYPE_EXACT_NAME:
+        case Query::SEARCH_TYPE_EXACT_NAME:
             $minAllCountries = 1;
             break;
         }
 
         if ( $len < $minAllCountries )
         {
-            return null;
+            $apiResult->parameters = null;
+
+            return $apiResult;
         }
 
-        $country = $params['country'] ?? null;
+        $country = $apiResult->parameters['country'] ?? null;
 
         if ( empty( $country ) )
         {
-            return $len >= $minAllCountries
-                ? $params
-                : null;
+
+            if ( $len < $minAllCountries )
+            {
+                $apiResult->parameters = null;
+            }
+
+            return $apiResult;
         }
 
         if ( is_array( $country ) && count( $country ) === 1 )
@@ -2893,16 +2516,12 @@ SQL;
             $country = reset( $country );
         }
 
-        if ( is_string( $country ) )
+        if ( ( is_string( $country ) && $len < $minSingleCountry ) || ( $len < $minMultipleCountries ) )
         {
-            return $len >= $minSingleCountry
-                ? $params
-                : null;
+            $apiResult->parameters = null;
         }
 
-        return $len >= $minMultipleCountries
-            ? $params
-            : null;
+        return $apiResult;
     }
 
 
@@ -3702,101 +3321,6 @@ SQL;
 
 
     /**
-     * @param          $query
-     * @param  int     $offset
-     * @param  int     $limit
-     * @param  string  $output
-     * @param  string  $key
-     * @param  string  $prefix
-     *
-     * @return array|null
-     * @throws \ErrorException
-     */
-    public
-    static function getCachedQuery(
-        $query,
-        $offset = 0,
-        $limit = - 1,
-        $output = Location::class,
-        $key = 'geoname_id',
-        $prefix = '_'
-    ): ?array {
-
-        $self = self::$instance;
-
-        if ( is_array( $query ) )
-        {
-
-            $inCountryCode = $query['searchCountry']
-                ? " AND r.country_code IN ('" . implode( "','", $query['searchCountry'] ) . "')"
-                : '';
-            $inQueryId     = " AND r.query_id IN (" . implode(
-                    ",",
-                    array_map(
-                        static function ( $query )
-                        {
-
-                            return is_object( $query )
-                                ? $query->query_id
-                                : $query;
-                        },
-                        $query['queries']
-                    )
-                ) . ")";
-        }
-        else
-        {
-            $inCountryCode = '';
-            $inQueryId     = ' AND r.query_id = ' . (
-                is_object( $query )
-                    ? $query->query_id
-                    : $query
-                );
-        }
-
-        $sqlLimit = '';
-
-        if ( $offset >= 0 && $limit < 0 )
-        {
-            $limit = 18446744073709551615;
-        }
-
-        if ( $limit >= 0 )
-        {
-            $sqlLimit = "LIMIT $limit\n";
-
-            if ( $offset > 0 )
-            {
-                $sqlLimit .= "OFFSET $offset\n";
-            }
-        }
-
-        $sql = <<<SQL
-SELECT
-    *
-FROM
-        {$self->tblCacheResults} r
-    LEFT JOIN
-        {$self->tblCacheLocations} l on l.geoname_id = r.geoname_id
-WHERE
-    1
-    $inQueryId
-    $inCountryCode
-ORDER BY
-      r.order
-    , r.query_id
-    , l.geoname_id
-$sqlLimit
-;
-SQL;
-
-        $result = self::$wpdb->get_results( $sql );
-
-        return WpDb::formatOutput( $result, $output, $key, $prefix );
-    }
-
-
-    /**
      * @return array
      */
     public static function &getCountryCodes(): ?array
@@ -3939,6 +3463,8 @@ SQL;
     /**
      * @see https://www.geonames.org/export/geonames-search.html
      *
+     * @param          $query
+     *
      * @param  string  $output  Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
      *                          With one of the first three, return an array of rows indexed from 0 by SQL result row
      *                          number. Each row is an associative array (column => value, ...), a numerically indexed
@@ -3946,30 +3472,24 @@ SQL;
      *                          OBJECT_K, return an associative array of row objects keyed by the value of each row's
      *                          first column's value. Duplicate keys are discarded.
      *
-     * @param          $query
+     * @return \WPGeonames\Query\Status
      *
-     * @return array
-     *
-     * @return array|object|null Database query results
-     *
-     * @throws \ErrorException
      */
     public static function &getLiveSearch(
         $query,
         $output = OBJECT
-    ): array {
+    ): Status {
 
         //self::$instance->creation_table();
 
-        if ( ! $query instanceof ApiQuery )
+        if ( ! $query instanceof Query )
         {
 
-            $query = new ApiQuery(
-                $query, [
-                    'maxRows' => 20,
-                    // the maximal number of rows in the document returned by the service. Default is 100, the maximal allowed value is 1000.
-                ]
-            );
+            /**
+             *
+             * @see \WPGeonames\Query\Query::QUERY_DEFAULTS
+             */
+            $query = new Query( $query );
         }
 
         $apiResult = $query->query( $output );
@@ -3988,6 +3508,7 @@ SQL;
      *                          first column's value. Duplicate keys are discarded.
      *
      * @return array|object|null Database query results
+     * @throws \ErrorException
      */
     public static function getLocations(
         $args = [],
@@ -4117,6 +3638,8 @@ SQL
 
         /** @noinspection PhpIncludeInspection */
         self::$$name = require( self::getEnums()->$name->file );
+
+        ksort( self::$$name, SORT_STRING | SORT_NATURAL );
 
         return self::$$name;
     }

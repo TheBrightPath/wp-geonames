@@ -4,8 +4,8 @@ namespace WPGeonames\Entities;
 
 use DateTime;
 use DateTimeZone;
-use WPGeonames\FlexibleObject;
-use WPGeonames\Traits\FlexibleObjectTrait;
+use WPGeonames\Helpers\FlexibleObjectInterface;
+use WPGeonames\Helpers\FlexibleObjectTrait;
 
 /**
  * class Timezone
@@ -23,14 +23,14 @@ class Timezone
     extends
     DateTimeZone
     implements
-    FlexibleObject
+    FlexibleObjectInterface
 {
 
     use FlexibleObjectTrait;
 
 // protected properties
 
-    protected static $aliases
+    protected static $_aliases
         = [
             'time_zone_id' => 'name',
             'timezone'     => 'name',
@@ -41,6 +41,13 @@ class Timezone
         ];
 
 
+    /**
+     * Timezone constructor.
+     *
+     * @param         $timezone
+     * @param  array  $defaultsAreIgnored
+     *
+     * @noinspection PhpUnusedParameterInspection*/
     public function __construct(
         $timezone,
         $defaultsAreIgnored = []
@@ -75,6 +82,8 @@ class Timezone
 
 
     /**
+     * @param  int|null  $year
+     *
      * @return int|null
      */
     public function getOffsetJan( ?int $year = null ): ?int
@@ -82,13 +91,15 @@ class Timezone
 
         return $this->getOffset(
             date_create()
-                ->setDate( $year ?? date_create()->format( 'Y' ), 1, 1 )
+                ->setDate( $year ?? (int) date_create()->format( 'Y' ), 1, 1 )
                 ->setTime( 14, 0, 0 )
         );
     }
 
 
     /**
+     * @param  int|null  $year
+     *
      * @return int|null
      */
     public function getOffsetJul( ?int $year = null ): ?int
@@ -96,7 +107,7 @@ class Timezone
 
         return $this->getOffset(
             date_create()
-                ->setDate( $year ?? date_create()->format( 'Y' ), 7, 1 )
+                ->setDate( $year ?? (int) date_create()->format( 'Y' ), 7, 1 )
                 ->setTime( 14, 0, 0 )
         );
     }
@@ -109,7 +120,13 @@ class Timezone
     }
 
 
-    public function createDateTime( $dateTimeString )
+    /**
+     * @param $dateTimeString
+     *
+     * @return \DateTime
+     * @throws \Exception
+     */
+    public function createDateTime( $dateTimeString ): DateTime
     {
 
         return new DateTime( $dateTimeString, $this );

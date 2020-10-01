@@ -2,9 +2,10 @@
 
 namespace WPGeonames\Entities;
 
+use ErrorException;
 use WPGeonames\Core;
-use WPGeonames\FlexibleObject;
-use WPGeonames\Traits\FlexibleObjectTrait;
+use WPGeonames\Helpers\FlexibleObjectInterface;
+use WPGeonames\Helpers\FlexibleObjectTrait;
 
 /**
  * Class Country
@@ -29,7 +30,7 @@ use WPGeonames\Traits\FlexibleObjectTrait;
  * @property string $equivalentFipsCode
  */
 class Country
-    implements FlexibleObject
+    implements FlexibleObjectInterface
 {
     use FlexibleObjectTrait;
 
@@ -38,7 +39,7 @@ class Country
     /** @var \WPGeonames\Entities\Country[] */
     protected static $countries = [];
 
-    protected static $aliases
+    protected static $_aliases
         = [
             'geoname_id'           => 'geonameId',
             'country'              => 'name',
@@ -541,6 +542,12 @@ class Country
     }
 
 
+    /**
+     * @param  string  $country
+     *
+     * @return static
+     * @throws \ErrorException
+     */
     public static function load( string $country ): self
     {
 
@@ -581,7 +588,7 @@ SQL;
 
         if ( Core::$wpdb->last_error_no )
         {
-            throw new \ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
+            throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
         /** @noinspection CallableParameterUseCaseInTypeContextInspection */

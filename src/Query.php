@@ -7,7 +7,10 @@ namespace WPGeonames;
 
 use ErrorException;
 use WPGeonames\Entities\Location;
-use WPGeonames\Traits\FlexibleObjectTrait;
+use WPGeonames\Query\ChildQueryInterface;
+use WPGeonames\Query\ChildQueryTrait;
+use WPGeonames\Query\QueryTrait;
+use WPGeonames\Query\Status;
 
 /**
  * Class ApiQuery
@@ -19,82 +22,66 @@ use WPGeonames\Traits\FlexibleObjectTrait;
  * @property $name_startsWith string (optional)    place name starts with given characters
  *
  */
-class ApiQuery
-    implements FlexibleObject
+class Query
+    implements
+    QueryInterface
 {
 
-    use FlexibleObjectTrait
+    use QueryTrait
     {
-        __construct as protected ___construct;
-        cleanArray as protected ___cleanArray;
-        toArray as protected ___toArray;
+        QueryTrait::__construct as protected _QueryTrait__construct;
+        QueryTrait::cleanArray as protected _QueryTrait__cleanArray;
+        QueryTrait::toArray as protected _QueryTrait__toArray;
     }
 
-// constants
-    public const MAX_ROWS                  = 1000;
-    public const MAX_START_ROW_FREE        = 5000;
-    public const MAX_START_ROW_PREMIUM     = 25000;
-    public const QUERY_DEFAULTS
-                                           = [
-            'maxRows'        => self::MAX_ROWS,
-            // the maximal number of rows in the document returned by the service. Default is 100, the maximal allowed value is 1000.
-            'startRow'       => 0,
-            // Used for paging results. If you want to get results 30 to 40, use startRow=30 and maxRows=10. Default is 0, the maximal allowed value is 5000 for the free services and 25000 for the premium services
-            'isNameRequired' => true,
-            //At least one of the search term needs to be part of the place name. Example : A normal search for Berlin will return all places within the state of Berlin. If we only want to find places with 'Berlin' in the name we set the parameter isNameRequired to 'true'. The difference to the name_equals parameter is that this will allow searches for 'Berlin, Germany' as only one search term needs to be part of the name.
-            'orderby'        => 'relevance',
-            // [population,elevation,relevance]	in combination with the name_startsWith, if set to 'relevance' than the result is sorted by relevance.
-            'fuzzy'          => 0.8,
-            // default is '1', defines the fuzziness of the search terms. float between 0 and 1. The search term is only applied to the name attribute.
-            // With the parameter 'fuzzy' the search will find results even if the search terms are incorrectly spelled. Example: http://api.geonames.org/search?q=londoz&fuzzy=0.8&username=demo
-            'operator'       => 'AND',
-            // default is 'AND', with the operator 'OR' not all search terms need to be matched by the response
-            // required for removing irrelevant search parameters
-        ];
-    public const SEARCH_NAME_EXACT_NAME    = 'name_equals';
-    public const SEARCH_NAME_FUZZY_NAME    = 'name_fuzzy';
-    public const SEARCH_NAME_NAME          = 'name';
-    public const SEARCH_NAME_Q             = 'q';
-    public const SEARCH_NAME_START_OF_NAME = 'name_startsWith';
-    public const SEARCH_TYPES
-                                           = [
-            self::SEARCH_TYPE_Q             => self::SEARCH_NAME_Q,
-            self::SEARCH_TYPE_START_OF_NAME => self::SEARCH_NAME_START_OF_NAME,
-            self::SEARCH_TYPE_FUZZY_NAME    => self::SEARCH_NAME_FUZZY_NAME,
-            self::SEARCH_TYPE_NAME          => self::SEARCH_NAME_NAME,
-            self::SEARCH_TYPE_EXACT_NAME    => self::SEARCH_NAME_EXACT_NAME,
-        ];
-    public const SEARCH_TYPE_EXACT_NAME    = 2 ** 5;
-    public const SEARCH_TYPE_FUZZY_NAME    = 2 ** 3;
-    public const SEARCH_TYPE_NAME          = 2 ** 4;
-    public const SEARCH_TYPE_Q             = 2 ** 1;
-    public const SEARCH_TYPE_START_OF_NAME = 2 ** 2;
-
 //  public properties
-    static $aliases
-        = [
-            'feature_class'                     => 'featureClass',
-            'feature_code'                      => 'featureCode',
-            'country_code'                      => 'country',
-            's'                                 => 'searchTerm',
-            ApiQuery::SEARCH_NAME_Q             => 'q',
-            ApiQuery::SEARCH_NAME_NAME          => 'name',
-            'nameEquals'                        => 'nameEquals',
-            ApiQuery::SEARCH_NAME_EXACT_NAME    => 'nameEquals',
-            'nameStartsWith'                    => 'nameStartsWith',
-            ApiQuery::SEARCH_NAME_START_OF_NAME => 'nameStartsWith',
-        ];
+
+    /**
+     * @var \WPGeonames\Query\DB\MainQuery
+     */
+    public static $_dbExecutorType = Query\DB\MainQuery::class;
+
+    /**
+     * @var \WPGeonames\Query\Executor
+     */
+    public static $_apiExecutorType = Query\Executor::class;
 
 // protected properties
+
+    protected static $_aliases
+        = [
+            'feature_class'                        => 'featureClass',
+            'feature_code'                         => 'featureCode',
+            'country_code'                         => 'country',
+            'search_countries'                     => 'country',
+            's'                                    => 'searchTerm',
+            'search_term'                          => 'searchTerm',
+            'search_type'                          => 'searchType',
+            Query\Query::SEARCH_NAME_Q             => 'q',
+            Query\Query::SEARCH_NAME_NAME          => 'name',
+            'nameEquals'                           => 'nameEquals',
+            Query\Query::SEARCH_NAME_EXACT_NAME    => 'nameEquals',
+            'nameStartsWith'                       => 'nameStartsWith',
+            Query\Query::SEARCH_NAME_START_OF_NAME => 'nameStartsWith',
+        ];
+
+    /**
+     * @var bool
+     */
+    protected $_useCache = true;
+
     /**
      * @var string
      */
     protected $searchTerm = '';
 
+    /** @var ChildQueryTrait|string */
+    protected $_subQueryType = ChildQueryTrait::class;
+
     /**
      * @var int
      */
-    protected $searchType = self::SEARCH_TYPE_EXACT_NAME + self::SEARCH_TYPE_NAME + self::SEARCH_TYPE_START_OF_NAME;
+    protected $searchType = 0;
 
     /**
      * @var int (optional)    the maximal number of rows in the document returned by the service. default is 100, the
@@ -242,10 +229,10 @@ class ApiQuery
      */
     public function __construct(
         $values,
-        $defaults = self::QUERY_DEFAULTS
+        $defaults = Query::QUERY_DEFAULTS
     ) {
 
-        $this->___construct( $values, wp_parse_args( $defaults, self::QUERY_DEFAULTS ) );
+        $this->_QueryTrait__construct( $values, wp_parse_args( $defaults, Query\Query::QUERY_DEFAULTS ) );
 
     }
 
@@ -263,9 +250,9 @@ class ApiQuery
     /**
      * @param  string  $adminCode1
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setAdminCode1( string $adminCode1 ): ApiQuery
+    public function setAdminCode1( string $adminCode1 ): Query\Query
     {
 
         $this->adminCode1 = $adminCode1;
@@ -327,9 +314,9 @@ class ApiQuery
     /**
      * @param  string  $charset
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setCharset( string $charset ): ApiQuery
+    public function setCharset( string $charset ): Query\Query
     {
 
         $this->charset = $charset;
@@ -351,9 +338,9 @@ class ApiQuery
     /**
      * @param  string  $cities
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setCities( string $cities ): ApiQuery
+    public function setCities( string $cities ): Query\Query
     {
 
         $this->cities = $cities;
@@ -375,9 +362,9 @@ class ApiQuery
     /**
      * @param  string|string[]|null  $continentCode
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setContinentCode( $continentCode ): ApiQuery
+    public function setContinentCode( $continentCode ): Query\Query
     {
 
         $this->continentCode = $continentCode;
@@ -399,24 +386,42 @@ class ApiQuery
     /**
      * @param  string|string[]|null  $country
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setCountry( $country ): ApiQuery
+    public function setCountry( $country ): Query\Query
     {
 
         $this->country = $country;
+
+        if ( is_array( $this->country ) )
+        {
+            sort( $this->country, SORT_STRING | SORT_NATURAL );
+        }
 
         return $this;
     }
 
 
-    public function getCountryAsArray(): array
+    public function getCountryAsArray( bool $returnNullIfEmpty = false ): ?array
     {
 
         $countries = array_filter( acf_get_array( $this->country, ',' ) );
-        sort( $countries );
+        sort( $countries, SORT_STRING | SORT_FLAG_CASE );
 
-        return $countries;
+        return $returnNullIfEmpty && empty( $countries )
+            ? null
+            : $countries;
+    }
+
+
+    public function getCountryAsJson( bool $returnNullIfEmpty = false ): ?string
+    {
+
+        $countries = $this->getCountryAsArray( $returnNullIfEmpty );
+
+        return $returnNullIfEmpty && $countries === null
+            ? null
+            : \GuzzleHttp\json_encode( $countries );
     }
 
 
@@ -433,9 +438,9 @@ class ApiQuery
     /**
      * @param  string  $countryBias
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setCountryBias( string $countryBias ): ApiQuery
+    public function setCountryBias( string $countryBias ): Query\Query
     {
 
         $this->countryBias = $countryBias;
@@ -457,9 +462,9 @@ class ApiQuery
     /**
      * @param  float  $east
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setEast( float $east ): ApiQuery
+    public function setEast( float $east ): Query\Query
     {
 
         $this->east = $east;
@@ -469,9 +474,9 @@ class ApiQuery
 
 
     /**
-     * @return string|string[]|null
+     * @return string[]|null
      */
-    public function getFeatureClass()
+    public function getFeatureClass(): ?array
     {
 
         return $this->featureClass;
@@ -481,14 +486,12 @@ class ApiQuery
     /**
      * @param  string|string[]|null  $featureClass
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setFeatureClass( $featureClass ): ApiQuery
+    public function setFeatureClass( $featureClass ): Query\Query
     {
 
-        $this->featureClass = $featureClass;
-
-        return $this;
+        return $this->setArrayProperty( $this->featureClass, $featureClass );
     }
 
 
@@ -505,14 +508,12 @@ class ApiQuery
     /**
      * @param  string|string[]|null  $featureCode
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setFeatureCode( $featureCode ): ApiQuery
+    public function setFeatureCode( $featureCode ): Query\Query
     {
 
-        $this->featureCode = $featureCode;
-
-        return $this;
+        return $this->setArrayProperty( $this->featureCode, $featureCode );
     }
 
 
@@ -529,9 +530,9 @@ class ApiQuery
     /**
      * @param  float  $fuzzy
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setFuzzy( float $fuzzy ): ApiQuery
+    public function setFuzzy( float $fuzzy ): Query\Query
     {
 
         $this->fuzzy = $fuzzy;
@@ -553,9 +554,9 @@ class ApiQuery
     /**
      * @param  string  $lang
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setLang( string $lang ): ApiQuery
+    public function setLang( string $lang ): Query\Query
     {
 
         $this->lang = $lang;
@@ -577,9 +578,9 @@ class ApiQuery
     /**
      * @param  int  $maxRows
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setMaxRows( int $maxRows ): ApiQuery
+    public function setMaxRows( int $maxRows ): Query\Query
     {
 
         $this->maxRows = $maxRows;
@@ -601,9 +602,9 @@ class ApiQuery
     /**
      * @param  int  $maxStartRow
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setMaxStartRow( int $maxStartRow ): ApiQuery
+    public function setMaxStartRow( int $maxStartRow ): Query\Query
     {
 
         $this->maxStartRow = $maxStartRow;
@@ -635,9 +636,9 @@ class ApiQuery
     /**
      * @param  string  $operator
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setOperator( string $operator ): ApiQuery
+    public function setOperator( string $operator ): Query\Query
     {
 
         $this->operator = strtoupper( $operator );
@@ -659,14 +660,95 @@ class ApiQuery
     /**
      * @param  string  $orderby
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setOrderby( string $orderby ): ApiQuery
+    public function setOrderby( string $orderby ): Query\Query
     {
 
         $this->orderby = $orderby;
 
         return $this;
+    }
+
+
+    /**
+     * @return string
+     */
+    public function getSearchLang(): string
+    {
+
+        return $this->searchlang;
+    }
+
+
+    /**
+     * @param  string  $searchLang
+     *
+     * @return \WPGeonames\Query\Query
+     */
+    public function setSearchLang( string $searchLang ): Query\Query
+    {
+
+        $this->searchlang = $searchLang;
+
+        return $this;
+    }
+
+
+    public function &getSearchParamsAsArray( ?string &$searchTerm = null ): array
+    {
+
+        // get search parameters (unfiltered)
+        $myParams   = $this->toArray( - 1 );
+        $searchTerm = mb_strtolower( $myParams['searchTerm'] );
+
+        // remove "technical" parameters plus searchType and searchTerm which are stored individually
+        $myParams = array_diff_key(
+            $myParams,
+            [
+                'inclBbox'    => true,
+                'maxStartRow' => true,
+                'maxRows'     => true,
+                'page'        => true,
+                'searchTerm'  => true,
+                'searchType'  => true,
+                'startRow'    => true,
+                'type'        => true,
+            ]
+        );
+
+        // remove defaults
+        $myParams = array_diff_assoc(
+            $myParams,
+            [
+                'charset'  => 'UTF8',
+                'operator' => 'and',
+                'orderby'  => 'relevance',
+            ]
+        );
+
+        ksort( $myParams, SORT_FLAG_CASE | SORT_NATURAL );
+
+        foreach ( [ 'country' ] as $key )
+        {
+            if ( is_array( $myParams[ $key ] ?? null ) )
+            {
+                sort( $myParams[ $key ], SORT_FLAG_CASE | SORT_NATURAL );
+            }
+        }
+
+        return $myParams;
+    }
+
+
+    public function getSearchParamsAsJson(
+        ?string &$searchTerm = null,
+        array &$myParams = []
+    ): string {
+
+        $myParams = $this->getSearchParamsAsArray( $searchTerm );
+
+        return \GuzzleHttp\json_encode( $myParams );
     }
 
 
@@ -683,12 +765,12 @@ class ApiQuery
     /**
      * @param  string  $searchTerm
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setSearchTerm( string $searchTerm ): ApiQuery
+    public function setSearchTerm( string $searchTerm ): Query\Query
     {
 
-        $this->searchTerm = $searchTerm;
+        $this->searchTerm = trim( $searchTerm );
 
         return $this;
     }
@@ -700,45 +782,20 @@ class ApiQuery
     public function getSearchType(): int
     {
 
-        return $this->searchType;
+        return $this->searchType ?? 0;
     }
 
 
     /**
-     * @param  int  $searchType
+     * @param $searchType
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
+     * @throws \ErrorException
      */
-    public function setSearchType( int $searchType ): ApiQuery
+    public function setSearchType( $searchType ): Query\Query
     {
 
-        $this->searchType = $searchType;
-
-        return $this;
-    }
-
-
-    /**
-     * @return string
-     */
-    public function getSearchlang(): string
-    {
-
-        return $this->searchlang;
-    }
-
-
-    /**
-     * @param  string  $searchlang
-     *
-     * @return ApiQuery
-     */
-    public function setSearchlang( string $searchlang ): ApiQuery
-    {
-
-        $this->searchlang = $searchlang;
-
-        return $this;
+        return $this->_setSearchType( $searchType );
     }
 
 
@@ -793,9 +850,9 @@ class ApiQuery
     /**
      * @param  int  $startRow
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setStartRow( int $startRow ): ApiQuery
+    public function setStartRow( int $startRow ): Query\Query
     {
 
         if ( $this->page === null )
@@ -820,9 +877,9 @@ class ApiQuery
     /**
      * @param  string  $style
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setStyle( string $style ): ApiQuery
+    public function setStyle( string $style ): Query\Query
     {
 
         $this->style = $style;
@@ -844,9 +901,9 @@ class ApiQuery
     /**
      * @param  string  $tag
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setTag( string $tag ): ApiQuery
+    public function setTag( string $tag ): Query\Query
     {
 
         $this->tag = $tag;
@@ -868,9 +925,9 @@ class ApiQuery
     /**
      * @param  string  $type
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setType( string $type ): ApiQuery
+    public function setType( string $type ): Query\Query
     {
 
         $this->type = $type;
@@ -902,9 +959,9 @@ class ApiQuery
     /**
      * @param  bool  $inclBbox
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setInclBbox( bool $inclBbox ): ApiQuery
+    public function setInclBbox( bool $inclBbox ): Query\Query
     {
 
         $this->inclBbox = $inclBbox;
@@ -926,9 +983,9 @@ class ApiQuery
     /**
      * @param  bool  $isNameRequired
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setIsNameRequired( bool $isNameRequired ): ApiQuery
+    public function setIsNameRequired( bool $isNameRequired ): Query\Query
     {
 
         $this->isNameRequired = $isNameRequired;
@@ -940,9 +997,9 @@ class ApiQuery
     /**
      * @param  string  $adminCode2
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setAdminCode2( string $adminCode2 ): ApiQuery
+    public function setAdminCode2( string $adminCode2 ): Query\Query
     {
 
         $this->adminCode2 = $adminCode2;
@@ -954,9 +1011,9 @@ class ApiQuery
     /**
      * @param  string  $adminCode3
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setAdminCode3( string $adminCode3 ): ApiQuery
+    public function setAdminCode3( string $adminCode3 ): Query\Query
     {
 
         $this->adminCode3 = $adminCode3;
@@ -968,9 +1025,9 @@ class ApiQuery
     /**
      * @param  string  $adminCode4
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setAdminCode4( string $adminCode4 ): ApiQuery
+    public function setAdminCode4( string $adminCode4 ): Query\Query
     {
 
         $this->adminCode4 = $adminCode4;
@@ -982,9 +1039,9 @@ class ApiQuery
     /**
      * @param  string  $adminCode5
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setAdminCode5( string $adminCode5 ): ApiQuery
+    public function setAdminCode5( string $adminCode5 ): Query\Query
     {
 
         $this->adminCode5 = $adminCode5;
@@ -994,11 +1051,42 @@ class ApiQuery
 
 
     /**
+     * @param $property
+     * @param $array
+     *
+     * @return \WPGeonames\Query\Query
+     */
+    protected function setArrayProperty(
+        &$property,
+        &$array
+    ): Query\Query {
+
+        if ( is_array( $array ) )
+        {
+            $property =& $array;
+        }
+        else
+        {
+            $property = $array
+                ? (array) $array
+                : null;
+        }
+
+        if ( $property !== null )
+        {
+            sort( $property );
+        }
+
+        return $this;
+    }
+
+
+    /**
      * @param  string  $name
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setName( string $name ): ApiQuery
+    public function setName( string $name ): Query\Query
     {
 
         $this->searchTerm = $name;
@@ -1011,9 +1099,9 @@ class ApiQuery
     /**
      * @param  string  $name_equals
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setNameEquals( string $name_equals ): ApiQuery
+    public function setNameEquals( string $name_equals ): Query\Query
     {
 
         $this->searchTerm = $name_equals;
@@ -1026,9 +1114,9 @@ class ApiQuery
     /**
      * @param  string  $name_startsWith
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setNameStartsWith( string $name_startsWith ): ApiQuery
+    public function setNameStartsWith( string $name_startsWith ): Query\Query
     {
 
         $this->searchTerm = $name_startsWith;
@@ -1041,9 +1129,9 @@ class ApiQuery
     /**
      * @param  float  $north
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setNorth( float $north ): ApiQuery
+    public function setNorth( float $north ): Query\Query
     {
 
         $this->north = $north;
@@ -1052,7 +1140,7 @@ class ApiQuery
     }
 
 
-    public function setPaged( $page )
+    public function setPaged( $page ): Query
     {
 
         // reset page status
@@ -1089,9 +1177,9 @@ class ApiQuery
     /**
      * @param  string  $q
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setQ( string $q ): ApiQuery
+    public function setQ( string $q ): Query\Query
     {
 
         $this->searchTerm = $q;
@@ -1104,9 +1192,9 @@ class ApiQuery
     /**
      * @param  float  $south
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setSouth( float $south ): ApiQuery
+    public function setSouth( float $south ): Query\Query
     {
 
         $this->south = $south;
@@ -1118,9 +1206,9 @@ class ApiQuery
     /**
      * @param  float  $west
      *
-     * @return ApiQuery
+     * @return \WPGeonames\Query\Query
      */
-    public function setWest( float $west ): ApiQuery
+    public function setWest( float $west ): Query\Query
     {
 
         $this->west = $west;
@@ -1130,8 +1218,8 @@ class ApiQuery
 
 
     /**
-     * @param  null  $array
-     * @param  null  $unset
+     * @param  array|null  $array
+     * @param  null        $unset
      *
      * @return array
      * @throws \ErrorException
@@ -1141,9 +1229,9 @@ class ApiQuery
         $unset = null
     ): array {
 
-        $array = $this->___cleanArray(
+        $array = $this->_QueryTrait__cleanArray(
             wp_parse_args(
-                $array ?? $this->toArray(),
+                $array ?? $this->toArray( - 1 ),
                 [ 'operator' => 'AND' ]
             )
         );
@@ -1155,10 +1243,10 @@ class ApiQuery
 
         case 'AND':
             $searchKeys = [
-                self::SEARCH_NAME_EXACT_NAME,
-                self::SEARCH_NAME_START_OF_NAME,
-                self::SEARCH_NAME_NAME,
-                self::SEARCH_NAME_Q,
+                Query\Query::SEARCH_NAME_EXACT_NAME,
+                Query\Query::SEARCH_NAME_START_OF_NAME,
+                Query\Query::SEARCH_NAME_NAME,
+                Query\Query::SEARCH_NAME_Q,
             ];
 
             while ( $searchKey = array_shift( $searchKeys ) )
@@ -1200,10 +1288,10 @@ class ApiQuery
                     'type',
                     'isNameRequired',
                     'inclBbox',
-                    self::SEARCH_NAME_EXACT_NAME,
-                    self::SEARCH_NAME_START_OF_NAME,
-                    self::SEARCH_NAME_NAME,
-                    self::SEARCH_NAME_Q,
+                    Query\Query::SEARCH_NAME_EXACT_NAME,
+                    Query\Query::SEARCH_NAME_START_OF_NAME,
+                    Query\Query::SEARCH_NAME_NAME,
+                    Query\Query::SEARCH_NAME_Q,
                 ];
             }
 
@@ -1211,6 +1299,7 @@ class ApiQuery
             {
 
                 unset( $array[ $param ] );
+
             }
 
         }
@@ -1220,95 +1309,32 @@ class ApiQuery
     }
 
 
-    public function query( $output = Location::class )
+    /**
+     * @param  int|null  $searchType
+     *
+     * @return \WPGeonames\Query\ChildQueryInterface
+     */
+    public function createSubQuery( ?int $searchType = null ): ChildQueryInterface
     {
 
-        $searchTypes = [
-            self::SEARCH_TYPE_Q,
-            self::SEARCH_TYPE_START_OF_NAME,
-            self::SEARCH_TYPE_NAME,
-            self::SEARCH_TYPE_EXACT_NAME,
-        ];
-        $results     = [];
-        $g           = Core::getGeoNameClient();
-        $apiResult   = null;
+        /**
+         * @var \WPGeonames\Query\Executor $executor
+         */
 
-        rsort( $searchTypes, SORT_NUMERIC );
+        $executor = $this->_useCache
+            ? static::$_dbExecutorType
+            : static::$_apiExecutorType;
 
-        foreach ( $searchTypes as $searchType )
-        {
+        return new $executor( $this );
+    }
 
-            if ( ( $this->searchType & $searchType ) === 0 )
-            {
-                continue;
-            }
 
-            if ( ( $params = $this->toArray( $searchType ) ) === false )
-            {
-                continue;
-            }
+    public function query( $output = Location::class ): Status
+    {
 
-            $search_type = key( $params );
-
-            $apiResult = new ApiQueryStatus(
-                $searchType,
-                $this,
-                $params,
-                $results,
-                $apiResult
-                    ? $apiResult->processRecords
-                    : null
-            );
-
-            $params = apply_filters( "geonames/api/params/type=$searchType", $params, $apiResult );
-            $params = apply_filters( "geonames/api/params/name=$search_type", $params, $apiResult );
-            $params = apply_filters( "geonames/api/params", $params, $apiResult );
-
-            if ( $params === null || $params['startRow'] >= $this->maxStartRow )
-            {
-                $apiResult = apply_filters( "geonames/cache/result", $apiResult );
-                $apiResult = apply_filters( "geonames/cache/result/type=$searchType", $apiResult );
-
-                if ( ! empty( $apiResult->result ) )
-                {
-                    $results += $apiResult->result;
-                }
-
-                continue;
-            }
-
-            $params['startRow'] = 0;
-            $params['maxRows']  = self::MAX_ROWS;
-            $params['style']    = 'full';
-            $params['orderby']  = 'relevance';
-
-            do
-            {
-
-                $result             = $g->search( $params );
-                $count              = count( $result );
-                $apiResult->total   = $g->getLastTotalResultsCount();
-                $apiResult->result  += WpDb::formatOutput( $result, $output, 'geonameId', '_' );
-                $params['startRow'] += $count;
-
-                unset ( $result );
-
-            }
-            while ( $count === $params['maxRows'] && $params['startRow'] < $this->maxStartRow );
-
-            unset ( $count );
-
-            $apiResult = apply_filters( "geonames/api/result", $apiResult );
-            $apiResult = apply_filters( "geonames/api/result/type=$searchType", $apiResult );
-
-            if ( ! empty( $apiResult->result ) )
-            {
-                $results += $apiResult->result;
-            }
-
-        }
-
-        return $results;
+        return $this->createSubQuery()
+                    ->query( $output )
+            ;
 
     }
 
@@ -1317,13 +1343,16 @@ class ApiQuery
      * @param  int|null  $searchType
      *
      * @return array|false|string[]
+     * @noinspection UnsetConstructsCanBeMergedInspection
      */
-    public function toArray( $searchType = null ): array
+    public function toArray( ?int $searchType = null ): array
     {
 
-        $params = $this->___toArray();
+        $params = $this->_QueryTrait__toArray();
 
-        if ( $searchType === null )
+        $params['operator'] = strtolower( $params['operator'] );
+
+        if ( $searchType === - 1 )
         {
             return $params;
         }
@@ -1332,9 +1361,8 @@ class ApiQuery
 
         unset( $params['searchType'] );
         unset( $params['searchTerm'] );
-        unset( $params['ignoreNonExistingPropertyOnSet'] );
 
-        switch ( $searchType )
+        switch ( $searchType ?? $this->searchType )
         {
 
         case self::SEARCH_TYPE_Q:
@@ -1378,29 +1406,7 @@ class ApiQuery
     public static function getAliases(): array
     {
 
-        return self::$aliases;
-    }
-
-
-    public static function translateSearchType( $searchType )
-    {
-
-        if ( $searchType === null )
-        {
-            return null;
-        }
-
-        if ( is_string( $searchType ) )
-        {
-            return array_flip( self::SEARCH_TYPES )[ $searchType ] ?? null;
-        }
-
-        if ( is_numeric( $searchType ) )
-        {
-            return self::SEARCH_TYPES[ $searchType ] ?? null;
-        }
-
-        return false;
+        return self::$_aliases;
     }
 
 }

@@ -1,9 +1,10 @@
 <?php
 
-namespace WPGeonames;
+namespace WPGeonames\Helpers;
 
-interface FlexibleObject
+interface FlexibleObjectInterface
 {
+
 // constants
     public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_NOT        = false;
     public const IGNORE_NON_EXISTING_PROPERTY_ON_SET_ONCE       = true;
@@ -25,10 +26,10 @@ interface FlexibleObject
     /**
      * @param  bool|null  $ignoreNonExistingPropertyOnSet
      *
-     * @return \WPGeonames\FlexibleObject
+     * @return \WPGeonames\Helpers\FlexibleObjectInterface
      */
     public function setIgnoreNonExistingPropertyOnSet( ?bool $ignoreNonExistingPropertyOnSet
-    ): FlexibleObject;
+    ): FlexibleObjectInterface;
 
 
     public function __get( $property );
@@ -46,7 +47,13 @@ interface FlexibleObject
     public function __serialize(): array;
 
 
-    public function cleanInput( &$values ): FlexibleObject;
+    public function cleanInput( &$values ): FlexibleObjectInterface;
+
+
+    public function loadValues(
+        $values,
+        $default = null
+    ):?int;
 
 
     public function serialize(): string;
