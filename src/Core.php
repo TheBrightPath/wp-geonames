@@ -2137,7 +2137,7 @@ SQL
         if ( ! empty( $_GET['geoRun'] ) )
         {
 
-            $result = Update::Activate();
+            $result = Update::Activate( false );
 
             echo '<div>' . "\n";
             echo '<pre>' . "\n";

@@ -391,7 +391,7 @@ SQL;
     /**
      * @throws \ErrorException
      */
-    public static function Activate(): array
+    public static function Activate( $addData = true ): array
     {
 
         $result = [
@@ -407,7 +407,11 @@ SQL;
         $update->createTblCacheSubQueries();
         $update->createTblCacheResults();
         $update->createTblPostCodes();
-        $update->addData();
+
+        if ( $addData )
+        {
+            $update->addData();
+        }
 
         $result['messages'] = $update->getUpdateLog();
 
