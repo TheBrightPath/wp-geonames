@@ -2145,7 +2145,7 @@ SQL
             echo '</pre>' . "\n";
             echo '</div>' . "\n";
 
-            echo '<script>window.location.replace("options-general.php?page=wpGeonames-options&geotab=scheme");</script>';
+            echo '<script>history.pushState(null, "", "options-general.php?page=wpGeonames-options&geotab=scheme");</script>';
         }
 
         ?>
