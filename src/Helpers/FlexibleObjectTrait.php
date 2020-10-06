@@ -164,6 +164,11 @@ trait FlexibleObjectTrait
     public function cleanInput( &$values ): FlexibleObjectInterface
     {
 
+        if ( is_array( $values ) && key( $values ) === 0 && count( $values ) === 1 )
+        {
+            $values = $values[0];
+        }
+
         if ( is_object( $values ) )
         {
 
