@@ -50,7 +50,7 @@ SQL;
             return null;
         }
 
-        $records = Core::$wpdb::formatOutput( $records, $output ?? static::$_returnFormat );
+        Core::$wpdb::formatOutput( $records, $output ?? static::$_returnFormat );
 
         return is_array( $ids )
             ? $records
