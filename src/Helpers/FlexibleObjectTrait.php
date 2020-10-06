@@ -30,20 +30,6 @@ trait FlexibleObjectTrait
 
 
     /**
-     * @param  bool|null  $ignoreNonExistingPropertyOnSet
-     *
-     * @return \WPGeonames\Helpers\FlexibleObjectInterface|\WPGeonames\Helpers\FlexibleObjectTrait
-     */
-    public function setIgnoreNonExistingPropertyOnSet( ?bool $ignoreNonExistingPropertyOnSet ): FlexibleObjectInterface
-    {
-
-        $this->_ignoreNonExistingPropertyOnSet = $ignoreNonExistingPropertyOnSet;
-
-        return $this;
-    }
-
-
-    /**
      * @param             $property
      * @param             $value
      * @param  bool|null  $propertyMissing
@@ -121,6 +107,20 @@ trait FlexibleObjectTrait
     {
 
         return (string) print_r( $this->toArray(), true );
+    }
+
+
+    /**
+     * @param  bool|null  $ignoreNonExistingPropertyOnSet
+     *
+     * @return \WPGeonames\Helpers\FlexibleObjectInterface|\WPGeonames\Helpers\FlexibleObjectTrait
+     */
+    public function setIgnoreNonExistingPropertyOnSet( ?bool $ignoreNonExistingPropertyOnSet ): FlexibleObjectInterface
+    {
+
+        $this->_ignoreNonExistingPropertyOnSet = $ignoreNonExistingPropertyOnSet;
+
+        return $this;
     }
 
 

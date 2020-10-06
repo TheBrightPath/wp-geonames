@@ -185,6 +185,31 @@ SQL;
     }
 
 
+    public function createTblCacheResults(): void
+    {
+
+        // locations cache results
+        $nom = $this->core->getTblCacheResults();
+
+        $searchTypes = implode( "','", Query::SEARCH_TYPES );
+
+        $sql = <<<SQL
+                CREATE TABLE $nom (
+                    `query_id` int(11) NOT NULL AUTO_INCREMENT,
+                    `search_type` enum('$searchTypes') NOT NULL,
+                    `geoname_id` int(11) NOT NULL,
+                    `order` smallint(3) unsigned NOT NULL,
+                    `score` float DEFAULT NULL,
+                    PRIMARY KEY (`query_id`, `search_type`, `order`),
+                UNIQUE `idx_result` (`query_id`, `search_type`, `geoname_id`)
+			) {$this->charset_collate};
+SQL;
+
+        $this->updateLog += dbDelta( $sql );
+
+    }
+
+
     public function createTblCacheSubQueries(): void
     {
 
@@ -204,31 +229,6 @@ SQL;
                     `result_count` smallint(6) NOT NULL,
                     `result_total` smallint(6) DEFAULT NULL, 
                     PRIMARY KEY (`query_id`, `search_type`)
-			) {$this->charset_collate};
-SQL;
-
-        $this->updateLog += dbDelta( $sql );
-
-    }
-
-
-    public function createTblCacheResults(): void
-    {
-
-        // locations cache results
-        $nom = $this->core->getTblCacheResults();
-
-        $searchTypes = implode( "','", Query::SEARCH_TYPES );
-
-        $sql = <<<SQL
-                CREATE TABLE $nom (
-                    `query_id` int(11) NOT NULL AUTO_INCREMENT,
-                    `search_type` enum('$searchTypes') NOT NULL,
-                    `geoname_id` int(11) NOT NULL,
-                    `order` smallint(3) unsigned NOT NULL,
-                    `score` float DEFAULT NULL,
-                    PRIMARY KEY (`query_id`, `search_type`, `order`),
-                UNIQUE `idx_result` (`query_id`, `search_type`, `geoname_id`)
 			) {$this->charset_collate};
 SQL;
 
