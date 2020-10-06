@@ -366,6 +366,12 @@ class WpDb
                                         $key = $prefix . $object_vars[ $keyName ];
                                         break;
                                     }
+
+                                    if ( is_object( $row ) && property_exists( $row, $keyName ) )
+                                    {
+                                        $key = $prefix . $row->$keyName;
+                                        break;
+                                    }
                                 }
 
                                 if ( $key === null )
