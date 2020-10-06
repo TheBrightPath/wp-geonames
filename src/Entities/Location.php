@@ -10,12 +10,13 @@ use WPGeonames\Helpers\FlexibleDbObjectInterface;
 use WPGeonames\Helpers\FlexibleDbObjectTrait;
 use WPGeonames\Helpers\FlexibleObjectInterface;
 use WPGeonames\Helpers\NullSafe;
+use WPGeonames\WpDb;
 
 /**
  * Class Location
  *
- * @property int                                        $geonameId
- * @property string                                     $name
+ * @property int                                        $geonameId Geoname ID
+ * @property string                                     $name      Location Name
  * @property string                                     $asciiName
  * @property string                                     $featureClass
  * @property string                                     $featureCode
@@ -36,7 +37,6 @@ use WPGeonames\Helpers\NullSafe;
  * @property int                                        $elevation
  * @property \WPGeonames\Entities\Location[]|int[]|null $children
  * @property string                                     countryCode
- * @property string                                     continent
  */
 class Location
     implements
@@ -45,88 +45,179 @@ class Location
 
     use FlexibleDbObjectTrait
     {
-        parseArray as protected ___parseArray;
+        __construct as private _FlexibleDbObjectTrait__construct;
         cleanInput as protected ___cleanInput;
     }
 
+//  public properties
+
+    /**
+     * @var \WPGeonames\Entities\Timezone
+     */
+    public static $_timezoneClass = Timezone::class;
+    /**
+     * @var \WPGeonames\Entities\Country
+     */
+    public static $_countryClass = Country::class;
+
 // protected properties
 
-    protected static $_aliases
-        = [
-            'geoname_id'      => 'geonameId',
-            'toponymName'     => 'name',
-            'ascii_name'      => 'asciiName',
-            'alternate_names' => 'alternateNames',
-            'feature_class'   => 'featureClass',
-            'fcl'             => 'featureClass',
-            'feature_code'    => 'featureCode',
-            'fcode'           => 'featureCode',
-            'country_code'    => 'countryCode',
-            'country_id'      => 'countryId',
-            'continent'       => 'continentCode',
-            'admin1_code'     => 'adminCode1',
-            'admin1_id'       => 'adminId1',
-            'admin2_code'     => 'adminCode2',
-            'admin2_id'       => 'adminId2',
-            'admin3_code'     => 'adminCode3',
-            'admin3_id'       => 'adminId3',
-            'admin4_code'     => 'adminCode4',
-            'admin4_id'       => 'adminId4',
-            'lng'             => 'longitude',
-            'lat'             => 'latitude',
-        ];
-    /** @var string */
-    protected static $timezoneClass = Timezone::class;
-    /** @var int */
+    /**
+     * @var string[]
+     */
+    protected static $_aliases;
+
+    /**
+     * @var integer GeonameId returned from the API
+     */
+    protected $_idAPI;
+
+    /**
+     * @var int
+     */
     protected $geonameId;
-    /** @var string */
+
+    /**
+     * @var string
+     */
     protected $name;
-    /** @var string */
+
+    /**
+     * @var string
+     */
     protected $asciiName;
-    /** @var string */
+
+    /**
+     * @var string
+     */
     protected $featureClass;
-    /** @var string */
+
+    /**
+     * @var string
+     */
     protected $featureCode;
-    /** @var \WPGeonames\Entities\Country */
-    protected $country;
-    /** @var string */
-    protected $adminCode1;
-    /** @var int */
-    protected $adminId1;
-    /** @var string */
-    protected $adminCode2;
-    /** @var int */
-    protected $adminId2;
-    /** @var string */
-    protected $adminCode3;
-    /** @var int */
-    protected $adminId3;
-    /** @var string */
-    protected $adminCode4;
-    /** @var int */
-    protected $adminId4;
-    /** @var float */
-    protected $longitude;
-    /** @var float */
-    protected $latitude;
-    /** @var string[] */
-    protected $alternateNames;
-    /** @var int */
-    protected $countryId;
-    /** @var int */
-    protected $population;
-    /** @var \WPGeonames\Entities\BBox */
-    protected $bbox;
-    /** @var int */
-    protected $elevation;
-    /** @var \WPGeonames\Entities\Timezone */
-    protected $timezone;
-    /** @var \WPGeonames\Entities\Location|null */
-    protected $children = [];
-    /** @var string */
+
+    /**
+     * @var string|null enum('af','an','as','eu','na','oc','sa')
+     */
     protected $continentCode;
-    /** @var float|null */
+
+    /**
+     * @var \WPGeonames\Entities\Country
+     */
+    protected $country;
+
+    /**
+     * @var string
+     */
+    protected $adminCode1;
+
+    /**
+     * @var int
+     */
+    protected $adminId1;
+
+    /**
+     * @var string
+     */
+    protected $adminCode2;
+
+    /**
+     * @var int
+     */
+    protected $adminId2;
+
+    /**
+     * @var string
+     */
+    protected $adminCode3;
+
+    /**
+     * @var int
+     */
+    protected $adminId3;
+
+    /**
+     * @var string
+     */
+    protected $adminCode4;
+
+    /**
+     * @var int
+     */
+    protected $adminId4;
+
+    /**
+     * @var float
+     */
+    protected $longitude;
+
+    /**
+     * @var float
+     */
+    protected $latitude;
+
+    /**
+     * @var string[]
+     */
+    protected $alternateNames;
+
+    /**
+     * @var int
+     */
+    protected $countryId;
+
+    /**
+     * @var int
+     */
+    protected $population;
+
+    /**
+     * @var \WPGeonames\Entities\BBox
+     */
+    protected $bbox;
+
+    /**
+     * @var int
+     */
+    protected $elevation;
+
+    /**
+     * @var \WPGeonames\Entities\Timezone|null
+     */
+    protected $timezone;
+
+    /**
+     * @var \WPGeonames\Entities\Location[]|null
+     */
+    protected $children = [];
+
+    /**
+     * @var float|null
+     */
     protected $score;
+
+
+    /**
+     * Location constructor.
+     *
+     * @param         $values
+     * @param  array  $defaults
+     *
+     * @throws \ErrorException
+     */
+    public function __construct(
+        $values,
+        $defaults = []
+    ) {
+
+        if ( static::$_aliases === null )
+        {
+            static::$_aliases = $this->getAliases();
+        }
+
+        $this->_FlexibleDbObjectTrait__construct( $values, $defaults );
+    }
 
 
     /**
@@ -345,6 +436,40 @@ class Location
         $this->adminId4 = $adminId4;
 
         return $this;
+    }
+
+
+    /**
+     * @return string[]
+     */
+    protected function getAliases(): array
+    {
+
+        static $aliases = [
+            'geoname_id'      => 'geonameId',
+            'toponymName'     => 'name',
+            'ascii_name'      => 'asciiName',
+            'alternate_names' => 'alternateNames',
+            'feature_class'   => 'featureClass',
+            'fcl'             => 'featureClass',
+            'feature_code'    => 'featureCode',
+            'fcode'           => 'featureCode',
+            'country_code'    => 'countryCode',
+            'country_id'      => 'countryId',
+            'continent'       => 'continentCode',
+            'admin1_code'     => 'adminCode1',
+            'admin1_id'       => 'adminId1',
+            'admin2_code'     => 'adminCode2',
+            'admin2_id'       => 'adminId2',
+            'admin3_code'     => 'adminCode3',
+            'admin3_id'       => 'adminId3',
+            'admin4_code'     => 'adminCode4',
+            'admin4_id'       => 'adminId4',
+            'lng'             => 'longitude',
+            'lat'             => 'latitude',
+        ];
+
+        return $aliases;
     }
 
 
@@ -628,7 +753,6 @@ class Location
 
     /**
      * @return Country|null
-     * @throws \ErrorException
      */
     public function getCountry(): ?Country
     {
@@ -645,28 +769,39 @@ class Location
 
 
     /**
-     * @param  string  $format
+     * @param  string|null  $format
+     *
+     * @param  bool         $autoload
      *
      * @return string|null
-     * @throws \ErrorException
      */
-    public function getCountryCode( $format = 'iso2' ): ?string
-    {
+    public function getCountryCode(
+        ?string $format = 'iso2',
+        bool $autoload = true
+    ): ?string {
 
-        if ( is_string( $this->country ) && $format === 'iso2' && strlen( $this->country ) === 2 )
+        if ( $this->country === null
+            || ( is_string( $this->country )
+                && $format === 'iso2'
+                && strlen( $this->country ) === 2
+            )
+        )
         {
             return $this->country;
         }
 
-        return $this->getCountry()->$format;
+        return $autoload
+            ? $this->getCountry()->$format
+            : null;
     }
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int
-     * @throws \ErrorException
      */
-    public function getCountryId(): ?int
+    public function getCountryId( bool $autoload = true ): ?int
     {
 
         if ( is_int( $this->country ) || $this->country === null )
@@ -674,7 +809,9 @@ class Location
             return $this->country;
         }
 
-        return $this->getCountry()->geonameId;
+        return $autoload
+            ? $this->getCountry()->geonameId
+            : null;
     }
 
 
@@ -770,16 +907,16 @@ class Location
     public function getGeonameId(): int
     {
 
-        return $this->geonameId;
+        return $this->geonameId ?? 0;
     }
 
 
     /**
-     * @param  null  $geonameId
+     * @param  int  $geonameId
      *
      * @return Location
      */
-    public function setGeonameId( $geonameId ): Location
+    public function setGeonameId( int $geonameId ): Location
     {
 
         $this->geonameId = $geonameId;
@@ -871,11 +1008,11 @@ class Location
 
 
     /**
-     * @param  null  $population
+     * @param  int|null  $population
      *
-     * @return Location
+     * @return $this
      */
-    public function setPopulation( $population ): Location
+    public function setPopulation( ?int $population ): Location
     {
 
         $this->population = $population;
@@ -924,7 +1061,7 @@ class Location
             return new NullSafe();
         }
 
-        return $this->timezone = new static::$timezoneClass( $this->timezone );
+        return $this->timezone = new static::$_timezoneClass( $this->timezone );
     }
 
 
@@ -951,6 +1088,13 @@ class Location
         $this->timezone = $timezone;
 
         return $this;
+    }
+
+
+    public function isCountry(): bool
+    {
+
+        return static::isItACountry( $this, 'featureClass', 'featureCode' );
     }
 
 
@@ -1063,6 +1207,10 @@ class Location
     public function save(): void
     {
 
+        $country = $this instanceof Country
+            ? $this
+            : $this->getCountry();
+
         if ( false === Core::$wpdb->replace(
                 Core::Factory()
                     ->getTblCacheLocations(),
@@ -1074,8 +1222,12 @@ class Location
                     'feature_class'   => $this->getFeatureClass(),
                     'feature_code'    => $this->getFeatureCode(),
                     'continent'       => $this->getContinentCode(),
-                    'country_code'    => $this->getCountry()->iso2,
-                    'country_id'      => $this->getCountry()->geonameId,
+                    'country_code'    => $country
+                        ? $country->iso2
+                        : null,
+                    'country_id'      => $country
+                        ? $country->geonameId
+                        : null,
                     'latitude'        => $this->getLatitude(),
                     'longitude'       => $this->getLongitude(),
                     'population'      => $this->getPopulation(),
@@ -1088,7 +1240,9 @@ class Location
                     'admin3_id'       => $this->getAdminId3(),
                     'admin4_code'     => $this->getAdminCode4(),
                     'admin4_id'       => $this->getAdminId4(),
-                    'timezone'        => $this->getTimezone()->timeZoneId,
+                    'timezone'        => $this->getTimezone()
+                        ? $this->getTimezone()->timeZoneId
+                        : null,
                     'bbox'            => $this->getBbox( 'json' ),
                     'children'        => $this->getChildren( 'json' ),
                 ],
@@ -1149,6 +1303,31 @@ class Location
     }
 
 
+    public static function isItACountry(
+        $object,
+        $featureClassProperty,
+        $featureCodeProperty
+    ): bool {
+
+        if ( $object instanceof Country )
+        {
+            return true;
+        }
+
+        if ( $object->$featureClassProperty === null || $object->$featureCodeProperty === null )
+        {
+            return false;
+        }
+
+        return array_key_exists( $object->$featureClassProperty, Core::FEATURE_FILTERS['countriesOnly'] )
+            && in_array(
+                $object->$featureCodeProperty,
+                Core::FEATURE_FILTERS['countriesOnly'][ $object->$featureClassProperty ],
+                true
+            );
+    }
+
+
     /**
      * @param $ids
      *
@@ -1199,7 +1378,7 @@ SQL;
 
         if ( Core::$wpdb->last_error_no )
         {
-            throw new ErrorException( Core::$wpdb->last_error );
+            throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
         return static::parseArray( $locations );
@@ -1220,7 +1399,22 @@ SQL;
         $prefix = '_'
     ): ?array {
 
-        return static::___parseArray( $array, $key, $prefix );
+        WpDb::formatOutput( $array, static::class, $key, $prefix );
+
+        array_walk(
+            $array,
+            static function ( Location &$location )
+            {
+
+                if ( ! $location instanceof static::$_countryClass && $location->isCountry() )
+                {
+                    $location = new static::$_countryClass( $location );
+                }
+
+            }
+        );
+
+        return $array;
 
     }
 

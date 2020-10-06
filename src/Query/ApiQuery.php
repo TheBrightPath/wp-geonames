@@ -73,7 +73,7 @@ class ApiQuery
      * @noinspection AdditionOperationOnArraysInspection
      */
 
-    public function query( $output = Location::class ): Status
+    public function query( $output = null ): Status
     {
 
         $searchType     = $this->getSearchType();
@@ -131,8 +131,29 @@ class ApiQuery
                 );
             }
 
+            array_walk(
+                $result,
+                static function ( object $location ) use
+                (
+                    &
+                    $status
+                )
+                {
+
+                    // copy geoname id to Api ID in order to remember that we've just loaded this from the API
+                    $location->idAPI = $location->geonameId;
+
+                    // check if it's a country
+                    if ( Location::isItACountry( $location, 'fcl', 'fcode' ) )
+                    {
+                        $location->__CLASS__ = $status->classCountries;
+                    }
+
+                }
+            );
+
             // convert result
-            WpDb::formatOutput( $result, $output, 'geonameId', '_' );
+            WpDb::formatOutput( $result, $output ?? $status->classLocations, 'geonameId', '_' );
 
             // filter out duplicates
             $duplicates += array_intersect_key( $result, $duplicates );

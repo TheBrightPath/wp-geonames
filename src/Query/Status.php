@@ -3,6 +3,7 @@
 namespace WPGeonames\Query;
 
 use ErrorException;
+use WPGeonames\Entities\Location;
 use WPGeonames\QueryInterface;
 
 class Status
@@ -42,6 +43,16 @@ class Status
 
     /** @var array|null */
     public $globalResultSet;
+
+    /**
+     * @var \WPGeonames\Entities\Location
+     */
+    public $classLocations = Location::class;
+
+    /**
+     * @var \WPGeonames\Entities\Country
+     */
+    public $classCountries;
 
 
     /**

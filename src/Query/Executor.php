@@ -3,6 +3,7 @@
 namespace WPGeonames\Query;
 
 use ErrorException;
+use WPGeonames\Entities\Country;
 use WPGeonames\Entities\Location;
 
 class Executor
@@ -35,14 +36,18 @@ class Executor
     {
 
         /** @var \WPGeonames\QueryInterface $parent */
-        $parent             = $this->parent;
-        $parentSearchType   = $parent->getSearchType();
-        $globalResultSet    = [];
-        $status             = new Status( $this, $globalResultSet );
-        $status->result     =& $globalResultSet;
-        $status->startAt    = $parent->getStartRow();
-        $status->maxRecords = $parent->getMaxRows();
-        $status->total      = 0;
+        $parent                 = $this->parent;
+        $parentSearchType       = $parent->getSearchType();
+        $globalResultSet        = [];
+        $status                 = new Status( $this, $globalResultSet );
+        $status->result         =& $globalResultSet;
+        $status->startAt        = $parent->getStartRow();
+        $status->maxRecords     = $parent->getMaxRows();
+        $status->total          = 0;
+        $status->classLocations = $output;
+        $status->classCountries = $output::$_countryClass
+            ?? Location::$_countryClass
+            ?? Country::class;
 
         foreach ( $parent->getSearchTypeAsArray() as $searchType => $searchTypeName )
         {
@@ -58,6 +63,8 @@ class Executor
             $subStatus->globalResultSet =& $globalResultSet;
             $subStatus->startAt         = $status->startAt;
             $subStatus->maxRecords      = $status->maxRecords;
+            $subStatus->classLocations  = $status->classLocations;
+            $subStatus->classCountries  = $status->classCountries;
 
             $subStatus = $subStatus->query->query( $output );
 

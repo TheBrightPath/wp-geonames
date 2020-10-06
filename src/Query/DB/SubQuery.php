@@ -5,6 +5,7 @@ namespace WPGeonames\Query\DB;
 use DateTime;
 use ErrorException;
 use WPGeonames\Core;
+use WPGeonames\Entities\Country;
 use WPGeonames\Entities\Location;
 use WPGeonames\Query\ApiQuery;
 use WPGeonames\Query\ApiStatus;
@@ -406,8 +407,11 @@ SQL
             )
             {
 
-                // remember the country ID
-                $admin[ $location->getCountryId() ] = true;
+                if ( $country = $location->getCountry() )
+                {
+                    // remember the country ID
+                    $admin[ $country->getGeonameId() ] = true;
+                }
 
                 // walk through admin levels 1-4 and get their ids too, if they exist
                 for ( $i = 1; $i <= 4; $i ++ )
@@ -458,10 +462,18 @@ SQL
                         'style'     => 'full',
                     ]
                 );
+
+                // copy geoname id to Api ID in order to remember that we've just loaded this from the API
+                $item->idAPI = $item->geonameId;
+
+                if ( Location::isItACountry( $item, 'fcl', 'fcode' ) )
+                {
+                    $item = $status->classCountries::load( $item );
+                }
             }
             unset ( $item );
 
-            Location::parseArray( $admin, 'geonameId', '_' );
+            WpDb::formatOutput( $admin, $status->classLocations, 'geonameId', '_' );
 
             // add the location to the list of records to be cached
             $recordsToCache = array_merge( $recordsToCache, $admin );
@@ -600,9 +612,14 @@ SQL
 
         $this->save( true );
 
-        $searchType     = $this->getSearchType();
-        $searchTypeName = $this->getSearchTypeName();
-        $status         = $this->_status;
+        $searchType             = $this->getSearchType();
+        $searchTypeName         = $this->getSearchTypeName();
+        $status                 = $this->_status;
+        $status->classLocations = $output;
+        $status->classCountries = $status->classCountries
+            ?? $output::$_countryClass
+            ?? Location::$_countryClass
+            ?? Country::class;
 
         // search for cached results
         // filter need to return the number of records
@@ -680,9 +697,11 @@ SQL
             ? $status->processRecords
             : 0;
 
-        $apiStatus->maxRecords = $status->maxRecords;
+        $apiStatus->maxRecords     = $status->maxRecords;
+        $apiStatus->classLocations = $status->classLocations;
+        $apiStatus->classCountries = $status->classCountries;
 
-        $apiStatus = $apiStatus->query->query( $output );
+        $apiStatus = $apiStatus->query->query();
 
         // check if query has been disabled
         if ( $apiStatus->parameters === null )
