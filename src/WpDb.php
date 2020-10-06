@@ -413,7 +413,7 @@ class WpDb
             throw new ErrorException( "Unknown output format or class '$output'" );
         }
 
-        if ( $class !== null )
+        if ( $class !== null || ! empty( array_filter( array_column( $result, '__CLASS__' ) ) ) )
         {
 
             array_walk(
@@ -423,6 +423,8 @@ class WpDb
                     $class
                 )
                 {
+
+                    $class = $item->__CLASS__ ?? $class;
 
                     if ( ! $item instanceof $class )
                     {
