@@ -3321,6 +3321,42 @@ SQL
 
 
     /**
+     * @param  string  $output  Optional. Any of ARRAY_A | ARRAY_N | OBJECT | OBJECT_K constants.
+     *                          With one of the first three, return an array of rows indexed from 0 by SQL result row
+     *                          number. Each row is an associative array (column => value, ...), a numerically indexed
+     *                          array (0 => value, ...), or an object. ( ->column = value ), respectively. With
+     *                          OBJECT_K, return an associative array of row objects keyed by the value of each row's
+     *                          first column's value. Duplicate keys are discarded.
+     *
+     * @return array|object|null Database query results
+     * @throws \ErrorException
+     */
+    public static function getCountries(
+        $output = Location::class
+    ) {
+        if (is_a( $output , Location::class)){
+            return $output::load();
+        }
+
+        $args['no_paging']     = true;
+        $args['feature_class'] = array_keys( Core::FEATURE_FILTERS['countriesOnly'] );
+        $args['feature_code']  = array_reduce(
+            Core::FEATURE_FILTERS['countriesOnly'],
+            static function (
+                $carry,
+                $item
+            ) {
+
+                return $carry + $item;
+            },
+            []
+        );
+
+        return static::getLocations( $args, $output );
+    }
+
+
+    /**
      * @return array
      */
     public static function &getCountryCodes(): ?array
