@@ -561,6 +561,20 @@ class Country
     }
 
 
+    /**
+     * @param  string  $capital
+     *
+     * @return Country
+     */
+    public function setCountry( string $countryName ): Country
+    {
+
+        $this->name = $countryName;
+
+        return $this;
+    }
+
+
     public function setCountryCode( $countryCode ): Location
     {
 
@@ -968,8 +982,8 @@ SELECT
      COALESCE(l.geoname_id ,c.geoname_id)   AS ID
     ,l.geoname_id                           as idLocation
     ,c.geoname_id                           as idCountry
-    ,c.*
     ,l.*
+    ,c.*
 
 FROM
     `wp_geonames_countries`             c
