@@ -39,7 +39,7 @@ SQL;
      * @throws \ErrorException
      */
     public static function load(
-        $ids,
+        $ids = null,
         $output = null
     ) {
 
@@ -52,7 +52,7 @@ SQL;
 
         Core::$wpdb::formatOutput( $records, $output ?? static::$_returnFormat );
 
-        return is_array( $ids )
+        return ( $ids === null || is_array( $ids ))
             ? $records
             : reset( $records );
     }

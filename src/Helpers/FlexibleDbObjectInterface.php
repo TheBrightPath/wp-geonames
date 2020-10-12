@@ -9,6 +9,6 @@ interface FlexibleDbObjectInterface
     public function save();
 
 
-    public static function load( $ids );
+    public static function load( $ids = null );
 
 }

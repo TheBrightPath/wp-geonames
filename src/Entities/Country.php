@@ -820,8 +820,16 @@ SQL,
      * @return static
      * @throws \ErrorException
      */
-    public static function loadRecords( $ids ): ?array
+    public static function loadRecords( $ids = null ): ?array
     {
+
+        $loadAll = 0;
+
+        if ( $ids === null )
+        {
+            $ids     = [];
+            $loadAll = 1;
+        }
 
         $ids = is_object( $ids )
             ? [ $ids ]
@@ -958,7 +966,7 @@ LEFT JOIN
     `wp_geonames_locations_cache`       l   ON c.geoname_id = l.geoname_id
 
 WHERE
-	0
+	$loadAll
     OR c.geoname_id     IN ($sqlGeonameIds)
     OR c.iso2           IN ($sqlCountryCodes)
 
