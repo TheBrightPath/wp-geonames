@@ -3,7 +3,8 @@
 namespace WPGeonames\Helpers;
 
 interface FlexibleDbObjectInterface
-    extends FlexibleObjectInterface
+    extends
+    FlexibleObjectInterface
 {
 
     public function save();

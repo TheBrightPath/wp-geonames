@@ -945,11 +945,22 @@ SQL,
 
         $sqlCountryFeatures = Core::FEATURE_FILTERS['countriesOnly'];
 
-        array_walk($sqlCountryFeatures, static function(&$array, $featureClass) {
-            $array = sprintf( "(feature_class = '%s' AND feature_code IN ('%s'))", $featureClass, implode( "','", $array ) );
-        });
+        array_walk(
+            $sqlCountryFeatures,
+            static function (
+                &$array,
+                $featureClass
+            ) {
 
-        $sqlCountryFeatures = implode(' OR ', $sqlCountryFeatures);
+                $array = sprintf(
+                    "(feature_class = '%s' AND feature_code IN ('%s'))",
+                    $featureClass,
+                    implode( "','", $array )
+                );
+            }
+        );
+
+        $sqlCountryFeatures = implode( ' OR ', $sqlCountryFeatures );
 
         $sql = Core::$wpdb::replaceTablePrefix(
             <<<SQL
@@ -999,7 +1010,7 @@ SQL
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
-        parent::parseArray( $countries );
+        parent::parseArray( $countries, 'ID' );
 
         $ids = array_filter( array_column( $ids, 'o' ) );
 
