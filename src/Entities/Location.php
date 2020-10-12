@@ -491,7 +491,7 @@ class Location
             return \GuzzleHttp\json_encode( $this->alternateNames );
         }
 
-        return $this->alternateNames[ $lang ] ?? null;
+        return $this->alternateNames->$lang ?? null;
     }
 
 
