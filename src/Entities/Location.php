@@ -976,10 +976,21 @@ class Location
     /**
      * @return string
      */
-    public function getName(): string
+    public function getName( $langCode = null ): string
     {
 
-        return $this->name;
+        // WPML integration
+        if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
+        {
+            $langCode = ICL_LANGUAGE_CODE;
+        }
+
+        if ( $langCode !== null )
+        {
+            $name = $this->getAlternateNames( $langCode );
+        }
+
+        return $name ?? $this->name ?? (string) $this->geonameId;
     }
 
 
