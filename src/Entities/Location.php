@@ -1218,96 +1218,166 @@ class Location
     public function save(): void
     {
 
-        $country = $this instanceof Country
+        $alternateNames = $this->getAlternateNames( 'json' );
+        $bbox           = $this->getBbox( 'json' );
+        $children       = $this->getChildren( 'json' );
+        $country        = $this instanceof Country
             ? $this
             : $this->getCountry();
 
-        if ( false === Core::$wpdb->replace(
-                Core::Factory()
-                    ->getTblCacheLocations(),
-                [
-                    'geoname_id'      => $this->getGeonameId(),
-                    'name'            => $this->getAsciiName(),
-                    'ascii_name'      => $this->getAsciiName(),
-                    'alternate_names' => $this->getAlternateNames( 'json' ),
-                    'feature_class'   => $this->getFeatureClass(),
-                    'feature_code'    => $this->getFeatureCode(),
-                    'continent'       => $this->getContinentCode(),
-                    'country_code'    => $country
-                        ? $country->iso2
-                        : null,
-                    'country_id'      => $country
-                        ? $country->geonameId
-                        : null,
-                    'latitude'        => $this->getLatitude(),
-                    'longitude'       => $this->getLongitude(),
-                    'population'      => $this->getPopulation(),
-                    'elevation'       => $this->getElevation(),
-                    'admin1_code'     => $this->getAdminCode1(),
-                    'admin1_id'       => $this->getAdminId1(),
-                    'admin2_code'     => $this->getAdminCode2(),
-                    'admin2_id'       => $this->getAdminId2(),
-                    'admin3_code'     => $this->getAdminCode3(),
-                    'admin3_id'       => $this->getAdminId3(),
-                    'admin4_code'     => $this->getAdminCode4(),
-                    'admin4_id'       => $this->getAdminId4(),
-                    'timezone'        => $this->getTimezone()
-                        ? $this->getTimezone()->timeZoneId
-                        : null,
-                    'bbox'            => $this->getBbox( 'json' ),
-                    'children'        => $this->getChildren( 'json' ),
-                ],
-                [
-                    '%d',
-                    // geoname_id
-                    '%s',
-                    // name
-                    '%s',
-                    // ascii_name
-                    '%s',
-                    // alternate_names
-                    '%s',
-                    // feature_class
-                    '%s',
-                    // feature_code
-                    '%s',
-                    // continent
-                    '%s',
-                    // country_code
-                    '%d',
-                    // country_id
-                    '%f',
-                    // latitude
-                    '%f',
-                    // longitude
-                    '%d',
-                    // population
-                    '%d',
-                    // elevation
-                    '%s',
-                    // admin1_code
-                    '%d',
-                    // admin1_id
-                    '%s',
-                    // admin2_code
-                    '%d',
-                    // admin2_id
-                    '%s',
-                    // admin3_code
-                    '%d',
-                    // admin3_id
-                    '%s',
-                    // admin4_code
-                    '%d',
-                    // admin4_id
-                    '%s',
-                    // timezone
-                    '%s',
-                    // bbox
-                    '%s',
-                    // children
-                ]
-            ) )
+        $sql = Core::$wpdb->prepareAndReplaceTablePrefix(
+            <<<SQL
+INSERT INTO
+    `wp_geonames_locations_cache`
+(
+      `geoname_id`
+    , `name`
+    , `ascii_name`
+    , `alternate_names`
+    , `feature_class`
+    , `feature_code`
+    , `continent`
+    , `country_code`
+    , `country_id`
+    , `latitude`
+    , `longitude`
+    , `population`
+    , `elevation`
+    , `admin1_code`
+    , `admin1_id`
+    , `admin2_code`
+    , `admin2_id`
+    , `admin3_code`
+    , `admin3_id`
+    , `admin4_code`
+    , `admin4_id`
+    , `timezone`
+    , `bbox`
+    , `children`
+)
+VALUES
+(
+      %d                            -- `geoname_id`
+    , NULLIF(%s, '')                -- `name`
+    , NULLIF(%s, '')                -- `ascii_name`
+    , NULLIF(NULLIF(%s, '{}'), '')  -- `alternate_names`
+    , NULLIF(%s, '')                -- `feature_class`
+    , NULLIF(%s, '')                -- `feature_code`
+    , NULLIF(%s, '')                -- `continent`
+    , NULLIF(%s, '')                -- `country_code`
+    , NULLIF(%d, 0 )                -- `country_id`
+    , %f                            -- `latitude`
+    , %f                            -- `longitude`
+    , NULLIF(%d, 0 )                -- `population`
+    , NULLIF(%d, -32768 )           -- `elevation`
+    , NULLIF(%s, '')                -- `admin1_code`
+    , NULLIF(%d, 0 )                -- `admin1_id`
+    , NULLIF(%s, '')                -- `admin2_code`
+    , NULLIF(%d, 0 )                -- `admin2_id`
+    , NULLIF(%s, '')                -- `admin3_code`
+    , NULLIF(%d, 0 )                -- `admin3_id`
+    , NULLIF(%s, '')                -- `admin4_code`
+    , NULLIF(%d, 0 )                -- `admin4_id`
+    , NULLIF(%s, '')                -- `timezone`
+    , NULLIF(NULLIF(%s, '{}'), '')  -- `bbox`
+    , NULLIF(NULLIF(%s, '{}'), '')  -- `children`
+)
+
+ON DUPLICATE KEY UPDATE 
+      `db_update`                   = CURRENT_TIMESTAMP
+    , `name`                        = COALESCE(NULLIF(%s, ''), `name`                )
+    , `ascii_name`                  = COALESCE(NULLIF(%s, ''), `ascii_name`          )
+    , `alternate_names`             = COALESCE(NULLIF(%s, ''), `alternate_names`     )
+    , `feature_class`               = COALESCE(NULLIF(%s, ''), `feature_class`       )
+    , `feature_code`                = COALESCE(NULLIF(%s, ''), `feature_code`        )
+    , `continent`                   = COALESCE(NULLIF(%s, ''), `continent`           )
+    , `country_code`                = COALESCE(NULLIF(%s, ''), `country_code`        )
+    , `country_id`                  = COALESCE(NULLIF(%s, ''), `country_id`          )
+    , `latitude`                    = COALESCE(NULLIF(%s, 0 ), `latitude`            )
+    , `longitude`                   = COALESCE(NULLIF(%s, 0 ), `longitude`           )
+    , `population`                  = COALESCE(NULLIF(%s, 0 ), `population`          )
+    , `elevation`                   = COALESCE(NULLIF(%s, 0 ), `elevation`           )
+    , `admin1_code`                 = COALESCE(NULLIF(%s, ''), `admin1_code`         )
+    , `admin1_id`                   = COALESCE(NULLIF(%s, 0 ), `admin1_id`           )
+    , `admin2_code`                 = COALESCE(NULLIF(%s, ''), `admin2_code`         )
+    , `admin2_id`                   = COALESCE(NULLIF(%s, 0 ), `admin2_id`           )
+    , `admin3_code`                 = COALESCE(NULLIF(%s, ''), `admin3_code`         )
+    , `admin3_id`                   = COALESCE(NULLIF(%s, 0 ), `admin3_id`           )
+    , `admin4_code`                 = COALESCE(NULLIF(%s, ''), `admin4_code`         )
+    , `admin4_id`                   = COALESCE(NULLIF(%s, 0 ), `admin4_id`           )
+    , `timezone`                    = COALESCE(NULLIF(%s, ''), `timezone`            )
+    , `bbox`                        = COALESCE(NULLIF(%s, ''), `bbox`                )
+    , `children`                    = COALESCE(NULLIF(%s, ''), `children`            )
+    
+SQL,
+            // insert
+            $this->getGeonameId(),
+            $this->getName(),
+            $this->getAsciiName(),
+            $alternateNames,
+            $this->getFeatureClass(),
+            $this->getFeatureCode(),
+            $this->getContinentCode(),
+            $country
+                ? $country->getIso2()
+                : null,
+            $country
+                ? $country->getGeonameId()
+                : null,
+            $this->getLatitude(),
+            $this->getLongitude(),
+            $this->getPopulation(),
+            $this->getElevation(),
+            $this->getAdminCode1(),
+            $this->getAdminId1(),
+            $this->getAdminCode2(),
+            $this->getAdminId2(),
+            $this->getAdminCode3(),
+            $this->getAdminId3(),
+            $this->getAdminCode4(),
+            $this->getAdminId4(),
+            $this->getTimezone()
+                ? $this->getTimezone()
+                       ->getName()
+                : null,
+            $bbox,
+            $children,
+
+            // update
+            $this->getName(),
+            $this->getAsciiName(),
+            $alternateNames,
+            $this->getFeatureClass(),
+            $this->getFeatureCode(),
+            $this->getContinentCode(),
+            $country
+                ? $country->getIso2()
+                : null,
+            $country
+                ? $country->getGeonameId()
+                : null,
+            $this->getLatitude(),
+            $this->getLongitude(),
+            $this->getPopulation(),
+            $this->getElevation(),
+            $this->getAdminCode1(),
+            $this->getAdminId1(),
+            $this->getAdminCode2(),
+            $this->getAdminId2(),
+            $this->getAdminCode3(),
+            $this->getAdminId3(),
+            $this->getAdminCode4(),
+            $this->getAdminId4(),
+            $this->getTimezone()
+                ? $this->getTimezone()
+                       ->getName()
+                : null,
+            $bbox,
+            $children,
+
+        );
+
+        if ( Core::$wpdb->query( $sql ) === false )
         {
             throw new ErrorException( Core::$wpdb->last_error );
         }
