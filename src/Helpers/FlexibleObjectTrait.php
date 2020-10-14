@@ -8,6 +8,17 @@ use WPGeonames\WpDb;
 trait FlexibleObjectTrait
 {
 
+// protected properties
+
+    /** @var bool */
+    protected $_ignoreEmptyPropertyOnSet = true;
+
+    /** @var bool */
+    protected $_ignoreNullPropertyOnSet = true;
+
+    /** @var bool */
+    protected $_setNullOnEmptyPropertyOnSet = true;
+
 // private properties
 
     /** @var bool|null */
@@ -137,14 +148,26 @@ trait FlexibleObjectTrait
             return [];
         }
 
+        $self  = $this;
         $array = array_filter(
             $array,
             static function (
-                $item,
+                &$item,
                 $key
-            ) {
+            ) use
+            (
+                $self
+            )
+            {
 
-                return $item !== null && $item !== '' && ( ! is_string( $key ) || $key[0] !== '_' );
+                if ( $self->_setNullOnEmptyPropertyOnSet && empty( $item ) )
+                {
+                    $item = null;
+                }
+
+                return ( $item !== null || $self->_ignoreNullPropertyOnSet === false )
+                    && ( $item !== '' || $self->_ignoreEmptyPropertyOnSet === false )
+                    && ( ! is_string( $key ) || $key[0] !== '_' );
             },
             ARRAY_FILTER_USE_BOTH
         );
@@ -241,12 +264,6 @@ trait FlexibleObjectTrait
                 $missedValues
             )
             {
-
-                // skip empty values
-                if ( $value === null )
-                {
-                    return;
-                }
 
                 $self->___set( $property, $value, $propertyMissing );
 

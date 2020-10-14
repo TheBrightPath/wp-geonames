@@ -185,7 +185,7 @@ class Country
     /**
      * @return int
      */
-    public function getArea(): int
+    public function getArea(): ?int
     {
 
         return $this->area;
@@ -197,7 +197,7 @@ class Country
      *
      * @return Country
      */
-    public function setArea( int $area ): Country
+    public function setArea( ?int $area ): Country
     {
 
         $this->area = $area;
@@ -217,11 +217,11 @@ class Country
 
 
     /**
-     * @param  string  $capital
+     * @param  string|null  $capital
      *
      * @return Country
      */
-    public function setCapital( string $capital ): Country
+    public function setCapital( ?string $capital ): Country
     {
 
         $this->capital = $capital;
@@ -249,7 +249,7 @@ class Country
     /**
      * @return string
      */
-    public function getCurrencyCode(): string
+    public function getCurrencyCode(): ?string
     {
 
         return $this->currencyCode;
@@ -273,7 +273,7 @@ class Country
     /**
      * @return string
      */
-    public function getCurrencyName(): string
+    public function getCurrencyName(): ?string
     {
 
         return $this->currencyName;
@@ -297,7 +297,7 @@ class Country
     /**
      * @return string
      */
-    public function getFipsCode(): string
+    public function getFipsCode(): ?string
     {
 
         return $this->fipsCode;
@@ -305,11 +305,11 @@ class Country
 
 
     /**
-     * @param  string  $fipsCode
+     * @param  string|null  $fipsCode
      *
      * @return Country
      */
-    public function setFipsCode( string $fipsCode ): Country
+    public function setFipsCode( ?string $fipsCode ): Country
     {
 
         $this->fipsCode = $fipsCode;
@@ -321,7 +321,7 @@ class Country
     /**
      * @return string
      */
-    public function getIso2(): string
+    public function getIso2(): ?string
     {
 
         return $this->iso2;
@@ -329,12 +329,12 @@ class Country
 
 
     /**
-     * @param  string  $iso2
+     * @param  string|null  $iso2
      *
      * @return Country
      * @throws \ErrorException
      */
-    public function setIso2( string $iso2 ): Country
+    public function setIso2( ?string $iso2 ): Country
     {
 
         // ignore if they're the same
@@ -351,7 +351,7 @@ class Country
             );
         }
 
-        // fail, if already set
+        // fail, if already exists
         if ( array_key_exists( $iso2, static::$_countries ) )
         {
             throw new ErrorException(
@@ -361,7 +361,10 @@ class Country
 
         $this->iso2 = $iso2;
 
-        static::$_countries[ $iso2 ] = $this;
+        if ( ! empty( $iso2 ) )
+        {
+            static::$_countries[ $iso2 ] = $this;
+        }
 
         return $this;
     }
@@ -370,7 +373,7 @@ class Country
     /**
      * @return string
      */
-    public function getIso3(): string
+    public function getIso3(): ?string
     {
 
         return $this->iso3;
@@ -378,11 +381,11 @@ class Country
 
 
     /**
-     * @param  string  $iso3
+     * @param  string|null  $iso3
      *
      * @return Country
      */
-    public function setIso3( string $iso3 ): Country
+    public function setIso3( ?string $iso3 ): Country
     {
 
         $this->iso3 = $iso3;
@@ -394,7 +397,7 @@ class Country
     /**
      * @return int
      */
-    public function getIsoN(): int
+    public function getIsoN(): ?int
     {
 
         return $this->isoN;
@@ -402,11 +405,11 @@ class Country
 
 
     /**
-     * @param  int  $isoN
+     * @param  int|null  $isoN
      *
      * @return Country
      */
-    public function setIsoN( int $isoN ): Country
+    public function setIsoN( ?int $isoN ): Country
     {
 
         $this->isoN = $isoN;
@@ -418,7 +421,7 @@ class Country
     /**
      * @return string
      */
-    public function getLanguages(): string
+    public function getLanguages(): ?string
     {
 
         return $this->languages;
@@ -426,11 +429,11 @@ class Country
 
 
     /**
-     * @param  string  $languages
+     * @param  string|null  $languages
      *
      * @return Country
      */
-    public function setLanguages( string $languages ): Country
+    public function setLanguages( ?string $languages ): Country
     {
 
         $this->languages = $languages;
@@ -450,11 +453,11 @@ class Country
 
 
     /**
-     * @param  string  $neighbours
+     * @param  string|null  $neighbours
      *
      * @return Country
      */
-    public function setNeighbours( string $neighbours ): Country
+    public function setNeighbours( ?string $neighbours ): Country
     {
 
         $this->neighbours = $neighbours;
@@ -464,9 +467,9 @@ class Country
 
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getPhone(): string
+    public function getPhone(): ?string
     {
 
         return $this->phone;
@@ -474,11 +477,11 @@ class Country
 
 
     /**
-     * @param  string  $phone
+     * @param  string|null  $phone
      *
      * @return Country
      */
-    public function setPhone( string $phone ): Country
+    public function setPhone( ?string $phone ): Country
     {
 
         $this->phone = $phone;
@@ -488,7 +491,7 @@ class Country
 
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getPostalCodeFormat(): ?string
     {
@@ -499,7 +502,7 @@ class Country
 
 
     /**
-     * @param  string  $postalCodeFormat
+     * @param  string|null  $postalCodeFormat
      *
      * @return Country
      */
@@ -513,7 +516,7 @@ class Country
 
 
     /**
-     * @return string
+     * @return string|null
      */
     public function getPostalCodeRegex(): ?string
     {
@@ -524,7 +527,7 @@ class Country
 
 
     /**
-     * @param  string  $postalCodeRegex
+     * @param  string|null  $postalCodeRegex
      *
      * @return Country
      */
@@ -540,7 +543,7 @@ class Country
     /**
      * @return string
      */
-    public function getTld(): string
+    public function getTld(): ?string
     {
 
         return $this->tld;
@@ -548,11 +551,11 @@ class Country
 
 
     /**
-     * @param  string  $tld
+     * @param  string|null  $tld
      *
      * @return Country
      */
-    public function setTld( string $tld ): self
+    public function setTld( ?string $tld ): self
     {
 
         $this->tld = $tld;
@@ -590,16 +593,22 @@ class Country
 
 
     /**
-     * @param  int  $geonameId
+     * @param  int|null  $geonameId
      *
      * @return $this|\WPGeonames\Entities\Location
      * @throws \ErrorException
      */
-    public function setGeonameId( int $geonameId ): Location
+    public function setGeonameId( ?int $geonameId ): Location
     {
 
         // ignore if they're the same
         if ( $this->geonameId === $geonameId )
+        {
+            return $this;
+        }
+
+        // ignore null
+        if ( $geonameId === null )
         {
             return $this;
         }
@@ -644,11 +653,11 @@ class Country
 
 
     /**
-     * @param  int  $cId
+     * @param  int|null  $cId
      *
      * @return Country
      */
-    protected function setIdCountry( int $cId ): Country
+    protected function setIdCountry( ?int $cId ): Country
     {
 
         $this->setGeonameId( $cId );

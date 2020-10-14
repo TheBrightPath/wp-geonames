@@ -211,6 +211,8 @@ class Location
         $defaults = []
     ) {
 
+        $this->_ignoreNullPropertyOnSet = false;
+
         if ( static::$_aliases === null )
         {
             static::$_aliases = $this->getAliases();
