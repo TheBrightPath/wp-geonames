@@ -986,33 +986,38 @@ SELECT
     ,c.*
 
 FROM
-    `wp_geonames_countries`             c
+    (
+        SELECT
+             geoname_id
+        FROM
+            `wp_geonames_countries`             c
+        WHERE
+                geoname_id          IS NOT NULL
+            AND (
+                $loadAll
+                OR c.geoname_id     IN ($sqlGeonameIds)
+                OR c.iso2           IN ($sqlCountryCodes)
+            )
+        
+        UNION
+        
+        SELECT
+             geoname_id
+        FROM
+            `wp_geonames_locations_cache`       l
+        WHERE
+                geoname_id          IS NOT NULL
+            AND (
+                0
+                OR   l.geoname_id     IN ($sqlGeonameIds)
+                OR ( l.country_code   IN ($sqlCountryCodes) AND ($sqlCountryFeatures) )
+            )
+   )                                    id
 LEFT JOIN
-    `wp_geonames_locations_cache`       l   ON c.geoname_id = l.geoname_id
-
-WHERE
-	$loadAll
-    OR c.geoname_id     IN ($sqlGeonameIds)
-    OR c.iso2           IN ($sqlCountryCodes)
-
-UNION
-
-SELECT
-     COALESCE(c.geoname_id ,l.geoname_id)   AS ID
-    ,l.geoname_id                           as idLocation
-    ,c.geoname_id                           as idCountry
-    ,c.*
-    ,l.*
-
-FROM
-    `wp_geonames_locations_cache`       l
+    `wp_geonames_countries`             c   ON id.geoname_id = c.geoname_id
 LEFT JOIN
-    `wp_geonames_countries`             c   ON c.geoname_id = l.geoname_id
+    `wp_geonames_locations_cache`       l   ON id.geoname_id = l.geoname_id
 
-WHERE
-	0
-    OR   c.geoname_id     IN ($sqlGeonameIds)
-    OR ( l.country_code   IN ($sqlCountryCodes) AND ($sqlCountryFeatures) )
 ;
 SQL
         );
