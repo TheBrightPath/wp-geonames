@@ -73,6 +73,11 @@ class Location
     protected $_idAPI;
 
     /**
+     * @var integer GeonameId of the wp_geonames_locations_cache table
+     */
+    protected $_idLocation;
+
+    /**
      * @var int
      */
     protected $geonameId;
@@ -223,6 +228,38 @@ class Location
 
 
     /**
+     * @param        $propertyByRef
+     * @param  bool  $autoload
+     *
+     * @return       mixed|null
+     * @noinspection MagicMethodsValidityInspection
+     */
+    protected function __getOrUpdate(
+        &$propertyByRef,
+        bool $autoload,
+        int $what = 0
+    ) {
+
+        if ( $propertyByRef === false )
+        {
+            return null;
+        }
+
+        if ( $propertyByRef === null && $autoload )
+        {
+            $this->updateMissingData( $what );
+
+            if ( $propertyByRef === null )
+            {
+                $propertyByRef = false;
+            }
+        }
+
+        return $propertyByRef;
+    }
+
+
+    /**
      * @param  int|string  $x
      * @param  string      $format
      *
@@ -230,13 +267,16 @@ class Location
      */
     protected function getAdminCode(
         $x,
-        string $format
+        string $format,
+        bool $autoload = true
     ) {
 
         if ( is_numeric( $x ) )
         {
             $x = "adminCode$x";
         }
+
+        $this->__getOrUpdate( $this->$x, $autoload );
 
         if ( $this->$x === null )
         {
@@ -254,10 +294,12 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode1( $format = 'ISO3166_2' )
-    {
+    public function getAdminCode1(
+        $format = 'ISO3166_2',
+        bool $autoload = true
+    ) {
 
-        return $this->getAdminCode( 1, $format );
+        return $this->getAdminCode( 1, $format, $autoload );
     }
 
 
@@ -278,10 +320,12 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode2( $format = 'ISO3166_2' )
-    {
+    public function getAdminCode2(
+        $format = 'ISO3166_2',
+        bool $autoload = true
+    ) {
 
-        return $this->getAdminCode( 2, $format );
+        return $this->getAdminCode( 2, $format, $autoload );
     }
 
 
@@ -302,10 +346,12 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode3( $format = 'ISO3166_2' )
-    {
+    public function getAdminCode3(
+        $format = 'ISO3166_2',
+        bool $autoload = true
+    ) {
 
-        return $this->getAdminCode( 3, $format );
+        return $this->getAdminCode( 3, $format, $autoload );
     }
 
 
@@ -326,10 +372,12 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode4( $format = 'ISO3166_2' )
-    {
+    public function getAdminCode4(
+        $format = 'ISO3166_2',
+        bool $autoload = true
+    ) {
 
-        return $this->getAdminCode( 4, $format );
+        return $this->getAdminCode( 4, $format, $autoload );
     }
 
 
@@ -348,10 +396,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId1(): ?int
+    public function getAdminId1( bool $autoload = true ): ?int
     {
 
-        return $this->adminId1;
+        return $this->__getOrUpdate( $this->adminId1, $autoload );
     }
 
 
@@ -372,10 +420,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId2(): ?int
+    public function getAdminId2( bool $autoload = true ): ?int
     {
 
-        return $this->adminId2;
+        return $this->__getOrUpdate( $this->adminId2, $autoload );
     }
 
 
@@ -396,10 +444,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId3(): ?int
+    public function getAdminId3( bool $autoload = true ): ?int
     {
 
-        return $this->adminId3;
+        return $this->__getOrUpdate( $this->adminId3, $autoload );
     }
 
 
@@ -420,10 +468,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId4(): ?int
+    public function getAdminId4( bool $autoload = true ): ?int
     {
 
-        return $this->adminId4;
+        return $this->__getOrUpdate( $this->adminId4, $autoload );
     }
 
 
@@ -480,8 +528,12 @@ class Location
      *
      * @return mixed
      */
-    public function getAlternateNames( $lang = null )
-    {
+    public function getAlternateNames(
+        $lang = null,
+        bool $autoload = true
+    ) {
+
+        $this->__getOrUpdate( $this->alternateNames, $autoload );
 
         if ( $lang === null )
         {
@@ -539,21 +591,21 @@ class Location
 
 
     /**
-     * @return string
+     * @return string|null
      */
-    public function getAsciiName(): string
+    public function getAsciiName( bool $autoload = true ): ?string
     {
 
-        return $this->asciiName;
+        return $this->__getOrUpdate( $this->asciiName, $autoload );
     }
 
 
     /**
-     * @param  string  $asciiName
+     * @param  string|null  $asciiName
      *
      * @return Location
      */
-    public function setAsciiName( string $asciiName ): Location
+    public function setAsciiName( ?string $asciiName ): Location
     {
 
         $this->asciiName = $asciiName;
@@ -567,8 +619,12 @@ class Location
      *
      * @return mixed
      */
-    public function getBbox( $property = null )
-    {
+    public function getBbox(
+        $property = null,
+        bool $autoload = true
+    ) {
+
+        $this->__getOrUpdate( $this->bbox, $autoload );
 
         if ( $this->bbox === null )
         {
@@ -732,10 +788,10 @@ class Location
     /**
      * @return string
      */
-    public function getContinentCode(): string
+    public function getContinentCode( bool $autoload = true ): string
     {
 
-        return $this->continentCode;
+        return $this->__getOrUpdate( $this->continentCode, $autoload );
     }
 
 
@@ -756,7 +812,7 @@ class Location
     /**
      * @return Country|null
      */
-    public function getCountry(): ?Country
+    public function getCountry( bool $autoload = true ): ?Country
     {
 
         if ( $this->country instanceof Country || $this->country === null )
@@ -764,7 +820,10 @@ class Location
             return $this->country;
         }
 
-        $this->country = Country::load( $this->country );
+        if ( $autoload )
+        {
+            $this->country = Country::load( $this->country );
+        }
 
         return $this->country;
     }
@@ -834,10 +893,10 @@ class Location
     /**
      * @return mixed
      */
-    public function getElevation()
+    public function getElevation( bool $autoload = true )
     {
 
-        return $this->elevation;
+        return $this->__getOrUpdate( $this->elevation, $autoload );
     }
 
 
@@ -861,7 +920,7 @@ class Location
     public function getFeatureClass(): string
     {
 
-        return $this->featureClass;
+        return $this->__getOrUpdate( $this->featureClass, true );
     }
 
 
@@ -885,7 +944,7 @@ class Location
     public function getFeatureCode(): string
     {
 
-        return $this->featureCode;
+        return $this->__getOrUpdate( $this->featureCode, true );
     }
 
 
@@ -930,10 +989,10 @@ class Location
     /**
      * @return float
      */
-    public function getLatitude(): float
+    public function getLatitude( bool $autoload = true ): float
     {
 
-        return $this->latitude;
+        return $this->__getOrUpdate( $this->latitude, $autoload );
     }
 
 
@@ -954,10 +1013,10 @@ class Location
     /**
      * @return float
      */
-    public function getLongitude(): float
+    public function getLongitude( bool $autoload = true ): float
     {
 
-        return $this->longitude;
+        return $this->__getOrUpdate( $this->longitude, $autoload );
     }
 
 
@@ -978,8 +1037,12 @@ class Location
     /**
      * @return string
      */
-    public function getName( $langCode = null ): string
-    {
+    public function getName(
+        $langCode = null,
+        bool $autoload = true
+    ): string {
+
+        $this->__getOrUpdate( $this->name, $autoload );
 
         // WPML integration
         if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
@@ -989,7 +1052,7 @@ class Location
 
         if ( $langCode !== null )
         {
-            $name = $this->getAlternateNames( $langCode );
+            $name = $this->getAlternateNames( $langCode, $autoload );
         }
 
         return $name ?? $this->name ?? (string) $this->geonameId;
@@ -1013,10 +1076,10 @@ class Location
     /**
      * @return int
      */
-    public function getPopulation(): int
+    public function getPopulation( bool $autoload = true ): int
     {
 
-        return $this->population;
+        return $this->__getOrUpdate( $this->population, $autoload );
     }
 
 
@@ -1061,15 +1124,17 @@ class Location
     /**
      * @return \WPGeonames\Entities\Timezone|\WPGeonames\Helpers\NullSafe
      */
-    public function getTimezone()
+    public function getTimezone( bool $autoload = true )
     {
+
+        $this->__getOrUpdate( $this->timezone, $autoload );
 
         if ( $this->timezone instanceof Timezone )
         {
             return $this->timezone;
         }
 
-        if ( $this->timezone === null )
+        if ( $this->timezone === null || $this->timezone === false )
         {
             return new NullSafe();
         }
@@ -1098,7 +1163,8 @@ class Location
             break;
         }
 
-        $this->timezone = $timezone;
+        $this->timezone = $timezone
+            ?: null;
 
         return $this;
     }
@@ -1158,6 +1224,37 @@ class Location
     {
 
         $this->country = $countryCode;
+
+        return $this;
+    }
+
+
+    /**
+     * @param  int  $idAPI
+     *
+     * @return Country
+     */
+    public function setIdAPI( int $idAPI ): self
+    {
+
+        $this->_idAPI = $idAPI;
+
+        return $this;
+    }
+
+
+    /**
+     * @param  int|null  $lId
+     *
+     * @return $this
+     * @throws \ErrorException
+     */
+    protected function setIdLocation( ?int $lId ): Country
+    {
+
+        $this->setGeonameId( $lId );
+
+        $this->_idLocation = $lId;
 
         return $this;
     }
@@ -1386,6 +1483,49 @@ SQL,
     }
 
 
+    /**
+     * @param  int  $what
+     *
+     * @return $this
+     * @throws \ErrorException
+     * @noinspection PhpUnusedParameterInspection
+     */
+    public function updateFromApi( int $what = 0 ): self
+    {
+
+        // update location
+        $item = Core::getGeoNameClient()
+                    ->get(
+                        [
+                            'geonameId' => $this->geonameId,
+                            'style'     => 'full',
+                        ]
+                    )
+        ;
+
+        $this->_idLocation = $this->geonameId;
+        $this->loadValues( $item );
+        $this->save();
+
+        return $this;
+    }
+
+
+    protected function updateMissingData( int $what = 0 ): self
+    {
+
+        // load location if it has not been loaded nor from the database nor the API
+        if ( $this->_idLocation === null && $this->_idAPI === null )
+        {
+            // load location
+            $this->updateFromApi( $what );
+
+        }
+
+        return $this;
+    }
+
+
     public static function isItACountry(
         $object,
         $featureClassProperty,
@@ -1437,25 +1577,25 @@ SQL,
             throw new ErrorException( 'Supplied id(s) are not numeric' );
         }
 
-        $tblCacheLocations = Core::Factory()
-                                 ->getTblCacheLocations()
-        ;
-        $sqlWhere          = sprintf(
+        $sqlWhere = sprintf(
             "geoname_id %s",
             is_array( $ids )
                 ? sprintf( 'IN (%s)', implode( ',', $ids ) )
                 : "= $ids"
         );
 
-        $sql = <<<SQL
+        $sql = Core::$wpdb::replaceTablePrefix(
+            <<<SQL
     SELECT
-        *
+          geoname_id                        as idLocation
+        , *
     FROM
-        $tblCacheLocations
+         `wp_geonames_locations_cache`
     WHERE
         $sqlWhere
     ;
-SQL;
+SQL
+        );
 
         $locations = Core::$wpdb->get_results( $sql );
 

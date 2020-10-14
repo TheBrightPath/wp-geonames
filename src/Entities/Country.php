@@ -34,6 +34,12 @@ class Country
         FlexibleObjectTrait::__construct as private _FlexibleObjectTrait__construct;
     }
 
+// constants
+
+    public const API_UPDATE_INFO_BOTH     = 0;
+    public const API_UPDATE_INFO_COUNTRY  = 1;
+    public const API_UPDATE_INFO_LOCATION = - 1;
+
 // protected properties
 
     /**
@@ -52,11 +58,6 @@ class Country
      * @var integer GeonameId of the wp_geonames_countries table
      */
     protected $_idCountry;
-
-    /**
-     * @var integer GeonameId of the wp_geonames_locations_cache table
-     */
-    protected $_idLocation;
 
     /**
      * @var string
@@ -183,12 +184,14 @@ class Country
 
 
     /**
-     * @return int
+     * @param  bool  $autoload
+     *
+     * @return int|null
      */
-    public function getArea(): ?int
+    public function getArea( bool $autoload = true ): ?int
     {
 
-        return $this->area;
+        return $this->__getOrUpdate( $this->area, $autoload );
     }
 
 
@@ -207,12 +210,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getCapital(): string
+    public function getCapital( bool $autoload = true ): ?string
     {
 
-        return $this->capital;
+        return $this->__getOrUpdate( $this->capital, $autoload );
     }
 
 
@@ -247,12 +252,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getCurrencyCode(): ?string
+    public        function getCurrencyCode( bool $autoload = true ): ?string
     {
 
-        return $this->currencyCode;
+        return $this->__getOrUpdate( $this->currencyCode, $autoload );
     }
 
 
@@ -271,12 +278,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getCurrencyName(): ?string
+    public function getCurrencyName( bool $autoload = true ): ?string
     {
 
-        return $this->currencyName;
+        return $this->__getOrUpdate( $this->currencyName, $autoload );
     }
 
 
@@ -295,12 +304,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getFipsCode(): ?string
+    public function getFipsCode( bool $autoload = true ): ?string
     {
 
-        return $this->fipsCode;
+        return $this->__getOrUpdate( $this->fipsCode, $autoload );
     }
 
 
@@ -319,12 +330,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getIso2(): ?string
+    public function getIso2( bool $autoload = true ): ?string
     {
 
-        return $this->iso2;
+        return $this->__getOrUpdate( $this->iso2, $autoload );
     }
 
 
@@ -371,12 +384,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getIso3(): ?string
-    {
+     public function getIso3( bool $autoload = true ): ?string
+{
 
-        return $this->iso3;
+        return $this->__getOrUpdate( $this->iso3, $autoload );
     }
 
 
@@ -395,12 +410,14 @@ class Country
 
 
     /**
-     * @return int
+     * @param  bool  $autoload
+     *
+     * @return int|null
      */
-    public function getIsoN(): ?int
-    {
+public function getIsoN( bool $autoload = true ): ?int
+{
 
-        return $this->isoN;
+        return $this->__getOrUpdate( $this->isoN, $autoload );
     }
 
 
@@ -419,12 +436,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getLanguages(): ?string
+    public function getLanguages( bool $autoload = true ): ?string
     {
 
-        return $this->languages;
+        return $this->__getOrUpdate( $this->languages, $autoload );
     }
 
 
@@ -443,12 +462,14 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
      */
-    public function getNeighbours(): ?string
+    public function getNeighbours( bool $autoload = true ): ?string
     {
 
-        return $this->neighbours;
+        return $this->__getOrUpdate( $this->neighbours, $autoload );
     }
 
 
@@ -467,12 +488,14 @@ class Country
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return string|null
      */
-    public function getPhone(): ?string
+    public function getPhone( bool $autoload = true ): ?string
     {
 
-        return $this->phone;
+        return $this->__getOrUpdate( $this->phone, $autoload );
     }
 
 
@@ -493,11 +516,10 @@ class Country
     /**
      * @return string|null
      */
-    public function getPostalCodeFormat(): ?string
+    public function getPostalCodeFormat( bool $autoload = true ): ?string
     {
 
-        return $this->postalCodeFormat
-            ?: null;
+        return $this->__getOrUpdate( $this->postalCodeFormat, $autoload );
     }
 
 
@@ -518,11 +540,10 @@ class Country
     /**
      * @return string|null
      */
-    public function getPostalCodeRegex(): ?string
+    public function getPostalCodeRegex( bool $autoload = true ): ?string
     {
 
-        return $this->postalCodeRegex
-            ?: null;
+        return $this->__getOrUpdate( $this->postalCodeRegex, $autoload );
     }
 
 
@@ -543,10 +564,10 @@ class Country
     /**
      * @return string
      */
-    public function getTld(): ?string
+    public function getTld( bool $autoload = true ): ?string
     {
 
-        return $this->tld;
+        return $this->__getOrUpdate( $this->tld, $autoload );
     }
 
 
@@ -639,23 +660,10 @@ class Country
 
 
     /**
-     * @param  int  $idAPI
-     *
-     * @return Country
-     */
-    public function setIdAPI( int $idAPI ): self
-    {
-
-        $this->_idAPI = $idAPI;
-
-        return $this;
-    }
-
-
-    /**
      * @param  int|null  $cId
      *
      * @return Country
+     * @throws \ErrorException
      */
     protected function setIdCountry( ?int $cId ): Country
     {
@@ -667,57 +675,10 @@ class Country
     }
 
 
-    /**
-     * @param  int  $lId
-     *
-     * @return Country
-     */
-    protected function setIdLocation( int $lId ): Country
-    {
-
-        $this->setGeonameId( $lId );
-
-        $this->_idLocation = $lId;
-
-        return $this;
-    }
-
-
     public function save(): void
     {
 
-        // load location if it has not been loaded nor from the database nor the API
-        if ( $this->_idLocation === null && $this->_idAPI === null )
-        {
-            // load location
-
-            $item = Core::getGeoNameClient()
-                        ->get(
-                            [
-                                'geonameId' => $this->geonameId,
-                                'style'     => 'full',
-                            ]
-                        )
-            ;
-
-            $this->loadValues( $item );
-        }
-
-        // load country
-        if ( $this->_idCountry === null && $this->iso2 !== null )
-        {
-            // load country
-
-            $item = Core::getGeoNameClient()
-                        ->countryInfo(
-                            [
-                                'country' => $this->iso2,
-                            ]
-                        )
-            ;
-
-            $this->loadValues( $item );
-        }
+        $this->updateMissingData();
 
         // save country info
 
@@ -834,6 +795,57 @@ SQL,
         }
 
         parent::save();
+    }
+
+
+    public function updateFromApi( int $what = self::API_UPDATE_INFO_BOTH ): Location
+    {
+
+        if ( $what <= self::API_UPDATE_INFO_BOTH )
+        {
+            // update location
+            parent::updateFromApi();
+        }
+
+        if ( $what >= self::API_UPDATE_INFO_BOTH )
+        {
+            // update country
+            $item = Core::getGeoNameClient()
+                        ->countryInfo(
+                            [
+                                'country' => $this->iso2,
+                            ]
+                        )
+            ;
+
+            $this->loadValues( $item );
+            $this->save();
+            $this->_idCountry = $this->geonameId;
+        }
+
+        return $this;
+    }
+
+
+    protected function updateMissingData( int $what = self::API_UPDATE_INFO_BOTH ): Location
+    {
+
+        // load location if it has not been loaded nor from the database nor the API
+        if ( $what <= self::API_UPDATE_INFO_BOTH && $this->_idLocation === null && $this->_idAPI === null )
+        {
+            // load location
+            $this->updateFromApi( self::API_UPDATE_INFO_LOCATION );
+
+        }
+
+        // load country
+        if ( $what >= self::API_UPDATE_INFO_BOTH && $this->_idCountry === null && $this->iso2 !== null )
+        {
+            // load country
+            $this->updateFromApi( self::API_UPDATE_INFO_COUNTRY );
+        }
+
+        return $this;
     }
 
 
