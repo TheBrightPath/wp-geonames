@@ -1012,6 +1012,7 @@ SELECT
     ,c.geoname_id                           as idCountry
     ,l.*
     ,c.*
+    ,COALESCE(l.geoname_id ,c.geoname_id)   AS geoname_id
 
 FROM
     (
