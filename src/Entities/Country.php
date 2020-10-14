@@ -129,11 +129,6 @@ class Country
      */
     protected $neighbours;
 
-    /**
-     * @var string|null
-     */
-    protected $country;
-
 
     /**
      * Country constructor is required to avoid jumping directly to FlexibleObjectTrait::__construct
@@ -230,6 +225,13 @@ class Country
     {
 
         $this->capital = $capital;
+
+        return $this;
+    }
+
+
+    public function getCountry( bool $autoload = true ): self
+    {
 
         return $this;
     }
@@ -586,14 +588,19 @@ public function getIsoN( bool $autoload = true ): ?int
 
 
     /**
+     * @see self::setName()
+     *
      * @param  string  $capital
      *
      * @return Country
      */
-    public function setCountry( string $countryName ): Country
+    public function setCountry( ?string $countryName ): Country
     {
 
-        $this->name = $countryName;
+        if ( empty( $this->name ) )
+        {
+            $this->name = $countryName;
+        }
 
         return $this;
     }
