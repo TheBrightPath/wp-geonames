@@ -1047,6 +1047,12 @@ LEFT JOIN
 LEFT JOIN
     `wp_geonames_locations_cache`       l   ON id.geoname_id = l.geoname_id
 
+WHERE
+        $loadAll = 0
+    OR  (
+            feature_class IS NULL 
+        OR  ($sqlCountryFeatures)
+        )
 ;
 SQL
         );
