@@ -862,8 +862,10 @@ SQL,
      * @return static
      * @throws \ErrorException
      */
-    public static function loadRecords( $ids = null ): ?array
-    {
+    public static function loadRecords(
+        $ids = null,
+        ?array $cuntryFeatures = null
+    ): ?array {
 
         $loadAll = 0;
 
@@ -985,7 +987,7 @@ SQL,
             ? "'$sqlCountryCodes'"
             : "'--'";
 
-        $sqlCountryFeatures = Core::FEATURE_FILTERS['countriesOnly'];
+        $sqlCountryFeatures = $cuntryFeatures ?? Core::FEATURE_FILTERS['countriesOnly'];
 
         array_walk(
             $sqlCountryFeatures,
