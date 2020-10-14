@@ -3,6 +3,7 @@
 namespace WPGeonames\Entities;
 
 use ErrorException;
+use Locale;
 use WPGeonames\Core;
 use WPGeonames\Helpers\FlexibleObjectTrait;
 
@@ -460,6 +461,23 @@ public function getIsoN( bool $autoload = true ): ?int
         $this->languages = $languages;
 
         return $this;
+    }
+
+
+    public function getNameIntl(
+        ?string $langCode = null,
+        bool $autoload = true
+    ) {
+
+        // WPML integration
+        if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
+        {
+            $langCode = ICL_LANGUAGE_CODE;
+        }
+
+        return Locale::getDisplayRegion( '-' . $this->getIso2( $autoload ), $langCode ) ?? $this->getName(
+                $langCode
+            );
     }
 
 
