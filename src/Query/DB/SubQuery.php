@@ -473,7 +473,7 @@ SQL
             }
             unset ( $item );
 
-            WpDb::formatOutput( $admin, $status->classLocations, 'geonameId', '_' );
+            WpDb::formatOutput( $admin, $status->classLocations, 'geonameId', '_', [ $status->classCountries ] );
 
             // add the location to the list of records to be cached
             $recordsToCache = array_merge( $recordsToCache, $admin );

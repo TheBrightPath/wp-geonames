@@ -266,7 +266,8 @@ class WpDb
         &$result,
         $output,
         $keyName = '',
-        $prefix = ''
+        $prefix = '',
+        array $additionalInterfaces = []
     ): ?array {
 
         if ( $result === null )
@@ -420,13 +421,31 @@ class WpDb
                 $result,
                 static function ( &$item ) use
                 (
-                    $class
+                    $class,
+                    &
+                    $additionalInterfaces
                 )
                 {
 
                     $class = $item->__CLASS__ ?? $class;
 
-                    if ( ! $item instanceof $class )
+                    if ( ! $item instanceof $class
+                        && ! array_reduce(
+                            $additionalInterfaces,
+                            static function (
+                                $isA,
+                                $class
+                            ) use
+                            (
+                                &
+                                $item
+                            )
+                            {
+
+                                return $isA || $item instanceof $class;
+                            },
+                            false
+                        ) )
                     {
                         $item = new $class( $item );
                     }
