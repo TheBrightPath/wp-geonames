@@ -55,6 +55,7 @@ class Location
      * @var \WPGeonames\Entities\Timezone
      */
     public static $_timezoneClass = Timezone::class;
+
     /**
      * @var \WPGeonames\Entities\Country
      */
@@ -66,6 +67,11 @@ class Location
      * @var string[]
      */
     protected static $_aliases;
+
+    /**
+     * @var \WPGeonames\Entities\Location[]
+     */
+    protected static $_locations = [];
 
     /**
      * @var integer GeonameId returned from the API
@@ -835,7 +841,17 @@ class Location
 
         if ( $autoload )
         {
-            $this->country = Country::load( $this->country );
+            $this->country = static::$_countryClass::load( $this->country );
+        }
+
+        if ( ! $this->country instanceof Country && $this->country instanceof Location )
+        {
+            unset( static::$_locations["_{$this->country->getGeonameId()}"] );
+
+            /** @noinspection PhpUndefinedVariableInspection */
+            $class = $this->country::$_countryClass;
+
+            $this->country = new $class( $this->country );
         }
 
         return $this->country;
@@ -994,6 +1010,8 @@ class Location
     {
 
         $this->geonameId = $geonameId;
+
+        static::$_locations["_$geonameId"] = $this;
 
         return $this;
     }
@@ -1600,6 +1618,34 @@ SQL,
             throw new ErrorException( 'Supplied id(s) are not numeric' );
         }
 
+        $locations = [];
+        $ids       = (array) $ids;
+
+        $ids = array_filter(
+            $ids,
+            static function ( $id ) use
+            (
+                &
+                $locations
+            )
+            {
+
+                if ( array_key_exists( "_$id", static::$_locations ) )
+                {
+                    $locations["_$id"] = static::$_locations["_$id"];
+
+                    return false;
+                }
+
+                return true;
+            }
+        );
+
+        if ( empty( $ids ) )
+        {
+            return $locations;
+        }
+
         $sqlWhere = sprintf(
             "geoname_id %s",
             is_array( $ids )
@@ -1620,7 +1666,8 @@ SQL,
 SQL
         );
 
-        $locations = Core::$wpdb->get_results( $sql );
+        /** @noinspection AdditionOperationOnArraysInspection */
+        $locations += Core::$wpdb->get_results( $sql );
 
         if ( Core::$wpdb->last_error_no )
         {

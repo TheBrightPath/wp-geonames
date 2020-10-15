@@ -668,19 +668,14 @@ class Country
         }
 
         // fail, if already set
-        if ( array_key_exists( "_$geonameId", static::$_countries ) )
+        if ( array_key_exists( "_$geonameId", static::$_locations ) )
         {
             throw new ErrorException(
                 sprintf( 'An instance of GeonameId already exists. Id: %d', $geonameId )
             );
         }
 
-        parent::setGeonameId( $geonameId );
-
-        static::$_countries["_$geonameId"] = $this;
-
-        return $this;
-
+        return parent::setGeonameId( $geonameId );
     }
 
 
@@ -935,9 +930,16 @@ SQL,
                     if ( ( ( property_exists( $id, 'geonameId' ) && ( $_id = $id->geonameId ) )
                             || ( property_exists( $id, 'geoname_id' ) && ( $_id = $id->geoname_id ) )
                         )
-                        && array_key_exists( "_$_id", static::$_countries ) )
+                        && array_key_exists( "_$_id", static::$_locations ) )
                     {
-                        $o = static::$_countries["_$_id"];
+                        $o = static::$_locations["_$_id"];
+
+                        if ( ! $o instanceof Country && $o instanceof Location )
+                        {
+                            unset( static::$_locations["_$_id"] );
+                            $class = $o::$_countryClass;
+                            $o     = new $class( $o );
+                        }
 
                         $o->loadValues( $id );
 
@@ -956,9 +958,9 @@ SQL,
 
                 if ( is_numeric( $id ) )
                 {
-                    if ( array_key_exists( "_$id", static::$_countries ) )
+                    if ( array_key_exists( "_$id", static::$_locations ) )
                     {
-                        $id = [ 'o' => static::$_countries["_$id"] ];
+                        $id = [ 'o' => static::$_locations["_$id"] ];
 
                         return;
                     }
