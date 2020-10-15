@@ -260,36 +260,6 @@ class Location
 
 
     /**
-     * @param  int|string  $x
-     * @param  string      $format
-     *
-     * @return string|array|null
-     */
-    protected function getAdminCode(
-        $x,
-        string $format,
-        bool $autoload = true
-    ) {
-
-        if ( is_numeric( $x ) )
-        {
-            $x = "admin{$x}Code";
-        }
-
-        $this->__getOrUpdate( $this->$x, $autoload );
-
-        if ( $this->$x === null )
-        {
-            return null;
-        }
-
-        return $format
-            ? ( $this->$x )[ $format ]
-            : $this->$x;
-    }
-
-
-    /**
      * @param  string  $format
      *
      * @return string|array|null
@@ -312,6 +282,30 @@ class Location
     {
 
         return $this->setAdminCode( 1, $adminCode );
+    }
+
+
+    /**
+     * @return int|null
+     */
+    public function getAdmin1Id( bool $autoload = true ): ?int
+    {
+
+        return $this->__getOrUpdate( $this->admin1Id, $autoload );
+    }
+
+
+    /**
+     * @param  int|null  $adminId1
+     *
+     * @return Location
+     */
+    public function setAdmin1Id( ?int $adminId1 ): Location
+    {
+
+        $this->admin1Id = $adminId1;
+
+        return $this;
     }
 
 
@@ -342,6 +336,30 @@ class Location
 
 
     /**
+     * @return int|null
+     */
+    public function getAdmin2Id( bool $autoload = true ): ?int
+    {
+
+        return $this->__getOrUpdate( $this->admin2Id, $autoload );
+    }
+
+
+    /**
+     * @param  int|null  $adminId2
+     *
+     * @return Location
+     */
+    public function setAdmin2Id( ?int $adminId2 ): Location
+    {
+
+        $this->admin2Id = $adminId2;
+
+        return $this;
+    }
+
+
+    /**
      * @param  string  $format
      *
      * @return string|array|null
@@ -364,6 +382,30 @@ class Location
     {
 
         return $this->setAdminCode( 3, $adminCode );
+    }
+
+
+    /**
+     * @return int|null
+     */
+    public function getAdmin3Id( bool $autoload = true ): ?int
+    {
+
+        return $this->__getOrUpdate( $this->admin3Id, $autoload );
+    }
+
+
+    /**
+     * @param  int|null  $adminId3
+     *
+     * @return Location
+     */
+    public function setAdmin3Id( ?int $adminId3 ): Location
+    {
+
+        $this->adminId3 = $adminId3;
+
+        return $this;
     }
 
 
@@ -396,78 +438,6 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdmin1Id( bool $autoload = true ): ?int
-    {
-
-        return $this->__getOrUpdate( $this->admin1Id, $autoload );
-    }
-
-
-    /**
-     * @param  int|null  $adminId1
-     *
-     * @return Location
-     */
-    public function setAdmin1Id( ?int $adminId1 ): Location
-    {
-
-        $this->admin1Id = $adminId1;
-
-        return $this;
-    }
-
-
-    /**
-     * @return int|null
-     */
-    public function getAdmin2Id( bool $autoload = true ): ?int
-    {
-
-        return $this->__getOrUpdate( $this->admin2Id, $autoload );
-    }
-
-
-    /**
-     * @param  int|null  $adminId2
-     *
-     * @return Location
-     */
-    public function setAdmin2Id( ?int $adminId2 ): Location
-    {
-
-        $this->admin2Id = $adminId2;
-
-        return $this;
-    }
-
-
-    /**
-     * @return int|null
-     */
-    public function getAdmin3Id( bool $autoload = true ): ?int
-    {
-
-        return $this->__getOrUpdate( $this->admin3Id, $autoload );
-    }
-
-
-    /**
-     * @param  int|null  $adminId3
-     *
-     * @return Location
-     */
-    public function setAdmin3Id( ?int $adminId3 ): Location
-    {
-
-        $this->adminId3 = $adminId3;
-
-        return $this;
-    }
-
-
-    /**
-     * @return int|null
-     */
     public function getAdmin4Id( bool $autoload = true ): ?int
     {
 
@@ -486,6 +456,36 @@ class Location
         $this->admin4Id = $adminId4;
 
         return $this;
+    }
+
+
+    /**
+     * @param  int|string  $x
+     * @param  string      $format
+     *
+     * @return string|array|null
+     */
+    protected function getAdminCode(
+        $x,
+        string $format,
+        bool $autoload = true
+    ) {
+
+        if ( is_numeric( $x ) )
+        {
+            $x = "admin{$x}Code";
+        }
+
+        $this->__getOrUpdate( $this->$x, $autoload );
+
+        if ( $this->$x === null )
+        {
+            return null;
+        }
+
+        return $format
+            ? ( $this->$x )[ $format ]
+            : $this->$x;
     }
 
 

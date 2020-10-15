@@ -259,7 +259,7 @@ class Country
      *
      * @return string|null
      */
-    public        function getCurrencyCode( bool $autoload = true ): ?string
+    public function getCurrencyCode( bool $autoload = true ): ?string
     {
 
         return $this->__getOrUpdate( $this->currencyCode, $autoload );
@@ -391,8 +391,8 @@ class Country
      *
      * @return string|null
      */
-     public function getIso3( bool $autoload = true ): ?string
-{
+    public function getIso3( bool $autoload = true ): ?string
+    {
 
         return $this->__getOrUpdate( $this->iso3, $autoload );
     }
@@ -417,8 +417,8 @@ class Country
      *
      * @return int|null
      */
-public function getIsoN( bool $autoload = true ): ?int
-{
+    public function getIsoN( bool $autoload = true ): ?int
+    {
 
         return $this->__getOrUpdate( $this->isoN, $autoload );
     }
