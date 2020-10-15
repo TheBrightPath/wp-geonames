@@ -6,6 +6,7 @@ use ErrorException;
 use Locale;
 use WPGeonames\Core;
 use WPGeonames\Helpers\FlexibleObjectTrait;
+use WPGeonames\Helpers\NullSafe;
 
 /**
  * Class Country
@@ -145,6 +146,34 @@ class Country
     ) {
 
         parent::__construct( $values, $defaults );
+    }
+
+
+    public function getAdmin1( bool $autoload = true ): ?object
+    {
+
+        return new NullSafe();
+    }
+
+
+    public function getAdmin2( bool $autoload = true ): ?object
+    {
+
+        return new NullSafe();
+    }
+
+
+    public function getAdmin3( bool $autoload = true ): ?object
+    {
+
+        return new NullSafe();
+    }
+
+
+    public function getAdmin4( bool $autoload = true ): ?object
+    {
+
+        return new NullSafe();
     }
 
 

@@ -5,6 +5,15 @@ namespace WPGeonames\Helpers;
 class NullSafe
 {
 
+    public function __call(
+        $name,
+        $arguments
+    ) {
+
+        return $this;
+    }
+
+
     public function __get( $name )
     {
 

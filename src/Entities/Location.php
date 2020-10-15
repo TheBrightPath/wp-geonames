@@ -266,6 +266,18 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
+     * @return static|null
+     */
+    public function getAdmin1( bool $autoload = true ): ?object
+    {
+
+        return static::load( $this->getAdmin1Id( $autoload ) ) ?? new NullSafe();
+    }
+
+
+    /**
      * @param  string  $format
      * @param  bool    $autoload
      *
@@ -314,6 +326,18 @@ class Location
         $this->admin1Id = $adminId1;
 
         return $this;
+    }
+
+
+    /**
+     * @param  bool  $autoload
+     *
+     * @return static|null
+     */
+    public function getAdmin2( bool $autoload = true ): ?object
+    {
+
+        return static::load( $this->getAdmin2Id( $autoload ) ) ?? new NullSafe();
     }
 
 
@@ -369,6 +393,18 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
+     * @return static|null
+     */
+    public function getAdmin3( bool $autoload = true ): ?object
+    {
+
+        return static::load( $this->getAdmin3Id( $autoload ) ) ?? new NullSafe();
+    }
+
+
+    /**
      * @param  string  $format
      *
      * @return string|array|null
@@ -416,6 +452,18 @@ class Location
         $this->adminId3 = $adminId3;
 
         return $this;
+    }
+
+
+    /**
+     * @param  bool  $autoload
+     *
+     * @return static|null
+     */
+    public function getAdmin4( bool $autoload = true ): ?object
+    {
+
+        return static::load( $this->getAdmin4Id( $autoload ) ) ?? new NullSafe();
     }
 
 
