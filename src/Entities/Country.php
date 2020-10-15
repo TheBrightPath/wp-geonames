@@ -371,7 +371,7 @@ class Country
         if ( array_key_exists( $iso2, static::$_countries ) )
         {
             throw new ErrorException(
-                sprintf( 'An instance with this country code already exists. Id: %s', $iso2 )
+                sprintf( 'An instance with this country code already exists. ISO2: %s', $iso2 )
             );
         }
 
@@ -832,7 +832,7 @@ SQL,
             parent::updateFromApi();
         }
 
-        if ( $what >= self::API_UPDATE_INFO_BOTH )
+        if ( $what >= self::API_UPDATE_INFO_BOTH && $this->iso2 )
         {
             // update country
             $item = Core::getGeoNameClient()

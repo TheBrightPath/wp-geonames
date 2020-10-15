@@ -261,6 +261,7 @@ class Location
 
     /**
      * @param  string  $format
+     * @param  bool    $autoload
      *
      * @return string|array|null
      */
@@ -291,7 +292,8 @@ class Location
     public function getAdmin1Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->admin1Id, $autoload );
+        return $this->__getOrUpdate( $this->admin1Id, $autoload )
+            ?: null;
     }
 
 
@@ -341,7 +343,8 @@ class Location
     public function getAdmin2Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->admin2Id, $autoload );
+        return $this->__getOrUpdate( $this->admin2Id, $autoload )
+            ?: null;
     }
 
 
@@ -391,7 +394,8 @@ class Location
     public function getAdmin3Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->admin3Id, $autoload );
+        return $this->__getOrUpdate( $this->admin3Id, $autoload )
+            ?: null;
     }
 
 
@@ -441,7 +445,8 @@ class Location
     public function getAdmin4Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->admin4Id, $autoload );
+        return $this->__getOrUpdate( $this->admin4Id, $autoload )
+            ?: null;
     }
 
 
@@ -478,7 +483,7 @@ class Location
 
         $this->__getOrUpdate( $this->$x, $autoload );
 
-        if ( $this->$x === null )
+        if ( $this->$x === null || $this->$x === false )
         {
             return null;
         }
@@ -1240,7 +1245,7 @@ class Location
     /**
      * @param  int  $idAPI
      *
-     * @return Country
+     * @return $this
      */
     public function setIdAPI( int $idAPI ): self
     {
@@ -1257,7 +1262,7 @@ class Location
      * @return $this
      * @throws \ErrorException
      */
-    protected function setIdLocation( ?int $lId ): Country
+    protected function setIdLocation( ?int $lId ): self
     {
 
         $this->setGeonameId( $lId );
@@ -1501,6 +1506,11 @@ SQL,
     public function updateFromApi( int $what = 0 ): self
     {
 
+        if ( ( $this->geonameId ?? 0 ) <= 0 )
+        {
+            return $this;
+        }
+
         // update location
         $item = Core::getGeoNameClient()
                     ->get(
@@ -1568,6 +1578,11 @@ SQL,
     protected static function loadRecords( $ids ): ?array
     {
 
+        if ( $ids === null || empty( $ids ) )
+        {
+            return null;
+        }
+
         if ( false === ( is_array( $ids )
                 ? array_reduce(
                     $ids,
@@ -1595,10 +1610,10 @@ SQL,
         $sql = Core::$wpdb::replaceTablePrefix(
             <<<SQL
     SELECT
-          geoname_id                        as idLocation
-        , *
+          geoname_id                        as  idLocation
+        , l.*
     FROM
-         `wp_geonames_locations_cache`
+         `wp_geonames_locations_cache`          l
     WHERE
         $sqlWhere
     ;
