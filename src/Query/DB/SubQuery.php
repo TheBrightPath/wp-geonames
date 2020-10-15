@@ -416,7 +416,7 @@ SQL
                 // walk through admin levels 1-4 and get their ids too, if they exist
                 for ( $i = 1; $i <= 4; $i ++ )
                 {
-                    $getter = "getAdminId$i";
+                    $getter = "getAdmin{$i}Id";
                     $x      = $location->$getter();
 
                     if ( $x === null )

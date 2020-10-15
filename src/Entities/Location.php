@@ -22,14 +22,14 @@ use WPGeonames\WpDb;
  * @property string                                     $featureCode
  * @property string                                     $continentCode
  * @property \WPGeonames\Entities\Country               $country
- * @property string|null                                $adminCode1
- * @property int|null                                   $adminId1
- * @property string|null                                $adminCode2
- * @property int|null                                   $adminId2
- * @property string|null                                $adminCode3
- * @property int|null                                   $adminId3
- * @property string|null                                $adminCode4
- * @property int|null                                   $adminId4
+ * @property string|null                                $admin1Code
+ * @property int|null                                   $admin1Id
+ * @property string|null                                $admin2Code
+ * @property int|null                                   $admin2Id
+ * @property string|null                                $admin3Code
+ * @property int|null                                   $admin3Id
+ * @property string|null                                $admin4Code
+ * @property int|null                                   $admin4Id
  * @property float                                      $latitude
  * @property float                                      $longitude
  * @property string|array|null                          $alternateNames
@@ -115,42 +115,42 @@ class Location
     /**
      * @var string
      */
-    protected $adminCode1;
+    protected $admin1Code;
 
     /**
      * @var int
      */
-    protected $adminId1;
+    protected $admin1Id;
 
     /**
      * @var string
      */
-    protected $adminCode2;
+    protected $admin2Code;
 
     /**
      * @var int
      */
-    protected $adminId2;
+    protected $admin2Id;
 
     /**
      * @var string
      */
-    protected $adminCode3;
+    protected $admin3Code;
 
     /**
      * @var int
      */
-    protected $adminId3;
+    protected $admin3Id;
 
     /**
      * @var string
      */
-    protected $adminCode4;
+    protected $admin4Code;
 
     /**
      * @var int
      */
-    protected $adminId4;
+    protected $admin4Id;
 
     /**
      * @var float
@@ -273,7 +273,7 @@ class Location
 
         if ( is_numeric( $x ) )
         {
-            $x = "adminCode$x";
+            $x = "admin{$x}Code";
         }
 
         $this->__getOrUpdate( $this->$x, $autoload );
@@ -294,7 +294,7 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode1(
+    public function getAdmin1Code(
         $format = 'ISO3166_2',
         bool $autoload = true
     ) {
@@ -308,7 +308,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode1( $adminCode ): Location
+    public function setAdmin1Code( $adminCode ): Location
     {
 
         return $this->setAdminCode( 1, $adminCode );
@@ -320,7 +320,7 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode2(
+    public function getAdmin2Code(
         $format = 'ISO3166_2',
         bool $autoload = true
     ) {
@@ -334,7 +334,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode2( $adminCode ): Location
+    public function setAdmin2Code( $adminCode ): Location
     {
 
         return $this->setAdminCode( 2, $adminCode );
@@ -346,7 +346,7 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode3(
+    public function getAdmin3Code(
         $format = 'ISO3166_2',
         bool $autoload = true
     ) {
@@ -360,7 +360,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode3( $adminCode ): Location
+    public function setAdmin3Code( $adminCode ): Location
     {
 
         return $this->setAdminCode( 3, $adminCode );
@@ -372,7 +372,7 @@ class Location
      *
      * @return string|array|null
      */
-    public function getAdminCode4(
+    public function getAdmin4Code(
         $format = 'ISO3166_2',
         bool $autoload = true
     ) {
@@ -386,7 +386,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminCode4( $adminCode ): Location
+    public function setAdmin4Code( $adminCode ): Location
     {
 
         return $this->setAdminCode( 4, $adminCode );
@@ -396,10 +396,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId1( bool $autoload = true ): ?int
+    public function getAdmin1Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->adminId1, $autoload );
+        return $this->__getOrUpdate( $this->admin1Id, $autoload );
     }
 
 
@@ -408,10 +408,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId1( ?int $adminId1 ): Location
+    public function setAdmin1Id( ?int $adminId1 ): Location
     {
 
-        $this->adminId1 = $adminId1;
+        $this->admin1Id = $adminId1;
 
         return $this;
     }
@@ -420,10 +420,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId2( bool $autoload = true ): ?int
+    public function getAdmin2Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->adminId2, $autoload );
+        return $this->__getOrUpdate( $this->admin2Id, $autoload );
     }
 
 
@@ -432,10 +432,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId2( ?int $adminId2 ): Location
+    public function setAdmin2Id( ?int $adminId2 ): Location
     {
 
-        $this->adminId2 = $adminId2;
+        $this->admin2Id = $adminId2;
 
         return $this;
     }
@@ -444,10 +444,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId3( bool $autoload = true ): ?int
+    public function getAdmin3Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->adminId3, $autoload );
+        return $this->__getOrUpdate( $this->admin3Id, $autoload );
     }
 
 
@@ -456,7 +456,7 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId3( ?int $adminId3 ): Location
+    public function setAdmin3Id( ?int $adminId3 ): Location
     {
 
         $this->adminId3 = $adminId3;
@@ -468,10 +468,10 @@ class Location
     /**
      * @return int|null
      */
-    public function getAdminId4( bool $autoload = true ): ?int
+    public function getAdmin4Id( bool $autoload = true ): ?int
     {
 
-        return $this->__getOrUpdate( $this->adminId4, $autoload );
+        return $this->__getOrUpdate( $this->admin4Id, $autoload );
     }
 
 
@@ -480,10 +480,10 @@ class Location
      *
      * @return Location
      */
-    public function setAdminId4( ?int $adminId4 ): Location
+    public function setAdmin4Id( ?int $adminId4 ): Location
     {
 
-        $this->adminId4 = $adminId4;
+        $this->admin4Id = $adminId4;
 
         return $this;
     }
@@ -507,14 +507,22 @@ class Location
             'country_code'    => 'countryCode',
             'country_id'      => 'countryId',
             'continent'       => 'continentCode',
-            'admin1_code'     => 'adminCode1',
-            'admin1_id'       => 'adminId1',
-            'admin2_code'     => 'adminCode2',
-            'admin2_id'       => 'adminId2',
-            'admin3_code'     => 'adminCode3',
-            'admin3_id'       => 'adminId3',
-            'admin4_code'     => 'adminCode4',
-            'admin4_id'       => 'adminId4',
+            'admin1_code'     => 'admin1Code',
+            'admin1_id'       => 'admin1Id',
+            'admin2_code'     => 'admin2Code',
+            'admin2_id'       => 'admin2Id',
+            'admin3_code'     => 'admin3Code',
+            'admin3_id'       => 'admin3Id',
+            'admin4_code'     => 'admin4Code',
+            'admin4_id'       => 'admin4Id',
+            'adminCode1'      => 'admin1Code',
+            'adminId1'        => 'admin1Id',
+            'adminCode2'      => 'admin2Code',
+            'adminId2'        => 'admin2Id',
+            'adminCode3'      => 'admin3Code',
+            'adminId3'        => 'admin3Id',
+            'adminCode4'      => 'admin4Code',
+            'adminId4'        => 'admin4Id',
             'lng'             => 'longitude',
             'lat'             => 'latitude',
         ];
@@ -1190,7 +1198,7 @@ class Location
 
         if ( is_numeric( $x ) )
         {
-            $x = "adminCode$x";
+            $x = "admin{$x}Code";
         }
 
         if ( ! is_array( $adminCode ) )
@@ -1427,14 +1435,14 @@ SQL,
             $this->getLongitude(),
             $this->getPopulation(),
             $this->getElevation(),
-            $this->getAdminCode1(),
-            $this->getAdminId1(),
-            $this->getAdminCode2(),
-            $this->getAdminId2(),
-            $this->getAdminCode3(),
-            $this->getAdminId3(),
-            $this->getAdminCode4(),
-            $this->getAdminId4(),
+            $this->getAdmin1Code(),
+            $this->getAdmin1Id(),
+            $this->getAdmin2Code(),
+            $this->getAdmin2Id(),
+            $this->getAdmin3Code(),
+            $this->getAdmin3Id(),
+            $this->getAdmin4Code(),
+            $this->getAdmin4Id(),
             $this->getTimezone()
                 ? $this->getTimezone()
                        ->getName()
@@ -1459,14 +1467,14 @@ SQL,
             $this->getLongitude(),
             $this->getPopulation(),
             $this->getElevation(),
-            $this->getAdminCode1(),
-            $this->getAdminId1(),
-            $this->getAdminCode2(),
-            $this->getAdminId2(),
-            $this->getAdminCode3(),
-            $this->getAdminId3(),
-            $this->getAdminCode4(),
-            $this->getAdminId4(),
+            $this->getAdmin1Code(),
+            $this->getAdmin1Id(),
+            $this->getAdmin2Code(),
+            $this->getAdmin2Id(),
+            $this->getAdmin3Code(),
+            $this->getAdmin3Id(),
+            $this->getAdmin4Code(),
+            $this->getAdmin4Id(),
             $this->getTimezone()
                 ? $this->getTimezone()
                        ->getName()
