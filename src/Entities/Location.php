@@ -877,14 +877,20 @@ class Location
 
 
     /**
-     * @return Country|null
+     * @return Country|NullSafe|null
      */
-    public function getCountry( bool $autoload = true ): ?Country
-    {
+    public function getCountry(
+        bool $autoload = true,
+        bool $nullSafe = true
+    ): ?object {
 
         if ( $this->country instanceof Country || $this->country === null )
         {
-            return $this->country;
+            return $this->country
+                ?? ( $nullSafe
+                    ? new NullSafe()
+                    : null
+                );
         }
 
         if ( $autoload )
@@ -902,7 +908,11 @@ class Location
             $this->country = new $class( $this->country );
         }
 
-        return $this->country;
+        return $this->country
+            ?? ( $nullSafe
+                ? new NullSafe()
+                : null
+            );
     }
 
 
