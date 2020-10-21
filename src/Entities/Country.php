@@ -146,6 +146,11 @@ class Country
     ) {
 
         parent::__construct( $values, $defaults );
+
+        if ( $values instanceof Country )
+        {
+            $this->_idCountry = $values->_idCountry;
+        }
     }
 
 

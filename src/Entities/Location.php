@@ -230,6 +230,13 @@ class Location
         }
 
         $this->_FlexibleDbObjectTrait__construct( $values, $defaults );
+
+        if ( $values instanceof Location )
+        {
+            $this->_idAPI      = $values->_idAPI;
+            $this->_idLocation = $values->_idLocation;
+            $this->_isDirty    = $values->_isDirty;
+        }
     }
 
 
