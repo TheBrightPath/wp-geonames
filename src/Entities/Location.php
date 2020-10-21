@@ -1609,10 +1609,25 @@ SQL,
     {
 
         // load location if it has not been loaded nor from the database nor the API
-        if ( $this->_idLocation === null && $this->_idAPI === null )
+        if ( $this->geonameId && $this->_idLocation === null && $this->_idAPI === null )
         {
-            // load location
-            $this->updateFromApi( $what );
+            // load location from database
+            if ( $item = Core::$wpdb->get_row(
+                Core::$wpdb->prepareAndReplaceTablePrefix(
+                    'SELECT * FROM `wp_geonames_locations_cache` WHERE geoname_id = %d',
+                    $this->geonameId
+                )
+            ) )
+            {
+                $this->_idLocation = $this->geonameId;
+                $this->loadValues( $item );
+                $this->save();
+            }
+            else
+            {
+                // or api
+                $this->updateFromApi( $what );
+            }
 
         }
 

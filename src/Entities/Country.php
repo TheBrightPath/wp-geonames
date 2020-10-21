@@ -880,18 +880,32 @@ SQL,
     {
 
         // load location if it has not been loaded nor from the database nor the API
-        if ( $what <= self::API_UPDATE_INFO_BOTH && $this->_idLocation === null && $this->_idAPI === null )
+        if ( $what <= self::API_UPDATE_INFO_BOTH )
         {
-            // load location
-            $this->updateFromApi( self::API_UPDATE_INFO_LOCATION );
-
+            parent::updateMissingData( self::API_UPDATE_INFO_LOCATION );
         }
 
         // load country
-        if ( $what >= self::API_UPDATE_INFO_BOTH && $this->_idCountry === null && $this->iso2 !== null )
+        if ( ( $this->geonameId !== null || $this->iso2 !== null ) && $what >= self::API_UPDATE_INFO_BOTH && $this->_idCountry === null )
         {
-            // load country
-            $this->updateFromApi( self::API_UPDATE_INFO_COUNTRY );
+            // load country from database
+            if ( $item = Core::$wpdb->get_row(
+                Core::$wpdb->prepareAndReplaceTablePrefix(
+                    'SELECT * FROM `wp_geonames_countries` WHERE geoname_id = %d OR iso2 = %s',
+                    $this->geonameId,
+                    $this->iso2
+                )
+            ) )
+            {
+                $this->_idCountry = $this->geonameId;
+                $this->loadValues( $item );
+                $this->save();
+            }
+            elseif ( $this->iso2 !== null )
+            {
+                // or api
+                $this->updateFromApi( self::API_UPDATE_INFO_COUNTRY );
+            }
         }
 
         return $this;

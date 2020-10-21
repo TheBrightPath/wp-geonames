@@ -109,6 +109,8 @@ class SubQuery
         $this->_ChildQueryTrait__construct( $parent );
 
         // save the params
+        $this->_setNullOnEmptyPropertyOnSet = false;
+        $this->_ignoreEmptyPropertyOnSet    = false;
         $this->loadValues( $params );
 
         // make sure the search type has been provided
@@ -203,6 +205,7 @@ SELECT
     , r.`score`
     , r.`geoname_id` as `_id`
     , l.*
+    , l.`geoname_id` as `idLocation`
 FROM
         `wp_geonames_locations_results` r
     LEFT JOIN
