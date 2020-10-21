@@ -907,7 +907,7 @@ class Location
 
         if ( ! $this->country instanceof Country && $this->country instanceof Location )
         {
-            unset( static::$_locations["_{$this->country->getGeonameId()}"] );
+            unset( self::$_locations["_{$this->country->getGeonameId()}"] );
 
             /** @noinspection PhpUndefinedVariableInspection */
             $class = $this->country::$_countryClass;
@@ -1076,7 +1076,7 @@ class Location
 
         $this->geonameId = $geonameId;
 
-        static::$_locations["_$geonameId"] = $this;
+        self::$_locations["_$geonameId"] = $this;
 
         return $this;
     }
@@ -1721,9 +1721,9 @@ SQL,
             )
             {
 
-                if ( array_key_exists( "_$id", static::$_locations ) )
+                if ( array_key_exists( "_$id", self::$_locations ) )
                 {
-                    $locations["_$id"] = static::$_locations["_$id"];
+                    $locations["_$id"] = self::$_locations["_$id"];
 
                     return false;
                 }

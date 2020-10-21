@@ -707,7 +707,7 @@ class Country
         }
 
         // fail, if already set
-        if ( array_key_exists( "_$geonameId", static::$_locations ) )
+        if ( array_key_exists( "_$geonameId", Location::$_locations ) )
         {
             throw new ErrorException(
                 sprintf( 'An instance of GeonameId already exists. Id: %d', $geonameId )
@@ -994,7 +994,7 @@ SQL,
                     if ( ( ( property_exists( $id, 'geonameId' ) && ( $_id = $id->geonameId ) )
                             || ( property_exists( $id, 'geoname_id' ) && ( $_id = $id->geoname_id ) )
                         )
-                        && array_key_exists( "_$_id", static::$_locations ) )
+                        && array_key_exists( "_$_id", Location::$_locations ) )
                     {
                         $o = static::$_locations["_$_id"];
 
@@ -1022,7 +1022,7 @@ SQL,
 
                 if ( is_numeric( $id ) )
                 {
-                    if ( array_key_exists( "_$id", static::$_locations ) )
+                    if ( ! array_key_exists( "_$id", Location::$_locations ) )
                     {
                         $id = [ 'o' => static::$_locations["_$id"] ];
 
