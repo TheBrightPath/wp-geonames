@@ -737,6 +737,15 @@ class Country
     public function save(): void
     {
 
+        static $saving = false;
+
+        // infinite loop prevention
+        if ( $saving )
+        {
+            return;
+        }
+        $saving = true;
+
         $this->updateMissingData();
 
         // save country info
@@ -847,6 +856,8 @@ SQL,
             $this->getPostalCodeRegex(),
 
         );
+
+        $saving = false;
 
         if ( Core::$wpdb->query( $sql ) === false )
         {

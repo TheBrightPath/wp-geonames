@@ -1413,6 +1413,15 @@ class Location
     public function save(): void
     {
 
+        static $saving = false;
+
+        // infinite loop prevention
+        if ( $saving )
+        {
+            return;
+        }
+        $saving = true;
+
         $alternateNames = $this->getAlternateNames( 'json' );
         $bbox           = $this->getBbox( 'json' );
         $children       = $this->getChildren( 'json' );
@@ -1571,6 +1580,8 @@ SQL,
             $children,
 
         );
+
+        $saving = false;
 
         if ( Core::$wpdb->query( $sql ) === false )
         {
