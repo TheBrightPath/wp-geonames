@@ -260,8 +260,13 @@ class Country
     }
 
 
-    public function getCountry( bool $autoload = true ): self
-    {
+    /**
+     * @return Country|NullSafe|null
+     */
+    public function getCountry(
+        bool $autoload = true,
+        bool $nullSafe = true
+    ): object {
 
         return $this;
     }
@@ -867,9 +872,9 @@ SQL,
                         )
             ;
 
+            $this->_idCountry = $this->geonameId;
             $this->loadValues( $item );
             $this->save();
-            $this->_idCountry = $this->geonameId;
         }
 
         return $this;
