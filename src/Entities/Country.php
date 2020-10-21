@@ -971,24 +971,10 @@ SQL,
 
                 if ( $id instanceof Location )
                 {
-                    if ( $id->getGeonameId() > 0 )
-                    {
-                        $id = $id->getGeonameId();
-                    }
-                    elseif ( $id->getCountryCode( 'iso2', false ) !== null )
-                    {
-                        $id = $id->getCountryCode();
-                    }
-
-                    /** @noinspection ForgottenDebugOutputInspection */
-                    error_log( 'Received invalid Location object while loading a country object', E_USER_WARNING );
-
-                    $id = null;
-
-                    return;
+                    $id = $id = [ 'o' => $id ];
                 }
 
-                if ( is_object( $id ) )
+                elseif ( is_object( $id ) )
                 {
 
                     if ( ( ( property_exists( $id, 'geonameId' ) && ( $_id = $id->geonameId ) )
@@ -996,45 +982,36 @@ SQL,
                         )
                         && array_key_exists( "_$_id", Location::$_locations ) )
                     {
-                        $o = static::$_locations["_$_id"];
+                        $id = [
+                            'o' => Location::$_locations["_$_id"],
+                            'x' => $id,
+                        ];
 
-                        if ( ! $o instanceof Country && $o instanceof Location )
-                        {
-                            unset( static::$_locations["_$_id"] );
-                            $class = $o::$_countryClass;
-                            $o     = new $class( $o );
-                        }
+                    }
+                    else
+                    {
+                        /** @noinspection ForgottenDebugOutputInspection */
+                        error_log( 'Received invalid Location object while loading a country object', E_USER_WARNING );
 
-                        $o->loadValues( $id );
-
-                        $id = [ 'o' => $o ];
+                        $id = null;
 
                         return;
                     }
-
-                    /** @noinspection ForgottenDebugOutputInspection */
-                    error_log( 'Received invalid Location object while loading a country object', E_USER_WARNING );
-
-                    $id = null;
-
-                    return;
                 }
 
                 if ( is_numeric( $id ) )
                 {
                     if ( ! array_key_exists( "_$id", Location::$_locations ) )
                     {
-                        $id = [ 'o' => static::$_locations["_$id"] ];
+                        $id = [
+                            'i'          => $id,
+                            'geoname_id' => (int) $id,
+                        ];
 
                         return;
                     }
 
-                    $id = [
-                        'i'          => $id,
-                        'geoname_id' => (int) $id,
-                    ];
-
-                    return;
+                    $id = [ 'o' => Location::$_locations["_$id"] ];
                 }
 
                 if ( is_string( $id ) )
@@ -1051,6 +1028,40 @@ SQL,
                         's'    => $id,
                         'iso2' => Core::$wpdb->prepare( "%s", $id ),
                     ];
+
+                    return;
+                }
+
+                if ( array_key_exists( 'o', $id ) && ( $o = $id['o'] ) instanceof Location )
+                {
+                    if ( $o->getGeonameId() === 0 && $o->getCountryCode( 'iso2', false ) === null )
+                    {
+                        /** @noinspection ForgottenDebugOutputInspection */
+                        error_log( 'Received invalid Location object while loading a country object', E_USER_WARNING );
+
+                        $id = null;
+
+                        return;
+
+                    }
+
+                    $class = $o::$_countryClass;
+
+                    if ( ! $o instanceof $class )
+                    {
+                        unset( Location::$_locations["_{$o->getGeonameId()}"] );
+
+                        $o = new $class( $o );
+                    }
+
+                    // check if there are new values to load (from the given object)
+                    if ( array_key_exists( 'x', $id ) && $x = $id['x'] )
+                    {
+                        $o->loadValues( $x );
+                        unset ( $id['x'] );
+                    }
+
+                    $id = [ 'o' => $o ];
 
                     return;
                 }
