@@ -1792,6 +1792,7 @@ SQL
 
                 if ( ! $location instanceof static::$_countryClass && $location->isCountry() )
                 {
+                    unset( self::$_locations["_{$location->getGeonameId()}"] );
                     $location = new static::$_countryClass( $location );
                 }
 
