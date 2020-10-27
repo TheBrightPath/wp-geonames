@@ -700,7 +700,7 @@ class Query
 
         // get search parameters (unfiltered)
         $myParams   = $this->toArray( - 1 );
-        $searchTerm = mb_strtolower( $myParams['searchTerm'] );
+        $searchTerm = mb_strtolower( $myParams['searchTerm'] ?? '');
 
         // remove "technical" parameters plus searchType and searchTerm which are stored individually
         $myParams = array_diff_key(
