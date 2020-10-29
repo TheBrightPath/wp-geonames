@@ -506,7 +506,7 @@ class Country
     public function getNameIntl(
         ?string $langCode = null,
         bool $autoload = true
-    ) {
+    ): string {
 
         // WPML integration
         if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
