@@ -131,6 +131,12 @@ class ApiQuery
                 );
             }
 
+            // generate key names
+            WpDb::formatOutput( $result, OBJECT_K, 'geonameId', '_' );
+
+            // remove duplicates
+            $result = array_diff_key( $result, $duplicates );
+
             array_walk(
                 $result,
                 static function ( object $location ) use
@@ -153,7 +159,7 @@ class ApiQuery
             );
 
             // convert result
-            WpDb::formatOutput( $result, $output ?? $status->classLocations, 'geonameId', '_' );
+            WpDb::formatOutput( $result, $output ?? $status->classLocations );
 
             // filter out duplicates
             $duplicates += array_intersect_key( $result, $duplicates );
