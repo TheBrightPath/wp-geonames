@@ -102,7 +102,10 @@ trait FlexibleObjectTrait
     public function __isset( $name )
     {
 
-        return property_exists( $this, $name ) || array_key_exists( $name, static::$_aliases );
+        return
+            property_exists( $this, $name )
+            || array_key_exists( $name, static::$_aliases )
+            || method_exists( $this, 'get' . ucfirst( static::$_aliases[ $name ] ?? $name ) );
     }
 
 
