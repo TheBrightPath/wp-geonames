@@ -270,7 +270,8 @@ class Country
      */
     public function getCountry(
         bool $autoload = true,
-        bool $nullSafe = true
+        bool $nullSafe = true,
+        ?string $countryClass = null
     ): object {
 
         return $this;

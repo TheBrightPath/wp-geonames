@@ -888,29 +888,41 @@ class Location
      */
     public function getCountry(
         bool $autoload = true,
-        bool $nullSafe = true
+        bool $nullSafe = true,
+        ?string $countryClass = null
     ): ?object {
 
-        if ( $this->country instanceof Country || $this->country === null )
+        if ( $this->country === null )
         {
-            return $this->country
-                ?? ( $nullSafe
-                    ? new NullSafe()
-                    : null
-                );
+            return $nullSafe
+                ? new NullSafe()
+                : null;
         }
 
-        if ( $autoload )
+        $class = $countryClass ?? static::$_countryClass;
+
+        if ( $this->country instanceof $class )
         {
-            $this->country = static::$_countryClass::load( $this->country );
+            return $this->country;
         }
 
-        if ( ! $this->country instanceof Country && $this->country instanceof Location )
+        if ( $autoload && ! $this->country instanceof Location )
+        {
+            $this->country = $class::load( $this->country );
+        }
+
+        if ( ! $this->country instanceof $class && $this->country instanceof Location )
         {
             unset( self::$_locations["_{$this->country->getGeonameId()}"] );
 
+            if ( ! $this->country instanceof Country )
+            {
+                unset( Country::$_countries["_{$this->country->getGeonameId()}"] );
+                unset( Country::$_countries[ $this->country->getCountryCode() ] );
+            }
+
             /** @noinspection PhpUndefinedVariableInspection */
-            $class = $this->country::$_countryClass;
+            $class = $countryClass ?? $this->country::$_countryClass;
 
             $this->country = new $class( $this->country );
         }
