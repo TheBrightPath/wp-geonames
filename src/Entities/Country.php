@@ -942,7 +942,7 @@ SQL,
      */
     public static function loadRecords(
         $ids = null,
-        ?array $cuntryFeatures = null
+        ?array $countryFeatures = null
     ): ?array {
 
         $loadAll = 0;
@@ -1088,7 +1088,7 @@ SQL,
             ? "'$sqlCountryCodes'"
             : "'--'";
 
-        $sqlCountryFeatures = $cuntryFeatures ?? Core::FEATURE_FILTERS['countriesOnly'];
+        $sqlCountryFeatures = $countryFeatures ?? Core::FEATURE_FILTERS['countriesOnly'];
 
         array_walk(
             $sqlCountryFeatures,
