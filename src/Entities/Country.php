@@ -962,7 +962,12 @@ SQL,
             static function ( &$id )
             {
 
-                if ( $id instanceof Country )
+                if ( $id === null )
+                {
+                    return;
+                }
+
+                if ( $id instanceof static::$_countryClass )
                 {
 
                     $id = $id = [ 'o' => $id ];
