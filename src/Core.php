@@ -53,7 +53,7 @@ class Core
         ];
 
     // version
-    public const geoVersion = "3.5.0";
+    public const geoVersion = "3.6.0";
 
     // tables constants
     public const tblCountries           = 'wp_geonames_countries';
