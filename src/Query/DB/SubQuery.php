@@ -409,14 +409,7 @@ SQL
         $countries = $status->classCountries::load();
 
         // store locations to the database
-        array_walk(
-            $recordsToCache,
-            static function ( Location $location )
-            {
-
-                $location->save();
-            }
-        );
+        Location::saveAll( $recordsToCache );
 
         unset ( $recordsToCache );
 
