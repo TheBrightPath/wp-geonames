@@ -1835,7 +1835,7 @@ SQL
                         ]
                     );
 
-                    if ( empty( $item ) )
+                    if ( $item === null )
                     {
                         return;
                     }
