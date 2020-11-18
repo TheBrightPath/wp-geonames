@@ -1749,6 +1749,8 @@ SQL,
             return $locations;
         }
 
+        static::parseArray( $locations );
+
         $sqlWhere = sprintf(
             "geoname_id %s",
             is_array( $ids )
@@ -1769,12 +1771,82 @@ SQL,
 SQL
         );
 
-        /** @noinspection AdditionOperationOnArraysInspection */
-        $locations += Core::$wpdb->get_results( $sql );
+        $result = Core::$wpdb->get_results( $sql );
 
         if ( Core::$wpdb->last_error_no )
         {
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
+        }
+
+        static::parseArray( $result );
+
+        /** @noinspection AdditionOperationOnArraysInspection */
+        $locations += $result;
+
+        // check for un-cached IDs
+        $ids = array_filter(
+            $ids,
+            static function ( $id ) use
+            (
+                &
+                $result
+            )
+            {
+
+                return ! array_key_exists( "_$id", $result );
+            }
+        );
+
+        if ( ! empty( $ids ) )
+        {
+            $ids    = array_flip( $ids );
+            $result = [];
+            $geo    = Core::getGeoNameClient();
+
+            array_walk(
+                $ids,
+                static function (
+                    &$item,
+                    $geonameId
+                ) use
+                (
+                    &
+                    $geo,
+                    &
+                    $result
+                )
+                {
+
+                    // get the full item from geonames
+                    $item = $geo->get(
+                        [
+                            'geonameId' => $geonameId,
+                            'style'     => 'full',
+                        ]
+                    );
+
+                    if ( empty( $item ) )
+                    {
+                        return;
+                    }
+
+                    // copy geoname id to Api ID in order to remember that we've just loaded this from the API
+                    $item->idAPI = $item->geonameId;
+
+                    if ( Location::isItACountry( $item, 'fcl', 'fcode' ) )
+                    {
+                        $item = static::$_countryClass::load( $item );
+                    }
+
+                    $result[] = $item;
+                },
+                ARRAY_FILTER_USE_BOTH
+            );
+
+            static::parseArray( $result );
+
+            /** @noinspection AdditionOperationOnArraysInspection */
+            $locations += $result;
         }
 
         return static::parseArray( $locations );
@@ -1791,7 +1863,11 @@ SQL
      */
     public static function parseArray(
         &$array,
-        $key = 'geoname_id',
+        $key
+        = [
+            'geoname_id',
+            'geonameId',
+        ],
         $prefix = '_'
     ): ?array {
 
