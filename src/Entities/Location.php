@@ -1901,4 +1901,134 @@ SQL
 
     }
 
+
+    /**
+     * @param  array|null  $locations
+     * @param  int         $delay
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
+    public static function saveAll(
+        ?array $locations,
+        int $delay = - 1
+    ): ?array {
+
+        if ( empty( $locations ) )
+        {
+            return null;
+        }
+
+        if ( $delay < 0 )
+        {
+            static::saveDelayed( $locations );
+
+            return [];
+        }
+
+        if ( $delay )
+        {
+            $delayed = array_splice( $locations, $delay );
+            static::saveDelayed( $delayed );
+        }
+
+        $types = [];
+
+        array_walk(
+            $locations,
+            static function ( $location ) use
+            (
+                &
+                $types
+            )
+            {
+
+                $types[ get_class( $location ) ][] = $location;
+            }
+        );
+
+        array_walk(
+            $types,
+            static function (
+                &$locations,
+                $type
+            ) {
+
+                if ( is_subclass_of( $type, self::class ) )
+                {
+                    $locations = $type::saveAllHelper( $locations );
+
+                    return;
+                }
+
+                if ( method_exists( $type, 'saveAllHelper' ) )
+                {
+                    $locations = $type::saveAllHelper( $locations );
+
+                    return;
+                }
+
+                array_walk(
+                    $locations,
+                    static function ( $location )
+                    {
+
+                        $location->save();
+                    }
+                );
+
+                $locations = count( $locations );
+            }
+        );
+
+        return $types;
+    }
+
+
+    /**
+     * @param  array  $locations
+     *
+     * @return bool|int
+     * @throws \ErrorException
+     */
+    protected static function saveAllHelper( array $locations )
+    {
+
+        $statements = array_map(
+            static function ( Location $location )
+            {
+
+                return $location->saveGetSQL();
+            },
+            $locations
+        );
+
+        return Core::$wpdb->query( $statements );
+    }
+
+
+    /**
+     * @param  array  $locations
+     *
+     * @throws \ErrorException
+     */
+    protected static function saveDelayed( array $locations ): void
+    {
+
+        add_action(
+            'shutdown',
+            static function ()
+            use
+            (
+                $locations
+            )
+            {
+
+                self::saveAll( $locations, 0 );
+            },
+            999,
+            0
+        );
+    }
+
 }
