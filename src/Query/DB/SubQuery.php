@@ -405,7 +405,8 @@ SQL
             return $status;
         }
 
-        unset( $admin, $item, $geonameId );
+        // pre-load countries so they are loaded with one single sql query
+        $countries = $status->classCountries::load();
 
         // store locations to the database
         array_walk(
