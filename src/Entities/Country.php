@@ -945,12 +945,21 @@ SQL,
         ?array $countryFeatures = null
     ): ?array {
 
-        $loadAll = 0;
+        static $loadAll = 0;
 
         if ( $ids === null )
         {
-            $ids     = [];
-            $loadAll = 1;
+            if ( $loadAll === 1 )
+            {
+                return static::$_countries;
+            }
+
+            $ids        = static::$_countries;
+            $sqlLoadAll = $loadAll = 1;
+        }
+        else
+        {
+            $sqlLoadAll = 0;
         }
 
         $ids = is_object( $ids )
@@ -1106,6 +1115,9 @@ SQL,
         );
 
         $sqlCountryFeatures = implode( ' OR ', $sqlCountryFeatures );
+        $sqlNOT             = $sqlLoadAll
+            ? 'NOT'
+            : '';
 
         $sql = Core::$wpdb::replaceTablePrefix(
             <<<SQL
@@ -1126,8 +1138,8 @@ FROM
         WHERE
                 geoname_id          IS NOT NULL
             AND (
-                $loadAll
-                OR c.geoname_id     IN ($sqlGeonameIds)
+                0
+                OR c.geoname_id     $sqlNOT IN ($sqlGeonameIds)
                 OR c.iso2           IN ($sqlCountryCodes)
             )
         
@@ -1141,7 +1153,7 @@ FROM
                 geoname_id          IS NOT NULL
             AND (
                 0
-                OR   l.geoname_id     IN ($sqlGeonameIds)
+                OR   l.geoname_id     $sqlNOT IN ($sqlGeonameIds)
                 OR ( l.country_code   IN ($sqlCountryCodes) AND ($sqlCountryFeatures) )
             )
    )                                    id
@@ -1151,7 +1163,7 @@ LEFT JOIN
     `wp_geonames_locations_cache`       l   ON id.geoname_id = l.geoname_id
 
 WHERE
-        $loadAll = 0
+        $sqlLoadAll = 0
     OR  (
             feature_class IS NULL 
         OR  ($sqlCountryFeatures)
