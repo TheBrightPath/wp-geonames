@@ -52,9 +52,10 @@ SQL;
 
         Core::$wpdb::formatOutput( $records, $output ?? static::$_returnFormat );
 
-        return ( $ids === null || is_array( $ids ))
+        return ( $ids === null || is_array( $ids ) )
             ? $records
-            : reset( $records );
+            : reset( $records )
+                ?: null;
     }
 
 
