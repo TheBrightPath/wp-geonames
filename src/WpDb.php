@@ -4,7 +4,7 @@ namespace WPGeonames;
 
 use ErrorException;
 use mysqli;
-use function mysqli_errno;
+use mysqli_result;
 
 if ( ! defined( 'ARRAY_K' ) )
 {
@@ -29,6 +29,7 @@ class WpDb
 
     protected $use_mysqli    = false;
     protected $has_connected = false;
+    protected $time_start;
 
 
     /**
@@ -99,6 +100,59 @@ class WpDb
         if ( $wpdb instanceof \wpdb )
         {
             $wpdb = $this;
+        }
+
+    }
+
+
+    /**
+     * Internal function to perform the mysql_query() call.
+     *
+     *
+     * @param  string  $query  The query to run.
+     * @param  bool    $is_multi_query
+     */
+    protected function _do_query(
+        string $query,
+        bool $is_multi_query = false
+    ): void {
+
+        if ( ! $this->dbh instanceof mysqli )
+        {
+            return;
+        }
+
+        if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES )
+        {
+            $this->timer_start();
+        }
+
+        if ( $is_multi_query )
+        {
+            $this->result = false;
+
+            if ( $this->dbh->multi_query( $query ) )
+            {
+                /* store first result set */
+                $this->result = $this->dbh->store_result();
+            }
+        }
+        else
+        {
+            $this->result = $this->dbh->query( $query );
+        }
+
+        $this->num_queries ++;
+
+        if ( defined( 'SAVEQUERIES' ) && SAVEQUERIES )
+        {
+            $this->log_query(
+                $query,
+                $this->timer_stop(),
+                $this->get_caller(),
+                $this->time_start,
+                []
+            );
         }
 
     }
@@ -184,38 +238,173 @@ class WpDb
     }
 
 
+    /**
+     * @inheritDoc
+     *
+     * @param  string|array  $query
+     *
+     * @return bool|int
+     */
     public function query( $query )
     {
 
-        $return_val = parent::query( $query );
-
-        if ( ! empty( $this->dbh ) )
+        if ( ! $this->ready )
         {
+            $this->check_current_query = true;
 
-            if ( $this->use_mysqli )
+            return false;
+        }
+
+        if ( $is_multi_query = is_array( $query ) )
+        {
+            $query = implode( ";\n", $query );
+        }
+
+        /**
+         * Filters the database query.
+         *
+         * Some queries are made before the plugins have been loaded,
+         * and thus cannot be filtered with this method.
+         *
+         * @since 2.1.0
+         *
+         * @param  string  $query  Database query.
+         */
+        $query = apply_filters( 'query', $query );
+
+        $this->flush();
+
+        // Log how the function was called.
+        $this->func_call = "\$db->query(\"$query\")";
+
+        // If we're writing to the database, make sure the query will write safely.
+        if ( $this->check_current_query && ! $this->check_ascii( $query ) )
+        {
+            $stripped_query = $this->strip_invalid_text_from_query( $query );
+            // strip_invalid_text_from_query() can perform queries, so we need
+            // to flush again, just to make sure everything is clear.
+            $this->flush();
+            if ( $stripped_query !== $query )
             {
-                if ( $this->dbh instanceof mysqli )
-                {
-                    $this->last_error_no = mysqli_errno( $this->dbh );
-                }
-                else
-                {
-                    // $dbh is defined, but isn't a real connection.
-                    // Something has gone horribly wrong, let's try a reconnect.
-                    $this->last_error_no = 2006;
-                }
+                $this->insert_id = 0;
+
+                return false;
             }
-            elseif ( is_resource( $this->dbh ) )
+        }
+
+        $this->check_current_query = true;
+
+        // Keep track of the last query for debug.
+        $this->last_query = $query;
+
+        $this->_do_query( $query, $is_multi_query );
+
+        // MySQL server has gone away, try to reconnect.
+        if ( $this->dbh instanceof mysqli )
+        {
+            $mysql_errno = $this->dbh->errno;
+        }
+        else
+        {
+            // $dbh is defined, but isn't a real connection.
+            // Something has gone horribly wrong, let's try a reconnect.
+            $mysql_errno = 2006;
+        }
+
+        if ( 2006 === $mysql_errno )
+        {
+            if ( $this->check_connection() )
             {
-                /**
-                 * @noinspection PhpElementIsNotAvailableInCurrentPhpVersionInspection
-                 * @noinspection PhpFullyQualifiedNameUsageInspection
-                 */
-                $this->last_error_no = \mysql_errno( $this->dbh );
+                $this->_do_query( $query, $is_multi_query );
             }
             else
             {
-                $this->last_error_no = 2006;
+                $this->insert_id = 0;
+
+                return false;
+            }
+        }
+
+        // If there is an error then take note of it.
+        if ( $this->dbh instanceof mysqli )
+        {
+            $this->last_error    = $this->dbh->error;
+            $this->last_error_no = $this->dbh->errno;
+        }
+        else
+        {
+            $this->last_error    = __( 'Unable to retrieve the error message from MySQL' );
+            $this->last_error_no = - 1;
+        }
+
+        if ( $this->last_error )
+        {
+            // Clear insert_id on a subsequent failed insert.
+            if ( $this->insert_id && preg_match( '/^\s*(insert|replace)\s/i', $query ) )
+            {
+                $this->insert_id = 0;
+            }
+
+            $this->print_error();
+
+            return false;
+        }
+
+        if ( preg_match( '/^\s*(create|alter|truncate|drop)\s/i', $query ) )
+        {
+            $return_val = $this->result;
+        }
+        elseif ( preg_match( '/^\s*(insert|delete|update|replace)\s/i', $query ) )
+        {
+            $this->rows_affected = $this->dbh->affected_rows;
+
+            // Take note of the insert_id.
+            if ( preg_match( '/^\s*(insert|replace)\s/i', $query ) )
+            {
+                $this->insert_id = $this->dbh->insert_id;
+            }
+
+            // Return number of rows affected.
+            $return_val = $this->rows_affected;
+        }
+        else
+        {
+            $num_rows = 0;
+
+            if ( $this->result instanceof mysqli_result )
+            {
+                while ( $row = $this->result->fetch_object() )
+                {
+                    $this->last_result[ $num_rows ] = $row;
+                    $num_rows ++;
+                }
+            }
+
+            // Log and return the number of rows selected.
+            $this->num_rows = $num_rows;
+            $return_val     = $num_rows;
+        }
+
+        if ( $is_multi_query && $this->result !== false )
+        {
+            if ( $this->dbh instanceof mysqli )
+            {
+
+                // flush multi_queries
+                /** @noinspection PhpStatementHasEmptyBodyInspection */
+                while ( $this->dbh->next_result() )
+                {
+                    ;
+                }
+            }
+            else
+            {
+                // flush multi_queries
+                /** @noinspection PhpStatementHasEmptyBodyInspection */
+                while ( mysqli_next_result( $this->dbh ) )
+                {
+                    ;
+                }
             }
         }
 
