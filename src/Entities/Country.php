@@ -233,7 +233,7 @@ class Country
     public function setArea( ?int $area ): Country
     {
 
-        $this->area = $area;
+        $this->area = $area ?? $this->area;
 
         return $this;
     }
@@ -259,7 +259,7 @@ class Country
     public function setCapital( ?string $capital ): Country
     {
 
-        $this->capital = $capital;
+        $this->capital = $capital ?? $this->capital;
 
         return $this;
     }
@@ -311,10 +311,10 @@ class Country
      *
      * @return Country
      */
-    public function setCurrencyCode( string $currencyCode ): Country
+    public function setCurrencyCode( ?string $currencyCode ): Country
     {
 
-        $this->currencyCode = $currencyCode;
+        $this->currencyCode = $currencyCode ?? $this->currencyCode;
 
         return $this;
     }
@@ -337,10 +337,10 @@ class Country
      *
      * @return Country
      */
-    public function setCurrencyName( string $currencyName ): Country
+    public function setCurrencyName( ?string $currencyName ): Country
     {
 
-        $this->currencyName = $currencyName;
+        $this->currencyName = $currencyName ?? $this->currencyName;
 
         return $this;
     }
@@ -366,7 +366,7 @@ class Country
     public function setFipsCode( ?string $fipsCode ): Country
     {
 
-        $this->fipsCode = $fipsCode;
+        $this->fipsCode = $fipsCode ?? $this->fipsCode;
 
         return $this;
     }
@@ -446,7 +446,7 @@ class Country
     public function setIso3( ?string $iso3 ): Country
     {
 
-        $this->iso3 = $iso3;
+        $this->iso3 = $iso3 ?? $this->iso3;
 
         return $this;
     }
@@ -472,7 +472,7 @@ class Country
     public function setIsoN( ?int $isoN ): Country
     {
 
-        $this->isoN = $isoN;
+        $this->isoN = $isoN ?? $this->isoN;
 
         return $this;
     }
@@ -498,7 +498,7 @@ class Country
     public function setLanguages( ?string $languages ): Country
     {
 
-        $this->languages = $languages;
+        $this->languages = $languages ?? $this->languages;
 
         return $this;
     }
@@ -541,7 +541,7 @@ class Country
     public function setNeighbours( ?string $neighbours ): Country
     {
 
-        $this->neighbours = $neighbours;
+        $this->neighbours = $neighbours ?? $this->neighbours;
 
         return $this;
     }
@@ -567,7 +567,7 @@ class Country
     public function setPhone( ?string $phone ): Country
     {
 
-        $this->phone = $phone;
+        $this->phone = $phone ?? $this->phone;
 
         return $this;
     }
@@ -591,7 +591,7 @@ class Country
     public function setPostalCodeFormat( ?string $postalCodeFormat ): Country
     {
 
-        $this->postalCodeFormat = $postalCodeFormat;
+        $this->postalCodeFormat = $postalCodeFormat ?? $this->postalCodeFormat;
 
         return $this;
     }
@@ -615,7 +615,7 @@ class Country
     public function setPostalCodeRegex( ?string $postalCodeRegex ): Country
     {
 
-        $this->postalCodeRegex = $postalCodeRegex;
+        $this->postalCodeRegex = $postalCodeRegex ?? $this->postalCodeRegex;
 
         return $this;
     }
@@ -639,7 +639,7 @@ class Country
     public function setTld( ?string $tld ): self
     {
 
-        $this->tld = $tld;
+        $this->tld = $tld ?? $this->tld;
 
         return $this;
     }

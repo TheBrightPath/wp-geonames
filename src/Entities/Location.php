@@ -330,7 +330,7 @@ class Location
     public function setAdmin1Id( ?int $adminId1 ): Location
     {
 
-        $this->admin1Id = $adminId1;
+        $this->admin1Id = $adminId1 ?? $this->admin1Id;
 
         return $this;
     }
@@ -393,7 +393,7 @@ class Location
     public function setAdmin2Id( ?int $adminId2 ): Location
     {
 
-        $this->admin2Id = $adminId2;
+        $this->admin2Id = $adminId2 ?? $this->admin2Id;
 
         return $this;
     }
@@ -456,7 +456,7 @@ class Location
     public function setAdmin3Id( ?int $adminId3 ): Location
     {
 
-        $this->adminId3 = $adminId3;
+        $this->admin3Id = $adminId3 ?? $this->admin3Id;
 
         return $this;
     }
@@ -519,7 +519,7 @@ class Location
     public function setAdmin4Id( ?int $adminId4 ): Location
     {
 
-        $this->admin4Id = $adminId4;
+        $this->admin4Id = $adminId4 ?? $this->admin4Id;
 
         return $this;
     }
@@ -533,7 +533,7 @@ class Location
      */
     protected function getAdminCode(
         $x,
-        string $format,
+        ?string $format,
         bool $autoload = true
     ) {
 
@@ -548,6 +548,8 @@ class Location
         {
             return null;
         }
+
+        $format = $format ?? 'ISO3166_2';
 
         return $format
             ? ( $this->$x )[ $format ]
@@ -631,6 +633,11 @@ class Location
     public function setAlternateNames( $alternateNames ): Location
     {
 
+        if ( $alternateNames === null )
+        {
+            return $this;
+        }
+
         if ( is_string( $alternateNames ) )
         {
             $alternateNames = \GuzzleHttp\json_decode( $alternateNames );
@@ -682,7 +689,7 @@ class Location
     public function setAsciiName( ?string $asciiName ): Location
     {
 
-        $this->asciiName = $asciiName;
+        $this->asciiName = $asciiName ?? $this->asciiName;
 
         return $this;
     }
@@ -732,7 +739,7 @@ class Location
     public function setBbox( $bbox ): Location
     {
 
-        $this->bbox = $bbox;
+        $this->bbox = $bbox ?? $this->bbox;
 
         return $this;
     }
@@ -853,7 +860,7 @@ class Location
     public function setChildren( ?array $children ): Location
     {
 
-        $this->children = $children;
+        $this->children = $children ?? $this->children;
 
         return $this;
     }
@@ -862,7 +869,7 @@ class Location
     /**
      * @return string
      */
-    public function getContinentCode( bool $autoload = true ): string
+    public function getContinentCode( bool $autoload = true ): ?string
     {
 
         return $this->__getOrUpdate( $this->continentCode, $autoload );
@@ -874,10 +881,10 @@ class Location
      *
      * @return Location
      */
-    public function setContinentCode( string $continentCode ): Location
+    public function setContinentCode( ?string $continentCode ): Location
     {
 
-        $this->continentCode = $continentCode;
+        $this->continentCode = $continentCode ?? $this->continentCode;
 
         return $this;
     }
@@ -990,7 +997,7 @@ class Location
     public function setCountryId( ?int $countryId ): Location
     {
 
-        $this->country = $countryId;
+        $this->country = $countryId ?? $this->country;
 
         return $this;
     }
@@ -999,7 +1006,7 @@ class Location
     /**
      * @return mixed
      */
-    public function getElevation( bool $autoload = true )
+    public function getElevation( bool $autoload = true ): ?int
     {
 
         return $this->__getOrUpdate( $this->elevation, $autoload );
@@ -1011,10 +1018,10 @@ class Location
      *
      * @return Location
      */
-    public function setElevation( $elevation ): Location
+    public function setElevation( ?int $elevation ): Location
     {
 
-        $this->elevation = $elevation;
+        $this->elevation = $elevation ?? $this->elevation;
 
         return $this;
     }
@@ -1035,10 +1042,10 @@ class Location
      *
      * @return Location
      */
-    public function setFeatureClass( $featureClass ): Location
+    public function setFeatureClass( ?string $featureClass ): Location
     {
 
-        $this->featureClass = $featureClass;
+        $this->featureClass = $featureClass ?? $this->featureClass;
 
         return $this;
     }
@@ -1059,10 +1066,10 @@ class Location
      *
      * @return Location
      */
-    public function setFeatureCode( $featureCode ): Location
+    public function setFeatureCode( ?string $featureCode ): Location
     {
 
-        $this->featureCode = $featureCode;
+        $this->featureCode = $featureCode ?? $this->featureCode;
 
         return $this;
     }
@@ -1097,7 +1104,7 @@ class Location
     /**
      * @return float
      */
-    public function getLatitude( bool $autoload = true ): float
+    public function getLatitude( bool $autoload = true ): ?float
     {
 
         return $this->__getOrUpdate( $this->latitude, $autoload );
@@ -1109,10 +1116,10 @@ class Location
      *
      * @return Location
      */
-    public function setLatitude( $latitude ): Location
+    public function setLatitude( ?float $latitude ): Location
     {
 
-        $this->latitude = $latitude;
+        $this->latitude = $latitude ?? $this->latitude;
 
         return $this;
     }
@@ -1121,7 +1128,7 @@ class Location
     /**
      * @return float
      */
-    public function getLongitude( bool $autoload = true ): float
+    public function getLongitude( bool $autoload = true ): ?float
     {
 
         return $this->__getOrUpdate( $this->longitude, $autoload );
@@ -1133,10 +1140,10 @@ class Location
      *
      * @return Location
      */
-    public function setLongitude( $longitude ): Location
+    public function setLongitude( ?float $longitude ): Location
     {
 
-        $this->longitude = $longitude;
+        $this->longitude = $longitude ?? $this->longitude;
 
         return $this;
     }
@@ -1172,10 +1179,10 @@ class Location
      *
      * @return Location
      */
-    public function setName( $name ): Location
+    public function setName( ?string $name ): Location
     {
 
-        $this->name = $name;
+        $this->name = $name ?? $this->name;
 
         return $this;
     }
@@ -1199,7 +1206,7 @@ class Location
     public function setPopulation( ?int $population ): Location
     {
 
-        $this->population = $population;
+        $this->population = $population ?? $this->population;
 
         return $this;
     }
@@ -1223,7 +1230,7 @@ class Location
     public function setScore( ?float $score ): Location
     {
 
-        $this->score = $score;
+        $this->score = $score ?? $this->score;
 
         return $this;
     }
@@ -1296,6 +1303,11 @@ class Location
         $adminCode
     ): Location {
 
+        if ( $adminCode === null )
+        {
+            return $this;
+        }
+
         if ( is_numeric( $x ) )
         {
             $x = "admin{$x}Code";
@@ -1314,10 +1326,10 @@ class Location
     }
 
 
-    public function setAstergdem( $elevation ): Location
+    public function setAstergdem( ?int $elevation ): Location
     {
 
-        $this->elevation = $elevation;
+        $this->elevation = $elevation ?? $this->elevation;
 
         return $this;
     }
@@ -1330,6 +1342,11 @@ class Location
      */
     public function setCountryCode( $countryCode ): Location
     {
+
+        if ( $this->country !== null )
+        {
+            return $this;
+        }
 
         $this->country = $countryCode;
 
@@ -1368,10 +1385,10 @@ class Location
     }
 
 
-    public function setSrtm3( $elevation ): Location
+    public function setSrtm3( ?int $elevation ): Location
     {
 
-        $this->elevation = $elevation;
+        $this->elevation = $elevation ?? $this->elevation;
 
         return $this;
     }
