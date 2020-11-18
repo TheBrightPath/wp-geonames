@@ -185,11 +185,11 @@ class WpDb
     public function prepare(
         $query,
         ...$args
-    ) {
+    ): ?string {
 
         if ( is_null( $query ) )
         {
-            return;
+            return null;
         }
 
         $checkScalar = static function (
@@ -215,14 +215,15 @@ class WpDb
             $checkScalar
         );
 
-        return parent::prepare( $query, ...$args );
+        return parent::prepare( $query, ...$args )
+            ?: null;
     }
 
 
     public function prepareAndReplaceTablePrefix(
         $query,
         ...$args
-    ) {
+    ): ?string {
 
         return $this->prepare( static::replaceTablePrefix( $query ), ...$args );
 
