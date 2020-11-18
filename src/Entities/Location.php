@@ -1434,12 +1434,27 @@ class Location
         }
         $saving = true;
 
-        $alternateNames = $this->getAlternateNames( 'json' );
-        $bbox           = $this->getBbox( 'json' );
-        $children       = $this->getChildren( 'json' );
+        if ( Core::$wpdb->query( $this->saveGetSQL() ) === false )
+        {
+            throw new ErrorException( Core::$wpdb->last_error );
+        }
+
+        $saving = false;
+    }
+
+
+    /**
+     * @throws \ErrorException
+     */
+    public function saveGetSQL(): string
+    {
+
+        $alternateNames = $this->getAlternateNames( 'json', false );
+        $bbox           = $this->getBbox( 'json', false );
+        $children       = $this->getChildren( 'json', false );
         $country        = $this instanceof Country
             ? $this
-            : $this->getCountry();
+            : $this->getCountry( false );
 
         $sql = Core::$wpdb->prepareAndReplaceTablePrefix(
             <<<SQL
@@ -1529,30 +1544,30 @@ SQL,
             // insert
             $this->getGeonameId(),
             $this->getName(),
-            $this->getAsciiName(),
+            $this->getAsciiName( false ),
             $alternateNames,
             $this->getFeatureClass(),
             $this->getFeatureCode(),
-            $this->getContinentCode(),
+            $this->getContinentCode( false ),
             $country
                 ? $country->getIso2()
                 : null,
             $country
                 ? $country->getGeonameId()
                 : null,
-            $this->getLatitude(),
-            $this->getLongitude(),
-            $this->getPopulation(),
-            $this->getElevation(),
-            $this->getAdmin1Code(),
-            $this->getAdmin1Id(),
-            $this->getAdmin2Code(),
-            $this->getAdmin2Id(),
-            $this->getAdmin3Code(),
-            $this->getAdmin3Id(),
-            $this->getAdmin4Code(),
-            $this->getAdmin4Id(),
-            $this->getTimezone()
+            $this->getLatitude( false ),
+            $this->getLongitude( false ),
+            $this->getPopulation( false ),
+            $this->getElevation( false ),
+            $this->getAdmin1Code( null, false ),
+            $this->getAdmin1Id( false ),
+            $this->getAdmin2Code( null, false ),
+            $this->getAdmin2Id( false ),
+            $this->getAdmin3Code( null, false ),
+            $this->getAdmin3Id( false ),
+            $this->getAdmin4Code( null, false ),
+            $this->getAdmin4Id( false ),
+            $this->getTimezone( false )
                 ? $this->getTimezone()
                        ->getName()
                 : null,
@@ -1561,30 +1576,30 @@ SQL,
 
             // update
             $this->getName(),
-            $this->getAsciiName(),
+            $this->getAsciiName( false ),
             $alternateNames,
             $this->getFeatureClass(),
             $this->getFeatureCode(),
-            $this->getContinentCode(),
+            $this->getContinentCode( false ),
             $country
                 ? $country->getIso2()
                 : null,
             $country
                 ? $country->getGeonameId()
                 : null,
-            $this->getLatitude(),
-            $this->getLongitude(),
-            $this->getPopulation(),
-            $this->getElevation(),
-            $this->getAdmin1Code(),
-            $this->getAdmin1Id(),
-            $this->getAdmin2Code(),
-            $this->getAdmin2Id(),
-            $this->getAdmin3Code(),
-            $this->getAdmin3Id(),
-            $this->getAdmin4Code(),
-            $this->getAdmin4Id(),
-            $this->getTimezone()
+            $this->getLatitude( false ),
+            $this->getLongitude( false ),
+            $this->getPopulation( false ),
+            $this->getElevation( false ),
+            $this->getAdmin1Code( null, false ),
+            $this->getAdmin1Id( false ),
+            $this->getAdmin2Code( null, false ),
+            $this->getAdmin2Id( false ),
+            $this->getAdmin3Code( null, false ),
+            $this->getAdmin3Id( false ),
+            $this->getAdmin4Code( null, false ),
+            $this->getAdmin4Id( false ),
+            $this->getTimezone( false )
                 ? $this->getTimezone()
                        ->getName()
                 : null,
@@ -1593,12 +1608,7 @@ SQL,
 
         );
 
-        $saving = false;
-
-        if ( Core::$wpdb->query( $sql ) === false )
-        {
-            throw new ErrorException( Core::$wpdb->last_error );
-        }
+        return $sql;
     }
 
 
