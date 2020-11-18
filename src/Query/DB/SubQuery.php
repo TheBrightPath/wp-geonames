@@ -646,18 +646,12 @@ SQL
         $apiStatus = apply_filters( "geonames/cache/result/type=$searchType", $apiStatus, $this->_status );
         $apiStatus = apply_filters( "geonames/cache/result/name=$searchTypeName", $apiStatus, $this->_status );
 
-        unset( $apiStatus );
+        /** @noinspection AdditionOperationOnArraysInspection */
+        $status->result         += $apiStatus->result;
+        $status->processRecords += $apiStatus->count;
+        $status->count          += $apiStatus->count;
 
         $this->save();
-
-        // since we don't have the entire de-duplication information available, get the result again from the cache!
-        $status->result         = [];
-        $status->processRecords = 0;
-        $status->count          = 0;
-
-        $status = apply_filters( "geonames/cache/lookup/type=$searchType", $status );
-        $status = apply_filters( "geonames/cache/lookup/name=$searchTypeName", $status );
-        $status = apply_filters( "geonames/cache/lookup", $status );
 
         WpDb::formatOutput(
             $status->result,
