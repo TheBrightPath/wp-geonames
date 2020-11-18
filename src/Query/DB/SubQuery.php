@@ -399,88 +399,10 @@ SQL
 
         $recordsToCache = array_diff_key( $status->result, $myOwnStatus->result, $myOwnStatus->globalResultSet );
 
-        // walk through the records and remember the locations from the admin hierarchy in order to fetch them later if required
-        $admin = [];
-
-        array_walk(
-            $recordsToCache,
-            static function ( Location $location ) use
-            (
-                &
-                $admin
-            )
-            {
-
-                if ( $country = $location->getCountry() )
-                {
-                    // remember the country ID
-                    $admin[ $country->getGeonameId() ] = true;
-                }
-
-                // walk through admin levels 1-4 and get their ids too, if they exist
-                for ( $i = 1; $i <= 4; $i ++ )
-                {
-                    $getter = "getAdmin{$i}Id";
-                    $x      = $location->$getter();
-
-                    if ( $x === null )
-                    {
-                        return;
-                    }
-
-                    $admin[ $x ] = true;
-                }
-            }
-        );
-
-        // lookup all the required locations form the cache to eliminate those we already have
-
-        if ( ! empty( $admin ) )
+        // bail early if empty result
+        if ( empty( $recordsToCache ) )
         {
-            $sqlIN = implode( ',', array_keys( $admin ) );
-            $sql   = WpDb::replaceTablePrefix(
-                <<<SQL
-    SELECT
-        geoname_id
-    FROM
-        `wp_geonames_locations_cache`
-    WHERE
-            geoname_id IN ($sqlIN)
-        AND DATEDIFF(CURDATE(), db_update) < 7
-        
-    ;
-SQL
-            );
-
-            $existing = Core::$wpdb->get_col( $sql );           // get ID's from cache
-            $existing = array_flip( $existing );                // use the column values as keys
-            $admin    = array_diff_key( $admin, $existing );    // calculate the difference => non-existing ones
-            unset( $existing, $sql, $sqlIN );
-
-            foreach ( $admin as $geonameId => &$item )
-            {
-                // get the full item from geonames
-                $item = $status->geonamesClient->get(
-                    [
-                        'geonameId' => $geonameId,
-                        'style'     => 'full',
-                    ]
-                );
-
-                // copy geoname id to Api ID in order to remember that we've just loaded this from the API
-                $item->idAPI = $item->geonameId;
-
-                if ( Location::isItACountry( $item, 'fcl', 'fcode' ) )
-                {
-                    $item = $status->classCountries::load( $item );
-                }
-            }
-            unset ( $item );
-
-            WpDb::formatOutput( $admin, $status->classLocations, 'geonameId', '_', [ $status->classCountries ] );
-
-            // add the location to the list of records to be cached
-            $recordsToCache = array_merge( $recordsToCache, $admin );
+            return $status;
         }
 
         unset( $admin, $item, $geonameId );
