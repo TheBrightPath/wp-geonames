@@ -114,6 +114,7 @@ class SubQuery
         $this->loadValues( $params );
 
         // make sure the search type has been provided
+        /** @noinspection PhpParamsInspection */
         $this->__SubQueryTrait_construct();
 
         // make sure the table name is set for static::loadRecords

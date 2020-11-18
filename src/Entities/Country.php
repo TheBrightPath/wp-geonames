@@ -217,6 +217,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getArea( bool $autoload = true ): ?int
     {
@@ -226,7 +227,7 @@ class Country
 
 
     /**
-     * @param  int  $area
+     * @param  int|null  $area
      *
      * @return Country
      */
@@ -243,6 +244,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getCapital( bool $autoload = true ): ?string
     {
@@ -266,6 +268,10 @@ class Country
 
 
     /**
+     * @param  bool         $autoload
+     * @param  bool         $nullSafe
+     * @param  string|null  $countryClass
+     *
      * @return Country|NullSafe|null
      */
     public function getCountry(
@@ -298,6 +304,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getCurrencyCode( bool $autoload = true ): ?string
     {
@@ -307,7 +314,7 @@ class Country
 
 
     /**
-     * @param  string  $currencyCode
+     * @param  string|null  $currencyCode
      *
      * @return Country
      */
@@ -324,6 +331,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getCurrencyName( bool $autoload = true ): ?string
     {
@@ -333,7 +341,7 @@ class Country
 
 
     /**
-     * @param  string  $currencyName
+     * @param  string|null  $currencyName
      *
      * @return Country
      */
@@ -350,6 +358,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getFipsCode( bool $autoload = true ): ?string
     {
@@ -376,6 +385,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getIso2( bool $autoload = true ): ?string
     {
@@ -430,6 +440,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getIso3( bool $autoload = true ): ?string
     {
@@ -456,6 +467,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getIsoN( bool $autoload = true ): ?int
     {
@@ -482,6 +494,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getLanguages( bool $autoload = true ): ?string
     {
@@ -504,13 +517,20 @@ class Country
     }
 
 
+    /**
+     * @param  string|null  $langCode
+     * @param  bool         $autoload
+     *
+     * @return string
+     * @throws \ErrorException
+     */
     public function getNameIntl(
         ?string $langCode = null,
         bool $autoload = true
     ): string {
 
         // WPML integration
-        if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
+        if ( $langCode === null && defined( 'ICL_LANGUAGE_CODE' ) )
         {
             $langCode = ICL_LANGUAGE_CODE;
         }
@@ -525,6 +545,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getNeighbours( bool $autoload = true ): ?string
     {
@@ -551,6 +572,7 @@ class Country
      * @param  bool  $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getPhone( bool $autoload = true ): ?string
     {
@@ -574,7 +596,10 @@ class Country
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getPostalCodeFormat( bool $autoload = true ): ?string
     {
@@ -598,7 +623,10 @@ class Country
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getPostalCodeRegex( bool $autoload = true ): ?string
     {
@@ -622,7 +650,10 @@ class Country
 
 
     /**
-     * @return string
+     * @param  bool  $autoload
+     *
+     * @return string|null
+     * @throws \ErrorException
      */
     public function getTld( bool $autoload = true ): ?string
     {
@@ -648,7 +679,7 @@ class Country
     /**
      * @see self::setName()
      *
-     * @param  string  $capital
+     * @param  string|null  $countryName
      *
      * @return Country
      */
@@ -664,6 +695,12 @@ class Country
     }
 
 
+    /**
+     * @param  null  $countryCode
+     *
+     * @return \WPGeonames\Entities\Location
+     * @throws \ErrorException
+     */
     public function setCountryCode( $countryCode ): Location
     {
 
@@ -671,6 +708,12 @@ class Country
     }
 
 
+    /**
+     * @param  int|null  $countryId
+     *
+     * @return \WPGeonames\Entities\Location
+     * @throws \ErrorException
+     */
     public function setCountryId( ?int $countryId ): Location
     {
 
@@ -935,9 +978,10 @@ SQL,
 
 
     /**
-     * @param  string|int|string[]|int[]|\WPGeonames\Entities\Location|\WPGeonames\Entities\Location[]  $ids
+     * @param  null        $ids
+     * @param  array|null  $countryFeatures
      *
-     * @return static
+     * @return array|null
      * @throws \ErrorException
      */
     public static function loadRecords(

@@ -231,7 +231,7 @@ class Location
 
         $this->_FlexibleDbObjectTrait__construct( $values, $defaults );
 
-        if ( $values instanceof Location )
+        if ( $values instanceof self )
         {
             $this->_idAPI      = $values->_idAPI;
             $this->_idLocation = $values->_idLocation;
@@ -241,11 +241,14 @@ class Location
 
 
     /**
-     * @param        $propertyByRef
-     * @param  bool  $autoload
+     * @param  mixed  $propertyByRef
+     * @param  bool   $autoload
+     * @param  int    $what
      *
-     * @return       mixed|null
+     * @return       mixed
+     * @throws \ErrorException
      * @noinspection MagicMethodsValidityInspection
+     * @noinspection PhpMissingReturnTypeInspection
      */
     protected function __getOrUpdate(
         &$propertyByRef,
@@ -262,6 +265,7 @@ class Location
         {
             $this->updateMissingData( $what );
 
+            /** @noinspection PhpConditionAlreadyCheckedInspection */
             if ( $propertyByRef === null )
             {
                 $propertyByRef = false;
@@ -276,6 +280,7 @@ class Location
      * @param  bool  $autoload
      *
      * @return static|null
+     * @throws \ErrorException
      */
     public function getAdmin1( bool $autoload = true ): ?object
     {
@@ -289,6 +294,7 @@ class Location
      * @param  bool    $autoload
      *
      * @return string|array|null
+     * @throws \ErrorException
      */
     public function getAdmin1Code(
         $format = 'ISO3166_2',
@@ -312,7 +318,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getAdmin1Id( bool $autoload = true ): ?int
     {
@@ -340,6 +349,7 @@ class Location
      * @param  bool  $autoload
      *
      * @return static|null
+     * @throws \ErrorException
      */
     public function getAdmin2( bool $autoload = true ): ?object
     {
@@ -350,8 +360,10 @@ class Location
 
     /**
      * @param  string  $format
+     * @param  bool    $autoload
      *
      * @return string|array|null
+     * @throws \ErrorException
      */
     public function getAdmin2Code(
         $format = 'ISO3166_2',
@@ -375,7 +387,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getAdmin2Id( bool $autoload = true ): ?int
     {
@@ -403,6 +418,7 @@ class Location
      * @param  bool  $autoload
      *
      * @return static|null
+     * @throws \ErrorException
      */
     public function getAdmin3( bool $autoload = true ): ?object
     {
@@ -413,8 +429,10 @@ class Location
 
     /**
      * @param  string  $format
+     * @param  bool    $autoload
      *
      * @return string|array|null
+     * @throws \ErrorException
      */
     public function getAdmin3Code(
         $format = 'ISO3166_2',
@@ -438,7 +456,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getAdmin3Id( bool $autoload = true ): ?int
     {
@@ -466,6 +487,7 @@ class Location
      * @param  bool  $autoload
      *
      * @return static|null
+     * @throws \ErrorException
      */
     public function getAdmin4( bool $autoload = true ): ?object
     {
@@ -476,8 +498,10 @@ class Location
 
     /**
      * @param  string  $format
+     * @param  bool    $autoload
      *
      * @return string|array|null
+     * @throws \ErrorException
      */
     public function getAdmin4Code(
         $format = 'ISO3166_2',
@@ -501,7 +525,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int|null
+     * @throws \ErrorException
      */
     public function getAdmin4Id( bool $autoload = true ): ?int
     {
@@ -526,10 +553,12 @@ class Location
 
 
     /**
-     * @param  int|string  $x
-     * @param  string      $format
+     * @param  int|string   $x
+     * @param  string|null  $format
+     * @param  bool         $autoload
      *
      * @return string|array|null
+     * @throws \ErrorException
      */
     protected function getAdminCode(
         $x,
@@ -601,8 +630,10 @@ class Location
 
     /**
      * @param  string|null  $lang
+     * @param  bool         $autoload
      *
      * @return mixed
+     * @throws \ErrorException
      */
     public function getAlternateNames(
         $lang = null,
@@ -672,7 +703,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getAsciiName( bool $autoload = true ): ?string
     {
@@ -697,8 +731,10 @@ class Location
 
     /**
      * @param  string|null  $property
+     * @param  bool         $autoload
      *
-     * @return mixed
+     * @return \WPGeonames\Entities\BBox|string|float|null
+     * @throws \ErrorException
      */
     public function getBbox(
         $property = null,
@@ -867,7 +903,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return string
+     * @throws \ErrorException
      */
     public function getContinentCode( bool $autoload = true ): ?string
     {
@@ -877,7 +916,7 @@ class Location
 
 
     /**
-     * @param  string  $continentCode
+     * @param  string|null  $continentCode
      *
      * @return Location
      */
@@ -891,7 +930,13 @@ class Location
 
 
     /**
+     * @param  bool         $autoload
+     * @param  bool         $nullSafe
+     * @param  string|null  $countryClass
+     *
      * @return Country|NullSafe|null
+     * @throws \ErrorException
+     * @noinspection UnsetConstructsCanBeMergedInspection
      */
     public function getCountry(
         bool $autoload = true,
@@ -913,12 +958,12 @@ class Location
             return $this->country;
         }
 
-        if ( $autoload && ! $this->country instanceof Location )
+        if ( $autoload && ! $this->country instanceof self )
         {
             $this->country = $class::load( $this->country );
         }
 
-        if ( ! $this->country instanceof $class && $this->country instanceof Location )
+        if ( ! $this->country instanceof $class && $this->country instanceof self )
         {
             unset( self::$_locations["_{$this->country->getGeonameId()}"] );
 
@@ -948,6 +993,7 @@ class Location
      * @param  bool         $autoload
      *
      * @return string|null
+     * @throws \ErrorException
      */
     public function getCountryCode(
         ?string $format = 'iso2',
@@ -974,6 +1020,7 @@ class Location
      * @param  bool  $autoload
      *
      * @return int
+     * @throws \ErrorException
      */
     public function getCountryId( bool $autoload = true ): ?int
     {
@@ -1004,7 +1051,10 @@ class Location
 
 
     /**
-     * @return mixed
+     * @param  bool  $autoload
+     *
+     * @return int|null
+     * @throws \ErrorException
      */
     public function getElevation( bool $autoload = true ): ?int
     {
@@ -1029,6 +1079,7 @@ class Location
 
     /**
      * @return string
+     * @throws \ErrorException
      */
     public function getFeatureClass(): string
     {
@@ -1038,7 +1089,7 @@ class Location
 
 
     /**
-     * @param  null  $featureClass
+     * @param  string|null  $featureClass
      *
      * @return Location
      */
@@ -1053,6 +1104,7 @@ class Location
 
     /**
      * @return string
+     * @throws \ErrorException
      */
     public function getFeatureCode(): string
     {
@@ -1062,7 +1114,7 @@ class Location
 
 
     /**
-     * @param  null  $featureCode
+     * @param  string|null  $featureCode
      *
      * @return Location
      */
@@ -1102,7 +1154,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return float
+     * @throws \ErrorException
      */
     public function getLatitude( bool $autoload = true ): ?float
     {
@@ -1112,7 +1167,7 @@ class Location
 
 
     /**
-     * @param  null  $latitude
+     * @param  float|null  $latitude
      *
      * @return Location
      */
@@ -1126,7 +1181,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return float
+     * @throws \ErrorException
      */
     public function getLongitude( bool $autoload = true ): ?float
     {
@@ -1136,7 +1194,7 @@ class Location
 
 
     /**
-     * @param  null  $longitude
+     * @param  float|null  $longitude
      *
      * @return Location
      */
@@ -1150,7 +1208,11 @@ class Location
 
 
     /**
+     * @param  null  $langCode
+     * @param  bool  $autoload
+     *
      * @return string
+     * @throws \ErrorException
      */
     public function getName(
         $langCode = null,
@@ -1160,7 +1222,7 @@ class Location
         $this->__getOrUpdate( $this->name, $autoload );
 
         // WPML integration
-        if ( $langCode === null and defined( 'ICL_LANGUAGE_CODE' ) )
+        if ( $langCode === null && defined( 'ICL_LANGUAGE_CODE' ) )
         {
             $langCode = ICL_LANGUAGE_CODE;
         }
@@ -1175,7 +1237,7 @@ class Location
 
 
     /**
-     * @param  null  $name
+     * @param  string|null  $name
      *
      * @return Location
      */
@@ -1189,7 +1251,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return int
+     * @throws \ErrorException
      */
     public function getPopulation( bool $autoload = true ): int
     {
@@ -1237,7 +1302,10 @@ class Location
 
 
     /**
+     * @param  bool  $autoload
+     *
      * @return \WPGeonames\Entities\Timezone|\WPGeonames\Helpers\NullSafe
+     * @throws \ErrorException
      */
     public function getTimezone( bool $autoload = true )
     {
@@ -1372,7 +1440,6 @@ class Location
      * @param  int|null  $lId
      *
      * @return $this
-     * @throws \ErrorException
      */
     protected function setIdLocation( ?int $lId ): self
     {
@@ -1662,6 +1729,12 @@ SQL,
     }
 
 
+    /**
+     * @param  int  $what
+     *
+     * @return $this
+     * @throws \ErrorException
+     */
     protected function updateMissingData( int $what = 0 ): self
     {
 
@@ -1722,6 +1795,7 @@ SQL,
      *
      * @return array|null
      * @throws \ErrorException
+     * @noinspection PhpParameterNameChangedDuringInheritanceInspection
      */
     protected static function loadRecords( $ids ): ?array
     {
