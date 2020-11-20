@@ -131,11 +131,17 @@ class ApiQuery
                 );
             }
 
+            if ( empty( $result ) )
+            {
+                unset( $result );
+                continue;
+            }
+
             // generate key names
             WpDb::formatOutput( $result, OBJECT_K, 'geonameId', '_' );
 
-            // remove duplicates
-            $result = array_diff_key( $result, $duplicates );
+            // filter out duplicates
+            $status->duplicates = array_intersect_key( $result, $duplicates );
 
             array_walk(
                 $result,
@@ -145,6 +151,11 @@ class ApiQuery
                     $status
                 )
                 {
+
+                    if ( $location instanceof Location )
+                    {
+                        return;
+                    }
 
                     // copy geoname id to Api ID in order to remember that we've just loaded this from the API
                     $location->idAPI = $location->geonameId;
@@ -163,7 +174,7 @@ class ApiQuery
             $result = $class::load( $result, null, $status->classCountries );
 
             // filter out duplicates
-            $duplicates += array_intersect_key( $result, $duplicates );
+            $duplicates += array_diff_key( $result, $duplicates );
 
             // append result
             $status->result += $result;

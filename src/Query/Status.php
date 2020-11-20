@@ -36,6 +36,11 @@ class Status
      */
     public $total;
 
+    /**
+     * @var array Duplicates found
+     */
+    public $duplicates = [];
+
     public $startAt    = 0;
     public $maxRecords = Query::MAX_ROWS;
 

@@ -81,22 +81,23 @@ class Executor
                 array_splice( $subStatus->result, $status->maxRecords );
             }
 
-            if ( ! empty(
-            $duplicates = array_intersect_key(
-                $subStatus->result,
-                [],
-                ...
-                array_values( $globalResultSet )
-            )
-            ) )
+            if ( $subStatus->count > 0
+                && ! empty(
+                $duplicates = array_intersect_key(
+                    $subStatus->result,
+                    [],
+                    ...
+                    array_values( $globalResultSet )
+                )
+                ) )
             {
                 throw new ErrorException( 'Duplicate keys in result set: ' . implode( ',', $duplicates ) );
             }
             unset( $duplicates );
 
-            $status->result[ $searchTypeName ] = $subStatus->result;
+            $status->result[ $searchTypeName ] = $subStatus->result ?? [];
             $status->count                     += $subStatus->count;
-            $status->total                     += $subStatus->total;
+            $status->total                     += $subStatus->total - count( $subStatus->duplicates );
             $status->processRecords            += $subStatus->processRecords;
 
             if ( $status->startAt > 0 )

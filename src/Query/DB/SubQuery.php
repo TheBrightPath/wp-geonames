@@ -822,8 +822,10 @@ SQL,
         {
             array_walk(
                 $result,
-                static function ( $row ) use
+                static function ( &$row ) use
                 (
+                    &
+                    $status,
                     &
                     $lastOrder
                 )
@@ -832,19 +834,17 @@ SQL,
                     $geoname_id = null;
                     $order      = null;
 
-                    if ( is_object( $row )
-                        && ( empty( $geoname_id = $row->geoname_id ) || empty( $order = $row->order ) )
-                    )
+                    if ( is_array( $row ) )
                     {
-                        throw new InvalidCacheResultSet( 'invalid object', $row );
+                        $row = (object) $row;
                     }
 
-                    /** @noinspection RedundantElseClauseInspection */
-                    elseif ( is_array( $row )
-                        && ( ! ( $geoname_id = $row['geoname_id'] ) || ! ( $order = $row['order'] ) )
+                    if ( ! is_object( $row )
+                        || empty( $geoname_id = $row->geoname_id )
+                        || empty( $order = $row->order )
                     )
                     {
-                        throw new InvalidCacheResultSet( 'invalid array', $row );
+                        throw new InvalidCacheResultSet( 'invalid row', $row );
                     }
 
                     if ( $geoname_id === null || ! is_numeric( $geoname_id ) || $geoname_id <= 0 )
@@ -857,7 +857,15 @@ SQL,
                         throw new InvalidCacheResultSet( 'invalid order', $row );
                     }
 
-                    $lastOrder = (int) $order;
+                    $order = (int) $order;
+                    $step  = $order - $lastOrder;
+
+                    if ( $step > 1 )
+                    {
+                        $status->duplicates = array_replace( $status->duplicates, array_fill( $lastOrder + 1, $step - 1, null ) );
+                    }
+
+                    $lastOrder = $order;
                 }
 
             );
