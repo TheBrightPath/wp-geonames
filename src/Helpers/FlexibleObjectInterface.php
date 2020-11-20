@@ -23,15 +23,6 @@ interface FlexibleObjectInterface
     );
 
 
-    /**
-     * @param  bool|null  $ignoreNonExistingPropertyOnSet
-     *
-     * @return \WPGeonames\Helpers\FlexibleObjectInterface
-     */
-    public function setIgnoreNonExistingPropertyOnSet( ?bool $ignoreNonExistingPropertyOnSet
-    ): FlexibleObjectInterface;
-
-
     public function __get( $property );
 
 
@@ -47,13 +38,22 @@ interface FlexibleObjectInterface
     public function __serialize(): array;
 
 
+    /**
+     * @param  bool|null  $ignoreNonExistingPropertyOnSet
+     *
+     * @return \WPGeonames\Helpers\FlexibleObjectInterface
+     */
+    public function setIgnoreNonExistingPropertyOnSet( ?bool $ignoreNonExistingPropertyOnSet
+    ): FlexibleObjectInterface;
+
+
     public function cleanInput( &$values ): FlexibleObjectInterface;
 
 
     public function loadValues(
         $values,
         $default = null
-    ):?int;
+    ): ?int;
 
 
     public function serialize(): string;

@@ -20,7 +20,6 @@ use WPGeonames\Query\QueryableTrait;
 use WPGeonames\Query\QueryTrait;
 use WPGeonames\Query\Status;
 use WPGeonames\Query\SubQueryTrait;
-use WPGeonames\WpDb;
 
 /**
  * Class ChildQueryInterface
@@ -191,9 +190,7 @@ class SubQuery
         if ( $exclude !== null && ! empty( $exclude ) )
         {
             $sqlExclude = sprintf(
-            //'AND r.geoname_id NOT IN (%s)',
                 'AND r.geoname_id NOT IN (SELECT geoname_id FROM `wp_geonames_locations_results` WHERE query_id = %d AND search_type IN ("%s"))',
-                //implode( ',', $exclude )
                 $this->queryId,
                 implode( '","', array_keys( $exclude ) )
             );
@@ -432,7 +429,7 @@ SQL
                         [
                             'query_id'    => $query_id,
                             'search_type' => $search_type,
-                            'geoname_id'  => $location->geonameId,
+                            'geoname_id'  => $location->getGeonameId(),
                             'order'       => ++ $i,
                             'score'       => $location->getScore(),
                         ],

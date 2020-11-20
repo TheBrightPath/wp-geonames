@@ -1992,7 +1992,6 @@ SQL,
         );
 
         $locations = [];
-        $ids       = (array) $ids;
 
         $ids = array_filter(
             $ids,
