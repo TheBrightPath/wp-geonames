@@ -641,7 +641,7 @@ SQL
 
         $status->result = $status->classLocations::load( $status->result, null, $status->classCountries );
 
-        $status->duplicates = array_diff_key( $apiStatus->result, $status->result );
+        $status->duplicates = array_diff_key( $apiStatus->result ?? [], $status->result ?? [] );
         $status->total      = $this->getResultTotal();
 
         return $status;
