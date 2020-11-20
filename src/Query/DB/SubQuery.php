@@ -397,21 +397,14 @@ SQL
             $this->cacheDeleteResultSet();
         }
 
-        $recordsToCache = array_diff_key( $status->result, $myOwnStatus->result, $myOwnStatus->globalResultSet );
-
-        // bail early if empty result
-        if ( empty( $recordsToCache ) )
+        if ( ! empty( $status->result ) )
         {
-            return $status;
+            // pre-load countries so they are loaded with one single sql query
+            $status->classCountries::load();
+
+            // store locations to the database
+            Location::saveAll( $status->result, 0 );
         }
-
-        // pre-load countries so they are loaded with one single sql query
-        $countries = $status->classCountries::load();
-
-        // store locations to the database
-        Location::saveAll( $recordsToCache );
-
-        unset ( $recordsToCache );
 
         // store result set to the database
         /** @noinspection PhpPossiblePolymorphicInvocationInspection */
@@ -596,7 +589,7 @@ SQL
 
         $apiStatus->globalResultSet =& $status->globalResultSet;
 
-        $apiStatus->keepPreviouslyCachedRecords = ! (
+        $apiStatus->keepPreviouslyCachedRecords = (
             $this->resultTotal === null
             || $status->processRecords === 0
             || ( $diff = ( $this->getQueryUpdated() ?? $this->getQueryCreated() )->diff( new DateTime() ) ) === false
@@ -638,22 +631,18 @@ SQL
         $apiStatus = apply_filters( "geonames/cache/result/type=$searchType", $apiStatus, $this->_status );
         $apiStatus = apply_filters( "geonames/cache/result/name=$searchTypeName", $apiStatus, $this->_status );
 
-        /** @noinspection AdditionOperationOnArraysInspection */
-        $status->result         += $apiStatus->result;
-        $status->processRecords += $apiStatus->count;
-        $status->count          += $apiStatus->count;
-
         $this->save();
 
-        WpDb::formatOutput(
-            $status->result,
-            $output,
-            [
-                'geoname_id',
-                'geonameId',
-            ],
-            '_'
-        );
+        // since we don't have the entire de-duplication information available, get the result again from the cache!
+        $status->result         = [];
+        $status->processRecords = 0;
+        $status->count          = 0;
+
+        $status = apply_filters( "geonames/cache/lookup/type=$searchType", $status );
+        $status = apply_filters( "geonames/cache/lookup/name=$searchTypeName", $status );
+        $status = apply_filters( "geonames/cache/lookup", $status );
+
+        $status->result = $status->classLocations::load( $status->result, null, $status->classCountries );
 
         $status->duplicates = array_diff_key( $apiStatus->result, $status->result );
         $status->total      = $this->getResultTotal();
