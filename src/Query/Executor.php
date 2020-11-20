@@ -114,6 +114,9 @@ class Executor
 
         }
 
+        $status->startAt        = $parent->getStartRow();
+        $status->maxRecords     = $parent->getMaxRows();
+
         return $status;
 
     }
