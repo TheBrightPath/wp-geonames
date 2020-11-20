@@ -655,7 +655,8 @@ SQL
             '_'
         );
 
-        $status->total = $this->getResultTotal();
+        $status->duplicates = array_diff_key( $apiStatus->result, $status->result );
+        $status->total      = $this->getResultTotal();
 
         return $status;
 
@@ -862,7 +863,10 @@ SQL,
 
                     if ( $step > 1 )
                     {
-                        $status->duplicates = array_replace( $status->duplicates, array_fill( $lastOrder + 1, $step - 1, null ) );
+                        $status->duplicates = array_replace(
+                            $status->duplicates,
+                            array_fill( $lastOrder + 1, $step - 1, null )
+                        );
                     }
 
                     $lastOrder = $order;
