@@ -519,7 +519,7 @@ class WpDb
         {
 
             $class  = $output;
-            $output = $keyName
+            $output = ! empty( $keyName )
                 ? OBJECT_K
                 : OBJECT;
 
