@@ -403,8 +403,8 @@ class Country
     public function setIso2( ?string $iso2 ): Country
     {
 
-        // ignore if they're the same
-        if ( $this->iso2 === $iso2 )
+        // ignore if new value is null or they're the same
+        if ( $iso2 === null || $iso2 === '' || $this->iso2 === ( $iso2 = strtoupper( $iso2 ) ) )
         {
             return $this;
         }
@@ -427,10 +427,7 @@ class Country
 
         $this->iso2 = $iso2;
 
-        if ( ! empty( $iso2 ) )
-        {
-            static::$_countries[ $iso2 ] = $this;
-        }
+        static::$_countries[ $iso2 ] = $this;
 
         return $this;
     }
@@ -915,7 +912,7 @@ SQL,
     public function updateFromApi( int $what = self::API_UPDATE_INFO_BOTH ): Location
     {
 
-        if ( $what <= self::API_UPDATE_INFO_BOTH )
+        if ( $what <= self::API_UPDATE_INFO_BOTH || $this->iso2 === null )
         {
             // update location
             parent::updateFromApi();
@@ -957,8 +954,8 @@ SQL,
             if ( $item = Core::$wpdb->get_row(
                 Core::$wpdb->prepareAndReplaceTablePrefix(
                     'SELECT * FROM `wp_geonames_countries` WHERE geoname_id = %d OR iso2 = %s',
-                    $this->geonameId,
-                    $this->iso2
+                    $this->geonameId ?? - 1,
+                    $this->iso2 == '--'
                 )
             ) )
             {
@@ -1082,6 +1079,8 @@ SQL,
 
                 if ( is_string( $id ) )
                 {
+
+                    $id = strtoupper( $id );
 
                     if ( array_key_exists( $id, static::$_countries ) )
                     {

@@ -5,6 +5,23 @@ namespace WPGeonames\Helpers;
 class NullSafe
 {
 
+// protected properties
+
+    protected $value;
+
+
+    /**
+     * NullSafe constructor.
+     *
+     * @param $value
+     */
+    public function __construct( ?string $value = null )
+    {
+
+        $this->value = $value;
+    }
+
+
     public function __call(
         $name,
         $arguments
@@ -49,7 +66,7 @@ class NullSafe
     public function __toString()
     {
 
-        return '';
+        return $this->value ?? '';
     }
 
 }
