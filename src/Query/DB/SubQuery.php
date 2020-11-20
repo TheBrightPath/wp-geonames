@@ -578,15 +578,7 @@ SQL
             )
         ) )
         {
-            WpDb::formatOutput(
-                $status->result,
-                $output,
-                [
-                    'geoname_id',
-                    'geonameId',
-                ],
-                '_'
-            );
+            $status->result = $status->classLocations::load( $status->result, null, $status->classCountries );
 
             $status->total = $this->getResultTotal();
 
