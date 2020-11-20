@@ -160,6 +160,15 @@ class WpDb
 
         $this->last_error_no = 0;
 
+        // Clear out any results from a multi-query.
+        if ( $this->dbh instanceof mysqli )
+        {
+            while ( $this->dbh->more_results() )
+            {
+                $this->dbh->next_result();
+            }
+        }
+
         parent::flush();
     }
 
@@ -377,25 +386,24 @@ class WpDb
             $return_val     = $num_rows;
         }
 
-        if ( $is_multi_query && $this->result !== false )
+        if ( $is_multi_query )
         {
             if ( $this->dbh instanceof mysqli )
             {
 
                 // flush multi_queries
-                /** @noinspection PhpStatementHasEmptyBodyInspection */
-                while ( $this->dbh->next_result() )
+                // Clear out any results from a multi-query.
+                while ( $this->dbh->more_results() )
                 {
-                    ;
+                    $this->dbh->next_result();
                 }
             }
             else
             {
                 // flush multi_queries
-                /** @noinspection PhpStatementHasEmptyBodyInspection */
-                while ( mysqli_next_result( $this->dbh ) )
+                while ( mysqli_more_results( $this->dbh ) )
                 {
-                    ;
+                    mysqli_next_result( $this->dbh );
                 }
             }
         }
