@@ -1551,7 +1551,7 @@ class Location
         $children       = $this->getChildren( 'json', false );
         $country        = $this instanceof Country
             ? $this
-            : $this->getCountry( false );
+            : $this->getCountry();
 
         $sql = Core::$wpdb->prepareAndReplaceTablePrefix(
             <<<SQL
