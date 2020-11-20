@@ -1427,7 +1427,8 @@ class Location
     public function setIdAPI( int $idAPI ): self
     {
 
-        $this->_idAPI = $idAPI;
+        $this->_idAPI   = $idAPI;
+        $this->_isDirty = true;
 
         return $this;
     }
@@ -1501,10 +1502,15 @@ class Location
 
 
     /**
+     * @param  bool  $skipUpdateMissing
+     * @param  bool  $force
+     *
      * @throws \ErrorException
      */
-    public function save(): void
-    {
+    public function save(
+        bool $skipUpdateMissing = false,
+        bool $force = false
+    ): void {
 
         static $saving = false;
 
@@ -1515,9 +1521,19 @@ class Location
         }
         $saving = true;
 
-        if ( Core::$wpdb->query( $this->saveGetSQL() ) === false )
+        if ( ! $skipUpdateMissing )
         {
-            throw new ErrorException( Core::$wpdb->last_error );
+            $this->updateMissingData();
+        }
+
+        if ( $this->_isDirty || $force )
+        {
+            if ( Core::$wpdb->query( $this->saveGetSQL() ) === false )
+            {
+                throw new ErrorException( Core::$wpdb->last_error );
+            }
+
+            $this->_isDirty = false;
         }
 
         $saving = false;
@@ -1719,8 +1735,9 @@ SQL,
         ;
 
         $this->_idLocation = $this->geonameId;
+        $this->setIdAPI( $this->geonameId );
         $this->loadValues( $item );
-        $this->save();
+        $this->save( true );
 
         return $this;
     }
@@ -1748,7 +1765,6 @@ SQL,
             {
                 $this->_idLocation = $this->geonameId;
                 $this->loadValues( $item );
-                $this->save();
             }
             else
             {
@@ -2316,16 +2332,45 @@ SQL
     protected static function saveAllHelper( array $locations )
     {
 
-        $statements = array_map(
+        $statements = [];
+        $locations  = array_filter(
+            $locations,
+            static function ( Location $location ) use
+            (
+                &
+                $statements
+            )
+            {
+
+                if ( $location->_isDirty )
+                {
+                    $statements[] = $location->saveGetSQL();
+                }
+
+                return $location->_isDirty;
+            }
+        );
+
+        if ( 0 === count( $statements ) )
+        {
+            return 0;
+        }
+
+        if ( false === Core::$wpdb->query( $statements ) )
+        {
+            throw new \ErrorException( Core::$wpdb->last_error );
+        }
+
+        array_walk(
+            $locations,
             static function ( Location $location )
             {
 
-                return $location->saveGetSQL();
-            },
-            $locations
+                $location->_isDirty = false;
+            }
         );
 
-        return Core::$wpdb->query( $statements );
+        return count( $locations );
     }
 
 

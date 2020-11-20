@@ -775,8 +775,16 @@ class Country
     }
 
 
-    public function save(): void
-    {
+    /**
+     * @param  bool  $skipUpdateMissing
+     * @param  bool  $force
+     *
+     * @throws \ErrorException
+     */
+    public function save(
+        bool $skipUpdateMissing = false,
+        bool $force = false
+    ): void {
 
         static $saving = false;
 
@@ -787,7 +795,15 @@ class Country
         }
         $saving = true;
 
-        $this->updateMissingData();
+        if ( ! $skipUpdateMissing )
+        {
+            $this->updateMissingData();
+        }
+
+        if ( ! $this->_isDirty && ! $force )
+        {
+            return;
+        }
 
         // save country info
 
@@ -905,7 +921,7 @@ SQL,
             throw new ErrorException( Core::$wpdb->last_error );
         }
 
-        parent::save();
+        parent::save( true, $force );
     }
 
 
@@ -930,8 +946,9 @@ SQL,
             ;
 
             $this->_idCountry = $this->geonameId;
+            $this->setIdAPI( $this->geonameId );
             $this->loadValues( $item );
-            $this->save();
+            $this->save( true );
         }
 
         return $this;
@@ -961,7 +978,6 @@ SQL,
             {
                 $this->_idCountry = $this->geonameId;
                 $this->loadValues( $item );
-                $this->save();
             }
             elseif ( $this->iso2 !== null )
             {
