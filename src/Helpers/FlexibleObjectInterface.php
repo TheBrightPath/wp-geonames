@@ -65,10 +65,22 @@ interface FlexibleObjectInterface
     public function toArray(): array;
 
 
+    /**
+     * @param  array                 $array
+     * @param  string|string[]|null  $key
+     * @param  string|null           $prefix
+     * @param  string|null           $outputClass
+     * @param  array|null            $additionalInterfaces
+     *
+     * @return array|null
+     * @throws \ErrorException
+     */
     public static function parseArray(
-        &$array,
-        $key = '',
-        $prefix = ''
+        array &$array,
+        $key = null,
+        $prefix = null,
+        $outputClass = null,
+        $additionalInterfaces = null
     );
 
 }

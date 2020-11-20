@@ -314,12 +314,15 @@ trait FlexibleObjectTrait
      * @throws \ErrorException
      */
     public static function parseArray(
-        &$array,
-        $key = '',
-        $prefix = ''
+        array &$array,
+        $key = null,
+        $prefix = null,
+        $outputClass = null,
+        $additionalInterfaces = null,
+        $countryClass = null
     ): ?array {
 
-        return WpDb::formatOutput( $array, static::class, $key, $prefix );
+        return WpDb::formatOutput( $array, $outputClass ?? static::class, $key, $prefix );
 
     }
 

@@ -986,10 +986,14 @@ SQL,
      */
     public static function loadRecords(
         $ids = null,
-        ?array $countryFeatures = null
+        $countryFeatures = null,
+        $countryClass = null,
+        $additionalInterfaces = null
     ): ?array {
 
         static $loadAll = 0;
+
+        $countryClass = $countryClass ?? static::$_countryClass;
 
         if ( $ids === null )
         {
@@ -1012,7 +1016,10 @@ SQL,
 
         array_walk(
             $ids,
-            static function ( &$id )
+            static function ( &$id ) use
+            (
+                $countryClass
+            )
             {
 
                 if ( $id === null )
@@ -1020,7 +1027,7 @@ SQL,
                     return;
                 }
 
-                if ( $id instanceof static::$_countryClass )
+                if ( $id instanceof $countryClass )
                 {
 
                     $id = $id = [ 'o' => $id ];
@@ -1223,7 +1230,7 @@ SQL
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
-        parent::parseArray( $countries, 'ID' );
+        parent::parseArray( $countries, 'ID', null, $countryClass, null, $countryClass );
 
         $ids = array_filter( array_column( $ids, 'o' ) );
 

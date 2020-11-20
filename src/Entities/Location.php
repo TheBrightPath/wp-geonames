@@ -5,6 +5,7 @@ namespace WPGeonames\Entities;
 use DateTimeInterface;
 use ErrorException;
 use IntlDateFormatter;
+use stdClass;
 use WPGeonames\Core;
 use WPGeonames\Helpers\FlexibleDbObjectInterface;
 use WPGeonames\Helpers\FlexibleDbObjectTrait;
@@ -936,7 +937,6 @@ class Location
      *
      * @return Country|NullSafe|null
      * @throws \ErrorException
-     * @noinspection UnsetConstructsCanBeMergedInspection
      */
     public function getCountry(
         bool $autoload = true,
@@ -960,28 +960,25 @@ class Location
 
         if ( $autoload && ! $this->country instanceof self )
         {
-            $this->country = $class::load( $this->country );
+            $this->country = $class::load( $this->country, null, $class, );
         }
 
         if ( ! $this->country instanceof $class && $this->country instanceof self )
         {
             unset( self::$_locations["_{$this->country->getGeonameId()}"] );
 
-            if ( ! $this->country instanceof Country )
+            if ( $this->country instanceof Country )
             {
-                unset( Country::$_countries["_{$this->country->getGeonameId()}"] );
                 unset( Country::$_countries[ $this->country->getCountryCode() ] );
             }
-
-            /** @noinspection PhpUndefinedVariableInspection */
-            $class = $countryClass ?? $this->country::$_countryClass;
 
             $this->country = new $class( $this->country );
         }
 
-        return $this->country
-            ?? ( $nullSafe
-                ? new NullSafe()
+        return $this->country instanceof self
+            ? $this->country
+            : ( $nullSafe
+                ? new NullSafe( $this->country )
                 : null
             );
     }
@@ -1776,7 +1773,15 @@ SQL,
             return true;
         }
 
-        if ( $object->$featureClassProperty === null || $object->$featureCodeProperty === null )
+        if ( is_array( $object ) )
+        {
+            $object = (object) $object;
+        }
+
+        if ( ! property_exists( $object, $featureClassProperty )
+            || $object->$featureClassProperty === null
+            || ! property_exists( $object, $featureCodeProperty )
+            || $object->$featureCodeProperty === null )
         {
             return false;
         }
@@ -1791,36 +1796,184 @@ SQL,
 
 
     /**
-     * @param $ids
+     * @param  null   $ids
+     * @param  null   $locationClass
+     * @param  null   $countryClass
+     * @param  array  $additionalInterfaces
+     *
+     * @return array|mixed|null
+     * @throws \ErrorException
+     * @noinspection PhpParameterNameChangedDuringInheritanceInspection
+     * @noinspection PhpMissingReturnTypeInspection
+     */
+    public static function load(
+        $ids = null,
+        $locationClass = null,
+        $countryClass = null,
+        $additionalInterfaces = null
+    ) {
+
+        $records = static::loadRecords( $ids, $locationClass, $countryClass, $additionalInterfaces );
+
+        if ( $records === null )
+        {
+            return null;
+        }
+
+        return ( $ids === null || is_array( $ids ) )
+            ? $records
+            : reset( $records )
+                ?: null;
+    }
+
+
+    /**
+     * @param                                             $ids
+     * @param  \WPGeonames\Entities\Location|string|null  $locationClass
+     * @param  \WPGeonames\Entities\Country|string|null   $countryClass
+     * @param  array                                      $additionalInterfaces
      *
      * @return array|null
      * @throws \ErrorException
      * @noinspection PhpParameterNameChangedDuringInheritanceInspection
      */
-    protected static function loadRecords( $ids ): ?array
-    {
+    protected static function loadRecords(
+        $ids,
+        $locationClass = null,
+        $countryClass = null,
+        $additionalInterfaces = null
+    ): ?array {
 
         if ( $ids === null || empty( $ids ) )
         {
             return null;
         }
 
-        if ( false === ( is_array( $ids )
-                ? array_reduce(
-                    $ids,
-                    static function (
-                        $carry,
-                        $item
-                    ) {
+        $ids = is_object( $ids )
+            ? [ $ids ]
+            : (array) $ids;
 
-                        return $carry && is_numeric( $item );
-                    },
-                    true
+        $locationClass          = $locationClass ?? static::class;
+        $countryClass           = $countryClass ?? Country::$_countryClass;
+        $additionalInterfaces   = (array) $additionalInterfaces;
+        $additionalInterfaces[] = $countryClass;
+
+        array_walk(
+            $ids,
+            static function ( &$id )
+            use
+            (
+                $locationClass,
+                $countryClass
+            )
+            {
+
+                if ( $id === null )
+                {
+                    return;
+                }
+
+                if ( is_numeric( $id ) )
+                {
+                    $id = (int) $id;
+
+                    if ( ! array_key_exists( "_$id", Location::$_locations ) )
+                    {
+                        return;
+                    }
+
+                    $id = Location::$_locations["_$id"];
+
+                    return;
+                }
+
+                if ( is_string( $id ) )
+                {
+
+                    $id = strtoupper( $id );
+
+                    if ( array_key_exists( $id, Country::$_countries ) )
+                    {
+                        $id = Country::$_countries[ $id ];
+
+                        return;
+                    }
+
+                    $id = $countryClass::load( $id );
+
+                    if ( $id === null )
+                    {
+                        throw new ErrorException( 'Invalid country code supplied' );
+                    }
+
+                    return;
+                }
+
+                if (
+                    ( ! $id instanceof Location && is_object( $id ) )
+                    || ( is_array( $id ) && $id = (object) $id )
                 )
-                : is_numeric( $ids ) ) )
-        {
-            throw new ErrorException( 'Supplied id(s) are not numeric' );
-        }
+                {
+
+                    if ( ( property_exists( $id, 'geonameId' ) && ( $_id = $id->geonameId ) )
+                        || ( property_exists( $id, 'geoname_id' ) && ( $_id = $id->geoname_id ) )
+                    )
+                    {
+                        if ( array_key_exists( "_$_id", Location::$_locations ) )
+                        {
+                            $x  = $id;
+                            $id = Location::$_locations["_$_id"];
+                        }
+                        else
+                        {
+                            $id = [ $id ];
+
+                            $locationClass::parseArray( $id, null, null, null, null, $countryClass );
+
+                            $id = reset( $id );
+                        }
+
+                    }
+                    else
+                    {
+                        /** @noinspection ForgottenDebugOutputInspection */
+                        error_log( 'Received invalid Location object while loading a location object', E_USER_WARNING );
+
+                        $id = null;
+
+                        return;
+                    }
+                }
+
+                if ( $id instanceof Location )
+                {
+                    if ( $id->getGeonameId() === 0 )
+                    {
+                        /** @noinspection ForgottenDebugOutputInspection */
+                        error_log( 'Received invalid Location object while loading a location object', E_USER_WARNING );
+
+                        $id = null;
+
+                        return;
+
+                    }
+
+                    // check if there are new values to load (from the given object)
+                    if ( isset( $x ) )
+                    {
+                        $id->loadValues( $x );
+                        $id->save();
+                    }
+
+                    return;
+                }
+
+                /** @noinspection ForgottenDebugOutputInspection */
+                error_log( 'Received invalid input while loading a country object', E_USER_WARNING );
+
+                $id = null;
+            }
+        );
 
         $locations = [];
         $ids       = (array) $ids;
@@ -1830,18 +1983,36 @@ SQL,
             static function ( $id ) use
             (
                 &
-                $locations
+                $locations,
+                $locationClass,
+                $countryClass,
+                &
+                $additionalInterfaces
             )
             {
 
-                if ( array_key_exists( "_$id", self::$_locations ) )
+                if ( $id === null )
                 {
-                    $locations["_$id"] = self::$_locations["_$id"];
+                    return false;
+                }
+
+                if ( $id instanceof self )
+                {
+
+                    WpDb::ensureClass(
+                        $id,
+                        $id->isCountry()
+                            ? $countryClass
+                            : $locationClass,
+                        $additionalInterfaces
+                    );
+
+                    $locations["_{$id->getGeonameId()}"] = $id;
 
                     return false;
                 }
 
-                return true;
+                return is_int( $id );
             }
         );
 
@@ -1849,8 +2020,6 @@ SQL,
         {
             return $locations;
         }
-
-        static::parseArray( $locations );
 
         $sqlWhere = sprintf(
             "geoname_id %s",
@@ -1879,7 +2048,7 @@ SQL
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
-        static::parseArray( $result );
+        static::parseArray( $result, null, null, $locationClass, null, $countryClass );
 
         /** @noinspection AdditionOperationOnArraysInspection */
         $locations += $result;
@@ -1914,7 +2083,9 @@ SQL
                     &
                     $geo,
                     &
-                    $result
+                    $result,
+                    &
+                    $countryClass
                 )
                 {
 
@@ -1936,7 +2107,7 @@ SQL
 
                     if ( Location::isItACountry( $item, 'fcl', 'fcode' ) )
                     {
-                        $item = static::$_countryClass::load( $item );
+                        $item = $countryClass::load( $item );
                     }
 
                     $result[] = $item;
@@ -1944,49 +2115,109 @@ SQL
                 ARRAY_FILTER_USE_BOTH
             );
 
-            static::parseArray( $result );
+            static::parseArray( $result, null, null, $locationClass, null, $countryClass );
+
+            // sanitize entries
+            array_walk(
+                $result,
+                static function ( Location $location )
+                {
+
+                    if ( $location->getGeonameId() === 0 )
+                    {
+                        if ( $location->countryCode === null || ! $location->isCountry() )
+                        {
+                            throw new ErrorException(
+                                sprintf(
+                                    'incomplete location object: %s',
+                                    \GuzzleHttp\json_encode
+                                    (
+                                        $location->toArray()
+                                    )
+                                )
+                            );
+                        }
+
+                        // trigger autoload
+                        $location->updateMissingData();
+                    }
+                }
+            );
 
             /** @noinspection AdditionOperationOnArraysInspection */
             $locations += $result;
         }
 
-        return static::parseArray( $locations );
+        return static::parseArray( $locations, null, null, $locationClass, null, $countryClass );
     }
 
 
     /**
-     * @param          $array
-     * @param  string  $key
-     * @param  string  $prefix
+     * @param  array                                      $array
+     * @param  string|string[]|null                       $key
+     * @param  string|null                                $prefix
+     * @param  \WPGeonames\Entities\Location|string|null  $locationClass
+     * @param  \WPGeonames\Entities\Country|string|null   $countryClass
+     * @param  array                                      $additionalInterfaces
      *
      * @return array|null
      * @throws \ErrorException
+     * @noinspection PhpParameterNameChangedDuringInheritanceInspection
      */
     public static function parseArray(
-        &$array,
-        $key
-        = [
-            'geoname_id',
-            'geonameId',
-        ],
-        $prefix = '_'
+        array &$array,
+        $key = null,
+        $prefix = null,
+        $locationClass = null,
+        $additionalInterfaces = null,
+        $countryClass = null
     ): ?array {
 
-        WpDb::formatOutput( $array, static::class, $key, $prefix );
+        $key                    = $key
+            ?? [
+                'geoname_id',
+                'geonameId',
+            ];
+        $prefix                 = $prefix ?? '_';
+        $locationClass          = $locationClass ?? static::class;
+        $countryClass           = $countryClass ?? static::$_countryClass;
+        $additionalInterfaces[] = $countryClass;
 
         array_walk(
             $array,
-            static function ( Location &$location )
+            static function ( &$location ) use
+            (
+                $countryClass
+            )
             {
 
-                if ( ! $location instanceof static::$_countryClass && $location->isCountry() )
+                if ( $location instanceof Location && ! $location instanceof $countryClass && $location->isCountry() )
                 {
                     unset( self::$_locations["_{$location->getGeonameId()}"] );
-                    $location = new static::$_countryClass( $location );
+                    $location = new $countryClass( $location );
+
+                    return;
                 }
 
+                if (
+                    (
+                        is_array( $location ) || get_class( $location ) === stdClass::class
+                    )
+                    && (
+                        Location::isItACountry( $location, 'feature_class', 'feature_code' )
+                        || Location::isItACountry( $location, 'featureClass', 'featureCode' )
+                        || Location::isItACountry( $location, 'fcl', 'fcode' )
+                    )
+                )
+                {
+                    $location->__CLASS__ = $countryClass;
+
+                    return;
+                }
             }
         );
+
+        WpDb::formatOutput( $array, $locationClass, $key, $prefix, $additionalInterfaces );
 
         return $array;
 

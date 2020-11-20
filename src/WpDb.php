@@ -434,6 +434,41 @@ class WpDb
     }
 
 
+    public static function ensureClass(
+        &$item,
+        $targetClass,
+        &$additionalInterfaces
+    ): bool {
+
+        $targetClass = $item->__CLASS__ ?? $targetClass;
+
+        if ( ! $item instanceof $targetClass
+            && ! array_reduce(
+                $additionalInterfaces,
+                static function (
+                    $isA,
+                    $class
+                ) use
+                (
+                    &
+                    $item
+                )
+                {
+
+                    return $isA || $item instanceof $class;
+                },
+                false
+            ) )
+        {
+            $item = new $targetClass( $item );
+
+            return true;
+        }
+
+        return false;
+    }
+
+
     /**
      * @param          $result
      * @param          $output
@@ -609,28 +644,7 @@ class WpDb
                 )
                 {
 
-                    $class = $item->__CLASS__ ?? $class;
-
-                    if ( ! $item instanceof $class
-                        && ! array_reduce(
-                            $additionalInterfaces,
-                            static function (
-                                $isA,
-                                $class
-                            ) use
-                            (
-                                &
-                                $item
-                            )
-                            {
-
-                                return $isA || $item instanceof $class;
-                            },
-                            false
-                        ) )
-                    {
-                        $item = new $class( $item );
-                    }
+                    static::ensureClass( $item, $class, $additionalInterfaces );
                 }
             );
 

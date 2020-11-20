@@ -159,7 +159,8 @@ class ApiQuery
             );
 
             // convert result
-            WpDb::formatOutput( $result, $output ?? $status->classLocations );
+            $class  = $output ?? $status->classLocations;
+            $result = $class::load( $result, null, $status->classCountries );
 
             // filter out duplicates
             $duplicates += array_intersect_key( $result, $duplicates );
