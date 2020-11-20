@@ -1154,11 +1154,23 @@ SQL,
             }
         );
 
-        $sqlGeonameIds = implode( ',', array_filter( array_column( $ids, 'geoname_id' ) ) );
+        $sqlGeonameIds = implode(
+            ',',
+            array_filter(
+                array_column(
+                    ( $sqlLoadAll
+                        ? array_column( $ids, 'o' )
+                        : $ids ),
+                    'geoname_id'
+                )
+            )
+        );
         $sqlGeonameIds = $sqlGeonameIds
             ?: '-1';
 
-        $sqlCountryCodes = implode( "','", array_filter( array_column( $ids, 'iso2' ) ) );
+        $sqlCountryCodes = $sqlLoadAll
+            ? ''
+            : implode( "','", array_filter( array_column( $ids, 'iso2' ) ) );
         $sqlCountryCodes = $sqlCountryCodes
             ? "'$sqlCountryCodes'"
             : "'--'";
