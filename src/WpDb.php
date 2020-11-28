@@ -531,6 +531,22 @@ class WpDb
 
         case OBJECT:
             // Return an integer-keyed array of row objects.
+            if ( ! empty( $result ) )
+            {
+                if ( ! $keyName === null )
+                {
+                    $result = array_values( $result );
+                }
+
+                array_walk(
+                    $result,
+                    static function ( &$entry )
+                    {
+
+                        $entry = (object) $entry;
+                    }
+                );
+            }
             break;
 
         case OBJECT_K:
@@ -561,13 +577,19 @@ class WpDb
                     )
                     {
 
-                        $object_vars = get_object_vars( $row );
+                        $return = $object_vars = null;
+
+                        // if output is desired as ARRAY, but is currently and object, convert to an array
+                        if ( $output !== OBJECT_K && is_object( $row ) )
+                        {
+                            $return = static::toArray( $row );
+                        }
 
                         switch ( $output )
                         {
                             /** @noinspection PhpMissingBreakStatementInspection */
                         case ARRAY_K:
-                            $object_vars =& $row;
+                            $object_vars = &$return;
                             // continue with next
 
                         case OBJECT_K:
@@ -578,7 +600,8 @@ class WpDb
                                 break;
 
                             case empty( $keyName ):
-                                $key = $prefix . reset( $object_vars );
+                                $key = $return ?? static::toArray( $row );
+                                $key = $prefix . reset( $key );
                                 break;
 
                             default:
@@ -587,17 +610,32 @@ class WpDb
 
                                 foreach ( $keyNames as $keyName )
                                 {
+                                    if ( is_object( $row ) )
+                                    {
+                                        if ( substr( $keyName, 0, 3 ) === 'get' && method_exists( $row, $keyName ) )
+                                        {
+                                            $key = $prefix . $row->$keyName();
+                                            break;
+                                        }
+
+                                        if ( property_exists( $row, $keyName ) )
+                                        {
+                                            $key = $prefix . $row->$keyName;
+                                            break;
+                                        }
+
+                                        if ( $object_vars == null )
+                                        {
+                                            $object_vars = static::toArray( $row );
+                                        }
+                                    }
+
                                     if ( array_key_exists( $keyName, $object_vars ) )
                                     {
                                         $key = $prefix . $object_vars[ $keyName ];
                                         break;
                                     }
 
-                                    if ( is_object( $row ) && property_exists( $row, $keyName ) )
-                                    {
-                                        $key = $prefix . $row->$keyName;
-                                        break;
-                                    }
                                 }
 
                                 if ( $key === null )
@@ -610,20 +648,20 @@ class WpDb
 
                             if ( ! isset( $new_array[ $key ] ) )
                             {
-                                $new_array[ $key ] = $row;
+                                $new_array[ $key ] = $return ?? $row;
                             }
                             break;
 
                         case ARRAY_A:
                             // Return an integer-keyed array of...
                             // ...column name-keyed row arrays.
-                            $new_array[] = $object_vars;
+                            $new_array[] = $return;
                             break;
 
                         case ARRAY_N:
                             // Return an integer-keyed array of...
                             // ...integer-keyed row arrays.
-                            $new_array[] = array_values( $object_vars );
+                            $new_array[] = array_values( $return );
                             break;
                         }
                     }
@@ -774,6 +812,43 @@ PATTERN,
             $sqlOrTableName
         );
 
+    }
+
+
+    public static function &toArray( $input ): ?array
+    {
+
+        if ( $input === null )
+        {
+            return $input;
+        }
+
+        if ( is_array( $input ) )
+        {
+            return $input;
+        }
+
+        if ( ! is_object( $input ) )
+        {
+            $input = [ $input ];
+
+            return $input;
+        }
+
+        if ( method_exists( $input, 'serialize' ) )
+        {
+            $input = $input->serialize();
+        }
+        elseif ( method_exists( $input, 'toArray' ) )
+        {
+            $input = $input->toArray();
+        }
+        else
+        {
+            $input = get_object_vars( $input );
+        }
+
+        return $input;
     }
 
 }
