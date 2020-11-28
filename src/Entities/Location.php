@@ -2105,7 +2105,7 @@ SQL,
         }
 
         $sqlWhere = sprintf(
-            "geoname_id %s",
+            "l.geoname_id %s",
             is_array( $ids )
                 ? sprintf( 'IN (%s)', implode( ',', $ids ) )
                 : "= $ids"
@@ -2120,7 +2120,25 @@ SQL,
          `wp_geonames_locations_cache`          l
     WHERE
         $sqlWhere
-    ;
+    
+    UNION
+    
+    SELECT
+          a.geoname_id                        as  idLocation
+        , a.*
+    FROM
+         `wp_geonames_locations_cache`          a
+         INNER JOIN
+         `wp_geonames_locations_cache`          l ON a.geoname_id IN (
+                                                                        l.country_id
+                                                                      , l.admin1_id
+                                                                      , l.admin2_id
+                                                                      , l.admin3_id
+                                                                      , l.admin4_id
+                                                                     )
+    WHERE
+        $sqlWhere
+
 SQL
         );
 
@@ -2131,7 +2149,37 @@ SQL
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
-        static::parseArray( $result, null, null, $options->locationClass, null, $options->countryClass );
+        // copy id values to id keys
+        $ids = array_combine( $ids, $ids );
+
+        // prefix values with "_"
+        array_walk(
+            $ids,
+            static function ( &$id )
+            {
+
+                $id = "_$id";
+            }
+        );
+
+        // flip keys around
+        $ids = array_flip( $ids );
+
+        // cache result or retrieve objects from cache
+        array_walk(
+            $result,
+            [
+                static::class,
+                'loadDetectId',
+            ],
+            $options
+        );
+
+        // update keys from geonameId
+        WpDb::formatOutput( $result, null, 'getGeonameId', '_' );
+
+        // keep only the originally requested ids;
+        $result = array_intersect_key( $result, $ids );
 
         /** @noinspection AdditionOperationOnArraysInspection */
         $locations += $result;

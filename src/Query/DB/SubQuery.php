@@ -196,8 +196,12 @@ class SubQuery
             );
         }
 
+        $sqlQueryId        = $this->queryId;
+        $sqlSearchTypeName = $this->getSearchTypeName();
+
         $sql = Core::$wpdb->prepareAndReplaceTablePrefix(
             <<<SQL
+(
 SELECT
       r.`order`
     , r.`score`
@@ -213,18 +217,46 @@ WHERE
     AND r.query_id = %d
     AND r.search_type = %s
     $sqlExclude
-ORDER BY
-      r.order
 $sqlLimit
+)
+UNION
+(
+SELECT
+      %d             AS `order`
+    , 0              AS `score`
+    , null           AS `_id`
+    , a.*
+    , a.`geoname_id` AS `idLocation`
+FROM
+        `wp_geonames_locations_cache`       a
+    INNER JOIN
+        `wp_geonames_locations_cache`       l ON a.geoname_id IN (
+                                                                    l.country_id
+                                                                  , l.admin1_id
+                                                                  , l.admin2_id
+                                                                  , l.admin3_id
+                                                                  , l.admin4_id
+                                                                 )
+    INNER JOIN
+         `wp_geonames_locations_results`    r on l.geoname_id = r.geoname_id
+                                                AND r.query_id = %d
+                                                AND r.search_type = %s
+                                                $sqlExclude
+)
+ORDER BY
+      `order`
+       , idLocation
 ;
 SQL
             ,
-            $this->queryId,
-            $this->getSearchTypeName()
+            $sqlQueryId,
+            $sqlSearchTypeName,
+            PHP_INT_MAX,
+            $sqlQueryId,
+            $sqlSearchTypeName
         );
 
         return Core::$wpdb->get_results( $sql );
-
     }
 
 
@@ -813,7 +845,7 @@ SQL,
 
         try
         {
-            array_walk(
+            $result = array_filter(
                 $result,
                 static function ( &$row ) use
                 (
@@ -840,18 +872,41 @@ SQL,
                         throw new InvalidCacheResultSet( 'invalid row', $row );
                     }
 
-                    if ( $geoname_id === null || ! is_numeric( $geoname_id ) || $geoname_id <= 0 )
+                    if ( ! is_numeric( $geoname_id ) || $geoname_id <= 0 )
                     {
                         throw new InvalidCacheResultSet( 'invalid genome_id', $row );
                     }
 
-                    if ( $order === null || ! is_numeric( $order ) || (int) $order <= $lastOrder )
+                    if ( ! is_numeric( $order ) || ( $order = (int) $order ) < 0 )
                     {
                         throw new InvalidCacheResultSet( 'invalid order', $row );
                     }
 
-                    $order = (int) $order;
-                    $step  = $order - $lastOrder;
+                    if ( $order === PHP_INT_MAX )
+                    {
+                        // cache location
+
+                        $row->order = null;
+
+                        // load location
+                        $status->classLocations::load(
+                            $row,
+                            (object) [
+                                'locationClass' => $status->classLocations,
+                                'countryClass'  => $status->classCountries,
+                            ]
+                        );
+
+                        // don't keep it in the result set
+                        return false;
+                    }
+
+                    $step = $order - $lastOrder;
+
+                    if ( $step <= 0 )
+                    {
+                        throw new InvalidCacheResultSet( 'invalid step', $row );
+                    }
 
                     if ( $step > 1 )
                     {
@@ -862,8 +917,9 @@ SQL,
                     }
 
                     $lastOrder = $order;
-                }
 
+                    return true;
+                }
             );
         }
         catch ( InvalidCacheResultSet $e )
