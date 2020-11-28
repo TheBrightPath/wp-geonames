@@ -1868,8 +1868,8 @@ SQL,
 
         return ( $ids === null || is_array( $ids ) )
             ? $records
-            : reset( $records )
-                ?: null;
+            : ( reset( $records )
+                ?: null );
     }
 
 
