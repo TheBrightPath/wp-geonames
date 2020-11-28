@@ -1141,12 +1141,41 @@ class Location
 
 
     /**
-     * @param  int  $geonameId
+     * @param  int|null  $geonameId
      *
      * @return Location
+     * @throws \ErrorException
      */
-    public function setGeonameId( int $geonameId ): Location
+    public function setGeonameId( ?int $geonameId ): Location
     {
+
+        // ignore if they're the same
+        if ( $this->geonameId === $geonameId )
+        {
+            return $this;
+        }
+
+        // ignore null
+        if ( $geonameId === null )
+        {
+            return $this;
+        }
+
+        // fail, if already set
+        if ( ( $this->geonameId ?? 0 ) > 0 )
+        {
+            throw new ErrorException(
+                sprintf( 'GeonameId of an object cannot be changed. Old: %d, New: %d', $this->geonameId, $geonameId )
+            );
+        }
+
+        // fail, if already set
+        if ( array_key_exists( "_$geonameId", self::$_locations ) )
+        {
+            throw new ErrorException(
+                sprintf( 'An instance of GeonameId already exists. Id: %d', $geonameId )
+            );
+        }
 
         $this->geonameId = $geonameId;
 
