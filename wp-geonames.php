@@ -12,6 +12,7 @@ Author URI: https://www.boiteasite.fr
 // exit if accessed directly
 if ( ! defined( 'ABSPATH' ) )
 {
+    http_response_code( 404 );
     exit;
 }
 
@@ -22,10 +23,8 @@ if ( ! defined( 'TBP_IS_ADMIN_HEARTBEAT' ) )
         'TBP_IS_ADMIN_HEARTBEAT',
         (
             'heartbeat' === ( $_REQUEST['action'] ?? false )
-            && strpos(
-                $_SERVER['REQUEST_URI'],
-                '/wp-admin/admin-ajax.php'
-            ) >= 0 )
+            && '/wp-admin/admin-ajax.php' === $_SERVER['REQUEST_URI']
+        )
     );
 }
 
