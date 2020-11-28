@@ -568,7 +568,13 @@ SQL
             )
         ) )
         {
-            $status->result = $status->classLocations::load( $status->result, null, $status->classCountries );
+            $status->result = $status->classLocations::load(
+                $status->result,
+                (object) [
+                    'locationClass' => $status->classLocations,
+                    'countryClass'  => $status->classCountries,
+                ]
+            );
 
             $status->total = $this->getResultTotal();
 

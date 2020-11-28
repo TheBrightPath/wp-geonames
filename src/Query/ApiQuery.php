@@ -171,7 +171,13 @@ class ApiQuery
 
             // convert result
             $class  = $output ?? $status->classLocations;
-            $result = $class::load( $result, null, $status->classCountries );
+            $result = $class::load(
+                $result,
+                (object) [
+                    'locationClass' => $status->classLocations,
+                    'countryClass'  => $status->classCountries,
+                ]
+            );
 
             // filter out duplicates
             $duplicates += array_diff_key( $result, $duplicates );

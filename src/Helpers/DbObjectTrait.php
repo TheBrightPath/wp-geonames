@@ -3,6 +3,7 @@
 namespace WPGeonames\Helpers;
 
 use ErrorException;
+use stdClass;
 use WPGeonames\Core;
 
 trait DbObjectTrait
@@ -40,17 +41,18 @@ SQL;
      */
     public static function load(
         $ids = null,
-        $output = null
+        object $options = null
     ) {
 
-        $records = static::loadRecords( $ids );
+        $options = $options ?? new stdClass();
+        $records = static::loadRecords( $ids, $options );
 
         if ( $records === null )
         {
             return null;
         }
 
-        Core::$wpdb::formatOutput( $records, $output ?? static::$_returnFormat );
+        Core::$wpdb::formatOutput( $records, $options->output ?? static::$_returnFormat );
 
         return ( $ids === null || is_array( $ids ) )
             ? $records
@@ -68,12 +70,14 @@ SQL;
      */
     protected static function loadRecords(
         $sqlWhere,
-        $tableName = null
+        $options = null
     ): ?array {
+
+        $options = $options ?? new stdClass();
 
         $sql = sprintf(
             static::$_sqlLoadRecords,
-            $tableName ?? static::$_tblName,
+            $options->tableName ?? static::$_tblName,
             is_int( $sqlWhere )
                 ? 'query_id = ' . $sqlWhere
                 : $sqlWhere
