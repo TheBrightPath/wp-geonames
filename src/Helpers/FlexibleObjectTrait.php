@@ -36,7 +36,15 @@ trait FlexibleObjectTrait
         $defaults = []
     ) {
 
-        $this->loadValues( $values, $defaults );
+        if ( ! empty( $defaults ) )
+        {
+            // instantiate the object with default values
+            $this->loadValues( $defaults );
+        }
+
+        // load actual values. (This is done in a seperate step, as setting values can have side-effects,
+        // overwriting stuff from the default values.)
+        $this->loadValues( $values );
     }
 
 
