@@ -2306,6 +2306,7 @@ SQL
 
         $key                    = $key
             ?? [
+                'getGeonameId',
                 'geoname_id',
                 'geonameId',
             ];
@@ -2322,10 +2323,15 @@ SQL
             )
             {
 
-                if ( $location instanceof Location && ! $location instanceof $countryClass && $location->isCountry() )
+                if ( $location instanceof Location )
                 {
-                    unset( self::$_locations["_{$location->getGeonameId()}"] );
-                    $location = new $countryClass( $location );
+                    if ( ! $location instanceof $countryClass
+                        && $location->isCountry() )
+                    {
+                        unset( self::$_locations["_{$location->getGeonameId()}"] );
+                        unset( Country::$_countries[ $location->getIso2( false ) ] );
+                        $location = new $countryClass( $location );
+                    }
 
                     return;
                 }
