@@ -28,7 +28,7 @@ WHERE
     %s
 SQL;
 
-    protected $_isDirty = false;
+    protected $_isDirty   = false;
     protected $_isLoading = false;
 
 
