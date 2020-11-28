@@ -39,7 +39,7 @@ interface Query
 
             // With the parameter 'fuzzy' the search will find results even if the search terms are incorrectly spelled. Example: http://api.geonames.org/search?q=londoz&fuzzy=0.8&username=demo
             // default is '1', defines the fuzziness of the search terms. float between 0 and 1. The search term is only applied to the name attribute.
-            'fuzzy'          => 0.8,
+            'fuzzy'          => 1,
 
             // default is 'AND', with the operator 'OR' not all search terms need to be matched by the response
             // required for removing irrelevant search parameters
