@@ -20,6 +20,7 @@ use ZipArchive;
 // exit if accessed directly
 if ( ! defined( 'ABSPATH' ) )
 {
+    http_response_code( 404 );
     exit;
 }
 
