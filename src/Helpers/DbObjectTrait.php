@@ -33,10 +33,10 @@ SQL;
 
 
     /**
-     * @param        $ids
-     * @param  null  $output
+     * @param  null         $ids
+     * @param  object|null  $options
      *
-     * @return array|mixed|null
+     * @return array|\WPGeonames\Helpers\FlexibleDbObjectInterface|null
      * @throws \ErrorException
      */
     public static function load(

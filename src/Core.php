@@ -3335,7 +3335,9 @@ SQL
     public static function getCountries(
         $output = Location::class
     ) {
-        if (is_a( $output , Location::class)){
+
+        if ( is_a( $output, Location::class ) )
+        {
             return $output::load();
         }
 

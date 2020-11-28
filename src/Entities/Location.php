@@ -1,4 +1,5 @@
 <?php
+/** @noinspection ProperNullCoalescingOperatorUsageInspection */
 
 namespace WPGeonames\Entities;
 
@@ -1473,6 +1474,7 @@ class Location
      * @param  int|null  $lId
      *
      * @return $this
+     * @throws \ErrorException
      */
     protected function setIdLocation( ?int $lId ): self
     {
@@ -2479,7 +2481,7 @@ SQL
 
         if ( false === Core::$wpdb->query( $statements ) )
         {
-            throw new \ErrorException( Core::$wpdb->last_error );
+            throw new ErrorException( Core::$wpdb->last_error );
         }
 
         array_walk(
