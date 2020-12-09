@@ -41,7 +41,7 @@ SQL;
      */
     public static function load(
         $ids = null,
-        object $options = null
+        ?object $options = null
     ) {
 
         $options = $options ?? new stdClass();

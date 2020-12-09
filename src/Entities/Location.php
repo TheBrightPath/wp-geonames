@@ -1858,7 +1858,7 @@ SQL,
      */
     public static function load(
         $ids = null,
-        object $options = null
+        ?object $options = null
     ) {
 
         $records = static::loadRecords( $ids, $options );

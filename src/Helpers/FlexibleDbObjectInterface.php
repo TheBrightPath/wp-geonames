@@ -10,6 +10,9 @@ interface FlexibleDbObjectInterface
     public function save();
 
 
-    public static function load( $ids = null );
+    public static function load(
+        $ids = null,
+        ?object $options = null
+    );
 
 }
