@@ -25,7 +25,7 @@ trait FlexibleDbObjectTrait
         $defaults = []
     ) {
 
-        if ( ! is_array( $values ) && ! is_object( $values ) )
+        if ( ! is_array( $values ) && ! is_object( $values ) && $values !== null )
         {
             $values = static::loadRecords( $values );
         }
