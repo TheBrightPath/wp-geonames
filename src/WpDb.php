@@ -502,7 +502,13 @@ class WpDb
 
         $class = null;
 
-        if (
+        if ( $output === null )
+        {
+            $output = ! empty( $keyName )
+                ? OBJECT_K
+                : OBJECT;
+        }
+        elseif (
             ! in_array(
                 $output,
                 [
@@ -517,12 +523,10 @@ class WpDb
             && class_exists( $output )
         )
         {
-
             $class  = $output;
             $output = ! empty( $keyName )
                 ? OBJECT_K
                 : OBJECT;
-
         }
 
         switch ( strtoupper( $output ) )
