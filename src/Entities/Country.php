@@ -151,6 +151,16 @@ class Country
         {
             $this->_idCountry = $values->_idCountry;
         }
+
+        // unless no values are provided, make sure thae country code is set so that it is available through static::äcountries
+        if ( ! empty( $values ) )
+        {
+            if ( empty( $this->getIso2() ) )
+            {
+                throw new \ErrorException( sprintf( 'Country code missing for geonameId %d', $this->getGeonameId() ) );
+            }
+        }
+
     }
 
 
