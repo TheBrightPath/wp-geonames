@@ -1824,8 +1824,8 @@ SQL,
 
     public static function isItACountry(
         $object,
-        $featureClassProperty,
-        $featureCodeProperty
+        $featureClassProperty = null,
+        $featureCodeProperty = null
     ): bool {
 
         if ( $object instanceof Country )
@@ -1838,18 +1838,58 @@ SQL,
             $object = (object) $object;
         }
 
-        if ( ! property_exists( $object, $featureClassProperty )
-            || $object->$featureClassProperty === null
-            || ! property_exists( $object, $featureCodeProperty )
-            || $object->$featureCodeProperty === null )
+        $featureClassProperty = (array) ( $featureClassProperty ??
+            [
+                'feature_class',
+                'featureClass',
+                'fcl',
+            ] );
+
+        $featureCodeProperty = (array) ( $featureCodeProperty ??
+            [
+                'feature_code',
+                'featureCode',
+                'fcode',
+            ] );
+
+        $reduce = static function (
+            $carry,
+            $property
+        ) use
+        (
+            &
+            $object
+        )
+        {
+
+            if ( $carry === null
+                && property_exists( $object, $property )
+                && $object->$property !== null )
+            {
+                return $object->$property;
+            }
+
+            return $carry;
+        };
+
+        $featureClass = array_reduce( $featureClassProperty, $reduce );
+
+        if ( empty( $featureClass ) )
         {
             return false;
         }
 
-        return array_key_exists( $object->$featureClassProperty, Core::FEATURE_FILTERS['countriesOnly'] )
+        $featureCode = array_reduce( $featureCodeProperty, $reduce );
+
+        if ( empty( $featureCode ) )
+        {
+            return false;
+        }
+
+        return array_key_exists( $featureClass, Core::FEATURE_FILTERS['countriesOnly'] )
             && in_array(
-                $object->$featureCodeProperty,
-                Core::FEATURE_FILTERS['countriesOnly'][ $object->$featureClassProperty ],
+                $featureCode,
+                Core::FEATURE_FILTERS['countriesOnly'][ $featureClass ],
                 true
             );
     }
@@ -2347,13 +2387,10 @@ SQL
 
                 if (
                     (
-                        is_array( $location ) || get_class( $location ) === stdClass::class
+                        ( is_array( $location ) && $location = (object) $location )
+                        || get_class( $location ) === stdClass::class
                     )
-                    && (
-                        Location::isItACountry( $location, 'feature_class', 'feature_code' )
-                        || Location::isItACountry( $location, 'featureClass', 'featureCode' )
-                        || Location::isItACountry( $location, 'fcl', 'fcode' )
-                    )
+                    && Location::isItACountry( $location )
                 )
                 {
                     $location->__CLASS__ = $countryClass;
