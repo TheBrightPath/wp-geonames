@@ -140,16 +140,13 @@ class SubQuery
             ]
         );
 
-        add_filter(
-            "geonames/cache/result/type={$this->searchType}",
-            [
-                $this,
-                'cacheStoreRecords',
-            ],
-            10,
-            2
-        );
+    }
 
+
+    public function __destruct()
+    {
+
+        $this->filtersRemove();
     }
 
 
@@ -491,6 +488,29 @@ SQL
     }
 
 
+    protected function filtersRemove()
+    {
+
+        remove_filter(
+            "geonames/cache/lookup/type={$this->searchType}",
+            [
+                $this,
+                'cacheLookup',
+            ]
+        );
+
+        remove_filter(
+            "geonames/cache/result/type={$this->searchType}",
+            [
+                $this,
+                'cacheStoreRecords',
+            ],
+            10
+        );
+
+    }
+
+
     /**
      * @param  bool  $updateQueryCount
      *
@@ -661,6 +681,16 @@ SQL
 
         $this->setResultTotal( $apiStatus->total );
 
+        add_filter(
+            "geonames/cache/result/type={$this->searchType}",
+            [
+                $this,
+                'cacheStoreRecords',
+            ],
+            10,
+            2
+        );
+
         // store the new records in cache
         $apiStatus = apply_filters( "geonames/cache/result", $apiStatus, $this->_status );
         $apiStatus = apply_filters( "geonames/cache/result/type=$searchType", $apiStatus, $this->_status );
@@ -681,6 +711,8 @@ SQL
 
         $status->duplicates = array_diff_key( $apiStatus->result ?? [], $status->result ?? [] );
         $status->total      = $this->getResultTotal();
+
+        $this->filtersRemove();
 
         return $status;
 
