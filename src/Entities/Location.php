@@ -1789,16 +1789,23 @@ SQL,
     protected function updateMissingData( int $what = 0 ): self
     {
 
-        // load location if it has not been loaded nor from the database nor the API
-        if ( $this->geonameId && $this->_idLocation === null && $this->_idAPI === null )
+        // load location if
+        if ( $this->geonameId
+            && (
+                // ... it has not been loaded nor from the database nor the API
+                ( $this->_idLocation === null && $this->_idAPI === null )
+                || // ... it is a country without a country code
+                ( $this instanceof Country && $this->iso2 === null )
+            ) )
         {
             // load location from database
-            if ( $item = Core::$wpdb->get_row(
-                Core::$wpdb->prepareAndReplaceTablePrefix(
-                    'SELECT * FROM `wp_geonames_locations_cache` WHERE geoname_id = %d',
-                    $this->geonameId
-                )
-            ) )
+            if ( $this->_idLocation === null && $this->_idAPI === null
+                && $item = Core::$wpdb->get_row(
+                    Core::$wpdb->prepareAndReplaceTablePrefix(
+                        'SELECT * FROM `wp_geonames_locations_cache` WHERE geoname_id = %d',
+                        $this->geonameId
+                    )
+                ) )
             {
                 $this->_idLocation = $this->geonameId;
                 $this->loadValues( $item );
