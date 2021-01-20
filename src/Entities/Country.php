@@ -34,7 +34,8 @@ class Country
     use FlexibleObjectTrait
     {
         FlexibleObjectTrait::__construct as private _FlexibleObjectTrait__construct;
-    }
+        __toString as private _FlexibleDbObjectTrait__toString;
+  }
 
 // constants
 

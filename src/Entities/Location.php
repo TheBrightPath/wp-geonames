@@ -48,6 +48,7 @@ class Location
     use FlexibleDbObjectTrait
     {
         __construct as private _FlexibleDbObjectTrait__construct;
+        __toString as private _FlexibleDbObjectTrait__toString;
         cleanInput as protected ___cleanInput;
     }
 
@@ -275,6 +276,13 @@ class Location
         }
 
         return $propertyByRef;
+    }
+
+
+    public function __toString()
+    {
+
+        return $this->getName( 'en', false );
     }
 
 
