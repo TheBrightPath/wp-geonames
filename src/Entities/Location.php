@@ -1578,6 +1578,11 @@ class Location
                 throw new ErrorException( Core::$wpdb->last_error );
             }
 
+            if ( $this->_idLocation === null && $this->_idAPI )
+            {
+                $this->_idLocation = $this->_idAPI;
+            }
+
             $this->_isDirty = false;
         }
 
@@ -2329,6 +2334,9 @@ SQL
                         // trigger autoload
                         $location->updateMissingData();
                     }
+
+                    // make sure the newly retrieved entries are saved to the database!
+                    $location->save( true );
                 }
             );
 

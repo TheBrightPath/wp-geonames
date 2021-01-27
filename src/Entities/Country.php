@@ -35,7 +35,7 @@ class Country
     {
         FlexibleObjectTrait::__construct as private _FlexibleObjectTrait__construct;
         __toString as private _FlexibleDbObjectTrait__toString;
-  }
+    }
 
 // constants
 
@@ -889,6 +889,11 @@ SQL,
         if ( Core::$wpdb->query( $sql ) === false )
         {
             throw new ErrorException( Core::$wpdb->last_error );
+        }
+
+        if ( $this->_idCountry === null && ( $this->_idAPI ?? $this->_idLocation ) )
+        {
+            $this->_idCountry = ( $this->_idAPI ?? $this->_idLocation );
         }
 
         parent::save( true, $force );
