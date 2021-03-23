@@ -568,7 +568,7 @@ class WpDb
                     $result,
                     static function (
                         $row,
-                        $key
+                        $currentKey
                     )
                     use
                     (
@@ -599,8 +599,9 @@ class WpDb
                         case OBJECT_K:
                             switch ( true )
                             {
-                            case is_string( $key ):
+                            case is_string( $currentKey ):
                                 // keep current key
+                                $key = $currentKey;
                                 break;
 
                             case empty( $keyName ):
@@ -614,6 +615,12 @@ class WpDb
 
                                 foreach ( $keyNames as $keyName )
                                 {
+                                    if ( is_callable( $keyName ) )
+                                    {
+                                        $key = $keyName( $row, $currentKey, $prefix );
+                                        break;
+                                    }
+
                                     if ( is_object( $row ) )
                                     {
                                         if ( substr( $keyName, 0, 3 ) === 'get' && method_exists( $row, $keyName ) )
