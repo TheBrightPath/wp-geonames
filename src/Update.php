@@ -160,9 +160,9 @@ SQL;
         $sql = <<<SQL
                 CREATE TABLE $nom  (
                     `query_id` int(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
-                    `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `query_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
                     `query_updated` timestamp NULL DEFAULT NULL,
-                    `query_queried` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+                    `query_queried` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     `query_count` smallint(6) NOT NULL DEFAULT 0,
                     `search_term` varchar(200) NOT NULL,
                     `search_countries` json DEFAULT NULL,
@@ -222,9 +222,9 @@ SQL;
                 CREATE TABLE $nom  (
                     `query_id` int(11) NOT NULL,
                     `search_type` enum('$searchTypes') NOT NULL,
-                    `query_created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                    `query_created` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
                     `query_updated` timestamp NULL DEFAULT NULL,
-                    `query_queried` timestamp NOT NULL ON UPDATE CURRENT_TIMESTAMP,
+                    `query_queried` timestamp NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     `query_count` smallint(6) NOT NULL DEFAULT 0,
                     `result_count` smallint(6) NOT NULL,
                     `result_total` smallint(6) DEFAULT NULL, 
