@@ -28,7 +28,9 @@ class WpDb
 // protected properties
 
     protected $use_mysqli    = false;
+
     protected $has_connected = false;
+
     protected $time_start;
 
 
@@ -599,7 +601,11 @@ class WpDb
                         case OBJECT_K:
                             switch ( true )
                             {
-                            case is_string( $currentKey ):
+                            case is_string( $currentKey )
+                                && ! preg_match(
+                                    sprintf( "/^%s\d+$/", preg_quote( $prefix, "/" ) ),
+                                    $currentKey
+                                ):
                                 // keep current key
                                 $key = $currentKey;
                                 break;
