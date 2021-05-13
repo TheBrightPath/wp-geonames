@@ -121,11 +121,11 @@ class ApiQuery
             $params['startRow'] += count( $result );
             $status->total      = $status->total ?? $api->getLastTotalResultsCount();
 
-            if ( method_exists( $api, 'getLastUrlUsed' ) )
+            if ( method_exists( $api, 'getLastUrlRequested' ) )
             {
                 /** @noinspection ForgottenDebugOutputInspection */
                 error_log(
-                    sprintf( "%s %d\n", $api->getLastUrlUsed(), count( $result ) ),
+                    sprintf( "%s %d\n", $api->getLastUrlRequested(), count( $result ) ),
                     3,
                     ABSPATH . '/wp-content/uploads/api_debug.log'
                 );
