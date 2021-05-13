@@ -1104,7 +1104,7 @@ SQL,
             }
         );
 
-        parent::parseArray( $ids, 'getGeonameId', '_', $options->countryClass, null, $options->countryClass );
+        parent::parseArray( $ids, null, '_', $options->countryClass, null, $options->countryClass );
 
         if ( $loadingAll === 0 && $sqlGeonameIds === null && $sqlCountryCodes === null )
         {
@@ -1196,7 +1196,7 @@ SQL
             throw new ErrorException( Core::$wpdb->last_error, Core::$wpdb->last_error_no );
         }
 
-        parent::parseArray( $countries, 'ID', '_', $options->countryClass, null, $options->countryClass );
+        parent::parseArray( $countries, null, '_', $options->countryClass, null, $options->countryClass );
 
         /** @noinspection AdditionOperationOnArraysInspection */
         return $countries + $ids;
