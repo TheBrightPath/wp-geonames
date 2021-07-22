@@ -165,6 +165,13 @@ class Country
     }
 
 
+    public function __toString()
+    {
+
+        return (string) ( $this->getIso2( false ) ?? $this->getGeonameId() ?? '' );
+    }
+
+
     public function getAdmin1( bool $autoload = true ): ?object
     {
 
