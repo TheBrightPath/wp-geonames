@@ -28,6 +28,11 @@ trait FlexibleDbObjectTrait
         if ( ! is_array( $values ) && ! is_object( $values ) && $values !== null )
         {
             $values = static::loadRecords( $values );
+
+            if ( is_array( $values ) && count( $values === 1 ) )
+            {
+                $values = reset( $values );
+            }
         }
 
         $this->_FlexibleObjectTrait__construct( $values, $defaults );
