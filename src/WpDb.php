@@ -31,8 +31,6 @@ class WpDb
 
     protected $has_connected = false;
 
-    protected $time_start;
-
 
     /**
      * WpDb constructor.
