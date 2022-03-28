@@ -224,8 +224,12 @@ class WpDb
             $checkScalar
         );
 
-        return parent::prepare( $query, ...$args )
-            ?: null;
+        $return = parent::prepare( $query, ...$args );
+
+        return $query === '%d' && $return === "0"
+            ? $return
+            : ($return
+                ?: null);
     }
 
 
