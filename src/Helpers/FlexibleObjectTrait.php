@@ -163,7 +163,7 @@ trait FlexibleObjectTrait
         $array = array_filter(
             $array,
             static function (
-                &$item,
+                $item,
                 $key
             ) use
             (
